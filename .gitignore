@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+.vs/
+.vscode/
+TestResults/
+artifacts/
+*.user
+*.suo
+*.log
+*.tmp
+*.bak
+battery-report*
+batteryreport*
+# Evidence is opt-in and reviewed before commit.
+!docs/evidence/

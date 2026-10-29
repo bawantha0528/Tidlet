@@ -1,0 +1,44 @@
+[
+  {
+    "Build": "Release/net8.0-windows",
+    "File": "IsletMonitor.exe",
+    "Machine": "Amd64",
+    "CorFlags": null,
+    "SHA256": "CC3EF4F527E48A8D76C36DC0D61052A63D0FEE45C63D645D29BEAD6C88712A99"
+  },
+  {
+    "Build": "Release/net8.0-windows",
+    "File": "IsletMonitor.dll",
+    "Machine": "I386",
+    "CorFlags": "ILOnly",
+    "SHA256": "5A7E9353BD2453C490E3721210998B707DA3522219EA8508D6B4B35C81E08CA5"
+  },
+  {
+    "Build": "x64",
+    "File": "IsletMonitor.exe",
+    "Machine": "Amd64",
+    "CorFlags": null,
+    "SHA256": "CC3EF4F527E48A8D76C36DC0D61052A63D0FEE45C63D645D29BEAD6C88712A99"
+  },
+  {
+    "Build": "x64",
+    "File": "IsletMonitor.dll",
+    "Machine": "Amd64",
+    "CorFlags": "ILOnly",
+    "SHA256": "660A7311E17004638333ADA88A3D90FA229B8F29529C65D2FC2236ADC3340513"
+  },
+  {
+    "Build": "x86",
+    "File": "IsletMonitor.exe",
+    "Machine": "I386",
+    "CorFlags": null,
+    "SHA256": "48EE2DA462E6465C93970D3A7CA74AB192EE210DEE3FA5EE161003455BE6F956"
+  },
+  {
+    "Build": "x86",
+    "File": "IsletMonitor.dll",
+    "Machine": "I386",
+    "CorFlags": "ILOnly, Requires32Bit",
+    "SHA256": "8FD59BECE0572A233F4C78B04336A6677AD527A9FE094417D8999001B7FFECA0"
+  }
+]

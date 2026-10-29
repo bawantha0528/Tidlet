@@ -1,0 +1,27 @@
+{
+  "Date": "2026-10-29",
+  "ProjectRoot": ".",
+  "FilesMovedAndSHA256Verified": 56,
+  "NestedWrapperRemoved": true,
+  "SolutionAtProjectRoot": true,
+  "Sdk": "8.0.414",
+  "LockedRestore": "Pass",
+  "ReleaseBuild": {
+    "Result": "Pass",
+    "Warnings": 0,
+    "Errors": 0
+  },
+  "UnitTests": {
+    "Passed": 14,
+    "Failed": 0,
+    "Skipped": 0,
+    "Suites": 3
+  },
+  "ToolingChecksPassed": 24,
+  "AppSmokeCasesPassed": 2,
+  "ApplicationCodeChanged": false,
+  "PerformanceRerun": false,
+  "GitOperationsPerformed": false,
+  "AgentChangedSecuritySettings": false,
+  "HostedCI": "Not run"
+}

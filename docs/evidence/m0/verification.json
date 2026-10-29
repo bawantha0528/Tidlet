@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-29",
+  "sdk": "8.0.414",
+  "releaseBuild": {
+    "exitCode": 0,
+    "warnings": 0,
+    "errors": 0
+  },
+  "releaseUnitTests": {
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 3
+  },
+  "plainDotnetTest": {
+    "configuration": "Debug",
+    "passed": 14,
+    "failed": 0
+  },
+  "toolingChecks": 24,
+  "appSmokeCases": 2,
+  "lockedRestore": "Passed",
+  "x64Build": "Passed",
+  "x86Build": "Passed",
+  "applicationOutputContainsOnlyProjectAssemblies": true,
+  "gitDiffCheck": "Passed",
+  "githubHostedCI": "Not run: no remote configured",
+  "originalWorkspacePlacement": "Blocked: requested OneDrive directory rejects file creation",
+  "measurementKind": "Plain WPF M0 scaffold; not island-budget acceptance",
+  "measuredExecutableArchitecture": "AMD64 apphost with AnyCPU IL; verified against PE headers",
+  "fullFeature8GBCompatibility": "Not tested; M0 observed on reported 7.80 GiB system"
+}

@@ -1,0 +1,47 @@
+# M0–M3 acceptance matrix
+
+Date: 29 October 2026. M0 rows below have actual local evidence; later milestone rows remain **Not tested**. Requested workspace placement is verified. Full M0 acceptance still needs an authorized hosted CI run. Add exact commit/build/test/run/device evidence before changing a status to Pass. “Simulated” proves logic only and never satisfies a physical-device check.
+
+| ID | Requirement / cases | Planned evidence | Current status |
+|---|---|---|---|
+| P0 | AGENTS and detailed plan before feature code | All 56 transfer files hash-verified and relocated directly into Tidlet; Release build/tests rerun here | Pass: canonical project root verified |
+| M0.1 | Four correct projects/reference direction; Core portable | Release build, architecture assertions | Pass: Release build and foundation tests |
+| M0.2 | Real dotnet test discovery/execution, zero-test failure | Nonzero test counts, TRX, verifier exit code | Pass: 14 real tests / three suites under M0 go-ahead |
+| M0.3 | GitHub Actions build/tests pass | Actual authorized repository run URL and artifact | Configured with pinned actions; hosted run pending |
+| M0.4 | MIT, EditorConfig, README/rules/progress/decisions | Source review and repository inventory | Pass: files implemented and inspected |
+| M0.5 | Measurement math/identity/failure behavior | Fixtures, natural-exit fixture, 300-s scaffold baseline | Pass: 24 tooling checks and 300-second baseline |
+| M1.1 | Island/Notch/Bar × Collapsed/Hover/Expanded and a real live stat | State tests + actual desktop screenshots/interaction | Not tested |
+| M1.2 | No focus steal, toolwindow/Alt+Tab/taskbar absence | Live foreground HWND/style inspection + manual observation | Not tested |
+| M1.3 | Real cross-process click-through and hover/click recovery | Underlying app interaction + tray/hotkey recovery | Not tested |
+| M1.4 | PMv2, two monitors with distinct scale, negative coordinates | Physical two-monitor evidence; scale/topology checks | Not tested; hardware unconfirmed |
+| M1.5 | Display unplug/replug, work area/taskbar, Explorer tray recovery | Real or safely reproducible desktop checks | Not tested |
+| M1.6 | Fullscreen suppression/restoration, including borderless | SHQuery state tests + real app cases | Not tested |
+| M1.7 | Finite 200–300-ms transitions, no resting frame loop | State/clock lifecycle tests + observable callbacks | Not tested |
+| M1.8 | Shell WPF memory/CPU budgets | Raw 300-s samples for every style/scenario | Not measured |
+| M2.1 | CPU/RAM correctness, first sample/reset/nonfinite/denial | Pure tests + standard-user live source check | Not tested |
+| M2.2 | Network physical/virtual/no-duplicate deltas | Topology fixtures + available real interfaces | Not tested |
+| M2.3 | Battery absent, partial fields, signed rate/health validation | Fixtures + real battery where available | Not tested |
+| M2.4 | Disk PDH existence/status/warmup/reset | Counter fixtures + real standard-user counters | Not tested |
+| M2.5 | GPU absent/single/hybrid, correct adapter grouping | Identity/engine fixtures + real hybrid hardware | Not tested |
+| M2.6 | Ping/jitter, WLAN permission/disconnect/unavailable | Mocks + explicit optional live observation, no surprise prompts | Not tested |
+| M2.7 | Thermal fallback truthful or Unsupported | Official contract verification + available hardware | TODO(verify); not tested |
+| M2.8 | Top process exit/denial/PID reuse; confirmed kill path | Mock executor; no real process termination | Not tested |
+| M2.9 | One scheduler; visible demand; hidden/power/saver/resume | Fake-clock/provider lifecycle tests + actual power events where available | Not tested |
+| M2.10 | Real-provider budgets and zero hidden metric work | Raw 300-s samples + counters | Not measured |
+| M3.1 | Every requested customization; all four edges | Schema/view-model tests + real UI interaction | Not tested |
+| M3.2 | Restart persistence, corrupt JSON, backup/future schema | Temp-directory tests + actual app restart | Not tested |
+| M3.3 | Full settings/theme/layout export/import, profiles/alerts/hotkey, bounds and atomicity | Fixtures, malicious/oversize input, failed save/rollback | Not tested |
+| M3.4 | Configurable hotkey/conflict rollback | Mock native tests + actual successful registration | Not tested |
+| M3.5 | Heat/battery/ping alerts, unavailable/stale/DND/suppression | Deterministic fresh/stale threshold fixtures | Not tested |
+| M3.6 | Gaming/work/meeting profile rules and manual priority | Pure rules tests; no system-setting execution | Not tested |
+| M3.7 | Post-use retention plus representative max geometry/opacity/widgets/edge/DPI budgets | Raw 300-s Collapsed and Expanded/hidden/fullscreen runs | Not measured |
+| M3.8 | Stop after M3 | Final report, complete gaps/evidence list, no M4 work | Future gate |
+| H1 | Windows 10 and Windows 11 coverage | Real systems/VMs identified as such | Not tested |
+| H2 | Comfortable on an actual 8 GB reference machine | Same acceptance scenarios and RAM context | Not tested; hardware unconfirmed |
+| H3 | No driver/admin/default external traffic/telemetry | Source/publish dependency audit + standard-user live observation | Not tested |
+
+Minimum scenario outcomes: record Pass, Fail or Not tested. Do not convert Not tested to Pass because an automated fixture or a different machine passed.
+
+Architecture evidence must distinguish x64, x86 and deferred ARM64; neither build nor native-layout validation has run yet.
+
+M0 actual source/evidence: see [PROGRESS](../PROGRESS.md); raw measurements live in docs/evidence/m0. Host reported 7.8001 GiB RAM; this is M0 context, not full-feature 8 GB acceptance.

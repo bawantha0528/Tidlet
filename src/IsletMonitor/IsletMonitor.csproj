@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>IsletMonitor</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Islet.Core/Islet.Core.csproj" />
+    <ProjectReference Include="../Islet.Shell/Islet.Shell.csproj" />
+    <ProjectReference Include="../Islet.Windows/Islet.Windows.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,56 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  TESTINGPLATFORM_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: 'true'
+  CI: 'true'
+
+jobs:
+  build-test:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Restore locked packages
+        run: dotnet restore TidletMonitor.sln --locked-mode
+      - name: Release build
+        run: dotnet build -c Release --no-restore
+      - name: Discovered unit tests
+        run: dotnet test -c Release --no-build --logger trx --results-directory TestResults
+      - name: Reject missing, failed or empty test suites
+        if: always()
+        run: ./scripts/verify-test-results.ps1 -ResultsDirectory TestResults
+      - name: Measurement harness tests
+        run: ./scripts/test-measurement.ps1
+      - name: App startup and natural exit
+        run: ./scripts/smoke-app.ps1
+      - name: x64 and x86 app builds
+        shell: pwsh
+        run: |
+          foreach ($architecture in @('x64', 'x86')) {
+            dotnet build src/IsletMonitor/IsletMonitor.csproj -c Release --no-restore -p:PlatformTarget=$architecture -p:OutputPath=bin/$architecture/
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Retain test evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-evidence
+          path: |
+            TestResults/**/*.trx
+            artifacts/harness-tests/**
+          if-no-files-found: error
