@@ -1,11 +1,12 @@
-#requires -Version 7.0
+﻿#requires -Version 5.1
 [CmdletBinding()]
 param(
-    [string] $ResultsDirectory = (Join-Path $PSScriptRoot '../TestResults'),
+    [string] $ResultsDirectory,
     [string[]] $ExpectedAssemblies = @('Islet.Core.Tests.dll','Islet.Shell.Tests.dll','Islet.Windows.Tests.dll')
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not $ResultsDirectory) { $ResultsDirectory = (Join-Path $PSScriptRoot '../TestResults') }
 $files = @(Get-ChildItem -LiteralPath $ResultsDirectory -Filter '*.trx' -File -Recurse)
 if (-not $files.Count) { throw 'No TRX results found; an empty test run is not a pass.' }
 $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
@@ -31,3 +32,5 @@ foreach ($expected in $ExpectedAssemblies) {
 [pscustomobject]@{ Result = 'Pass'; Executed = $total; Passed = $total; Suites = @($seen | Sort-Object) } | ConvertTo-Json
 
 exit 0
+
+

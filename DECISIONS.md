@@ -72,3 +72,17 @@ The requested transfer was attempted through ordinary copy and native Windows co
 
 All 56 extracted project files were moved up from TidletMonitor-project-transfer into the canonical Tidlet folder. Resolved absolute source/destination paths were checked before moving; existing destinations were protected from overwrite; SHA-256 hashes verified every moved file. Only the empty extraction wrapper was removed. No Git history was copied, initialized, staged or committed. Earlier blocked-transfer entries above are historical. The agent changed no Windows security settings.
 
+
+## M1 feasibility first
+
+29 October 2026: follow docs/M1_FEASIBILITY.md before completing the shell. No dependencies. Require a natural-exit duration for the opt-in click-through probe until tray recovery exists. One bounded drawing surface, no blur/shadow/perpetual rendering. Real GetSystemTimes sampling, processor-group capability probe, no missing-to-zero conversion. Portable interfaces separate shell from Win32. Explicit diagnostics are local and bounded. Preserve M0 default until feasibility resolves. No alternate renderer or relaxed budget authorized.
+
+## M1 WPF stop gate reached
+
+Two complete 300-second collapsed feasibility measurements failed the unchanged 60 MB working-set limit: maxima 107.741184 MB and 109.666304 MB. CPU passed at 0.046874% and 0.039061% normalized across eight logical processors. Stop full M1 feature work. Preserve the opt-in tested probe and default M0 entry path. docs/M1_RENDERER_PROPOSAL.md is a concrete proposal requiring user direction; no native replacement or budget relaxation has been implemented. All tests pass, but M1 acceptance is incomplete. No new dependencies or Git mutations.
+
+## Native renderer approved by user
+
+User replied `approve` to docs/M1_RENDERER_PROPOSAL.md. Proceed under docs/M1_NATIVE_PLAN.md: native STA startup and layered-window rendering; keep C#/.NET 8, all M1 behavior and budgets. No new dependencies. Keep WPF legacy probe explicit and avoid initializing/loading WPF in native startup. Core owns portable presentation data/geometry; Shell coordinates state and demand; Windows owns bindings and native buffer/resource lifetime. AllowUnsafeBlocks is confined to the Windows DIB renderer with checked dimensions and scoped spans; this adds no package. Reuse native buffers rather than allocating managed frame arrays. Validate actual module loading and memory before completing full M1. No Git mutations.
+
+Native gate passed: 30.740480 MB maximum and 0.00846315% normalized CPU over 300.0138101 seconds, no WPF assemblies. Proceed with the original M1 behavior on the approved native path. Read-only Windows reduced-motion/high-contrast preferences are honored; no system setting is written. Recovery uses native tray menus and Ctrl+Alt+I; conflicts degrade to tray with a reason. Fullscreen uses SHQuery plus a foreground/monitor heuristic, foreground/location WinEvents and a bounded one-second reconciliation; user-hidden windows stop those watches. All heavyweight/real-provider work and animation stop while suppressed. Native error and physical-hardware gaps must remain explicit.

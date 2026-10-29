@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 
 function Get-MeasurementSummary {
     [CmdletBinding()]
@@ -15,7 +15,7 @@ function Get-MeasurementSummary {
     $previous = $null
     foreach ($sample in $Samples) {
         foreach ($property in @('ElapsedSeconds','TotalCpuSeconds','WorkingSetBytes','PrivateBytes','LifetimePeakWorkingSetBytes')) {
-            if ($null -eq $sample.$property -or -not [double]::IsFinite([double]$sample.$property)) {
+            $v = [double]$sample.$property; if ($null -eq $sample.$property -or [double]::IsNaN($v) -or [double]::IsInfinity($v)) {
                 throw "Missing or nonfinite observation: $property."
             }
         }
@@ -83,3 +83,4 @@ function Get-MeasurementSummary {
 }
 
 Export-ModuleMember -Function Get-MeasurementSummary
+

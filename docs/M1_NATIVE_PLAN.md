@@ -1,0 +1,12 @@
+# Approved M1 native renderer execution plan
+
+The user replied `approve` to the concrete Win32 renderer proposal. This authorizes replacing always-resident WPF startup/island rendering, preserving C#/.NET 8 and the unchanged budgets. No package, driver, elevation, Git operation or M2 feature is authorized.
+
+1. Native feasibility: select a plain STA Main instead of WPF-generated startup; retain the WPF experiment behind its explicit flag. Put Win32/GDI ownership in Islet.Windows, presentation/lifecycle in Islet.Shell, portable geometry/events/contracts in Core. Merely referencing WindowsDesktop is not proof of loading WPF; inspect actual loaded modules in probe evidence.
+2. Draw a small premultiplied-alpha DIB using verified User32/GDI calls and native text masks. Use reusable buffers and explicit native resource cleanup. Unsafe spans are confined to validated DIB memory in Windows, avoiding large managed pixel allocations. CPU math/providers remain portable/mockable. Test native layouts, masks/geometry and CPU failure behavior.
+3. Build, test, smoke and run the same 30-second warmup + 300-second native CPU-pill measurement. Do not proceed to full M1 if the unchanged 60 MB gate fails. Never trim working sets or force collection.
+4. If it passes, complete three styles/states, interruptible 250 ms easing, visible-only pointer observation, tray/hotkey recovery, display/DPI/work-area changes, fullscreen suppression, bounded real CPU graph, hidden lifecycle and accessible keyboard routes. Keep recovery independent of click-through.
+5. Verify with pure/fake-platform tests, actual native lifecycle exercise and rendered-frame inspection. Measure the three collapsed styles, expanded graphs, hidden, fullscreen suppression and collapsed residency after repeated expansion. Record physical mixed-DPI/fullscreen/game checks separately; do not claim mocks prove hardware behavior.
+6. Update progress, API register, decisions, acceptance/evidence and README. Stop after M1 for this request. User owns all Git operations.
+
+Native text uses the Windows Segoe UI font through GDI; there is no font/image/package download. Budget failures remain a stop-and-report condition. Later WPF windows remain provisional and must include their memory and post-close residency in the budgets.

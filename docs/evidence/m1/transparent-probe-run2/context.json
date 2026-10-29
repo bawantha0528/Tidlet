@@ -1,0 +1,11 @@
+{
+  "StartedUtc": "2026-10-29T16:08:27.7217640+00:00",
+  "IsAdministrator": false,
+  "LogicalProcessors": 8,
+  "ProbeProcessId": 22524,
+  "NaturalExitAfterSeconds": 345,
+  "WarmupSeconds": 30,
+  "MeasuredSeconds": 300,
+  "Scope": "Minimal real-CPU transparent WPF pill; not completed M1",
+  "NativeVisibilityMeaning": "WS_VISIBLE observed on each publication; occlusion and cross-process clicks require manual checks."
+}

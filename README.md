@@ -2,7 +2,7 @@
 
 An MIT-licensed Windows system monitor designed for a small top-edge island, plain-English readings and low resource use.
 
-**Current status: M0 scaffold.** The runnable window is a plain bootstrap; it does not yet contain an island, sensors, diagnostics or fixers. M1–M3 are planned; later milestones remain out of scope.
+**Current status: native M1 shell implemented; final performance verification in progress.** The user approved replacing always-resident WPF rendering after its memory gate failed. The native comparison passed at 30.74 MB peak; the complete Island shell passed at 36.63 MB peak. Remaining style/scenario measurements and physical-hardware acceptance are tracked in [progress](PROGRESS.md).
 
 ## Build and test
 
@@ -27,36 +27,59 @@ Tests use the disclosed Microsoft test SDK/framework/adapter only; application p
 dotnet run --project src/IsletMonitor -c Release --no-build
 ```
 
-Close the window normally. For an owned benchmark host that exits itself:
+Use the tray menu to exit. To run the historical M0 scaffold baseline with natural exit:
 
 ```powershell
-$app = Start-Process -FilePath src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe -ArgumentList '--exit-after-seconds','350' -PassThru
+$app = Start-Process -FilePath src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe -ArgumentList '--scaffold','--exit-after-seconds','350' -PassThru
 pwsh -NoProfile -File scripts/measure.ps1 -ProcessId $app.Id -Scenario ScaffoldIdle -DurationSeconds 300 -WarmupSeconds 30
 ```
 
 The measurement script never changes system settings, kills processes, forces garbage collection or trims working sets. Short diagnostic runs require an explicit flag and cannot claim budget acceptance. Scenario names are operator-supplied; hidden/fullscreen behavior needs separate evidence.
 
+## Running the M1 shell
+
+The default app now starts the approved native island, without initializing WPF. Hover to reveal the preview and click to expand. Escape or an outside click collapses the panel. Ctrl+Alt+I toggles it; if that shortcut is already in use, the tray menu remains available.
+
+Right-click the island or its tray icon for Island/Notch/Bar, display selection, Hide/Show and Exit. The app suppresses itself for Windows presentation/fullscreen states, borderless fullscreen, session lock, display-off and suspend. User-hidden mode stops metric, pointer, animation and foreground watches. All settings are temporary in M1; persistence/customization belongs to M3.
+
+```powershell
+dotnet run --project src/IsletMonitor -c Release --no-build
+```
+
+Developer checks:
+
+```powershell
+pwsh -NoProfile -File scripts/smoke-shell.ps1
+pwsh -NoProfile -File scripts/smoke-shell.ps1 -IncludeFullscreenFixture
+pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Collapsed -Style Island -OutputDirectory artifacts/measurements/my-shell-trial
+```
+
+The optional fullscreen fixture is an owned, visible test window that closes itself; it is not an exclusive D3D game. Each acceptance measurement needs a fresh directory and at least five measured minutes. Do not run overlapping visible trials. Raw CSV, native diagnostics and independently recomputed checks are separate evidence.
+
+The original WPF experiments remain available through --scaffold and --island-probe. --native-probe selects the minimal native comparison host, which differs from the complete shell in resident services. Each probe requires an explicit report path and timed exit. See docs/M1_NATIVE_PLAN.md and PROGRESS.md.
+
+
 ## Architecture
 
-- Islet.Core: portable identity, capability support and initial settings schema contracts; no Windows or WPF APIs.
-- Islet.Shell: WPF presentation foundation.
-- Islet.Windows: platform boundary, ready for later native implementations.
+- Islet.Core: portable capabilities, settings contracts, CPU reading states/math and display boundary; no Windows or WPF APIs.
+- Islet.Shell: native presentation/lifecycle controller and launch validation; legacy WPF experiments remain isolated.
+- Islet.Windows: Win32 layered renderer, CPU provider, display/power/fullscreen/tray/hotkey adapters; no production NuGet dependency.
 - IsletMonitor: application entry and composition.
 - tests / scripts / docs: genuine tests, verification tooling, plans and evidence.
 
-No sensor implementation, sample history or settings persistence is claimed in M0.
+M1 currently adds only the real CPU feasibility source. No sample history, full widget set, settings persistence or fixers are implemented.
 
 ## Performance and compatibility
 
 Targets for later island implementation: collapsed <=60 MB resident working set and <1% average normalized CPU over five minutes; expanded graphs <=100 MB; approximately zero hidden/fullscreen CPU. A plain M0 scaffold baseline is not a transparent-island pass.
 
-See [PROGRESS](PROGRESS.md) for actual commands/results and [PERFORMANCE](docs/PERFORMANCE.md) for definitions. x64/x86 build coverage does not prove native-layout or x86 runtime behavior; native bindings arrive later. Physical mixed-DPI monitors, missing/hybrid hardware and 8 GB reference-machine testing remain explicit gaps.
+See [PROGRESS](PROGRESS.md) for actual commands/results and [PERFORMANCE](docs/PERFORMANCE.md) for definitions. x64/x86 build coverage does not prove native-layout or x86 runtime behavior; M1 tests ran on both x64 and x86, and an x86 live app smoke passed; this does not prove Windows 10 or ARM64 coverage. Physical mixed-DPI monitors, missing/hybrid hardware and 8 GB reference-machine testing remain explicit gaps.
 
 .NET 8 reaches end of support on 10 November 2026. This scaffold deliberately honors the requested target; its installed SDK/runtime are older servicing builds. Any target change or machine installation requires a separate decision. See [Microsoft's lifecycle policy](https://dotnet.microsoft.com/en-us/platform/support/policy).
 
 ## Privacy and safety
 
-The M0 application collects no sensor data and makes no network requests. No accounts, telemetry, messaging, cloud sync, background service, driver or phone-home updater. Build/test tooling has separate Microsoft dependencies; its telemetry is opted out through process-local environment settings. No third-party test assets are shipped in the application.
+The native shell reads CPU times locally and keeps at most 60 history samples in memory. It writes diagnostics only to an explicitly requested report path. The normal app makes no network requests and writes no persistent settings in M1. The explicit M0 scaffold collects no sensor data. No accounts, telemetry, messaging, cloud sync, background service, driver or phone-home updater. Build/test tooling has separate Microsoft dependencies; its telemetry is opted out through process-local environment settings. No third-party test assets are shipped in the application.
 
 Future monitoring stays local, capabilities explain unavailable values, and tests of process actions/fixers use mock executors. No machine setting has been changed to implement or benchmark this scaffold.
 

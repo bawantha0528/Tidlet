@@ -1,0 +1,11 @@
+{
+  "StartedUtc": "2026-10-29T16:39:48.5818189+00:00",
+  "IsAdministrator": false,
+  "LogicalProcessors": 8,
+  "ProcessId": 26100,
+  "WarmupSeconds": 30,
+  "MeasuredSeconds": 300,
+  "NaturalExitAfterSeconds": 345,
+  "Scope": "Approved native Win32 CPU feasibility pill; not full M1",
+  "NativeVisibilityMeaning": "Sampled WS_VISIBLE; occlusion needs physical observation"
+}

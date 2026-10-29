@@ -1,0 +1,79 @@
+{
+  "SchemaVersion": 2,
+  "Host": "Tidlet Monitor native shell",
+  "CompletedUtc": "2026-10-29T17:29:17.4526454+00:00",
+  "Options": {
+    "Minimal": false,
+    "ExitAfterSeconds": 345,
+    "Style": 1,
+    "State": 0,
+    "Hidden": false,
+    "Exercise": false
+  },
+  "ProcessArchitecture": "X64",
+  "LoadedWpfAssemblies": [],
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "Layered": true,
+    "NoActivate": true,
+    "ToolWindow": true,
+    "ClickThrough": true,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "Bounds": {
+      "X": 810,
+      "Y": 0,
+      "Width": 300,
+      "Height": 52
+    },
+    "ActiveTimers": 4,
+    "RenderCount": 449
+  },
+  "SampleAttempts": 103,
+  "AvailableSamples": 102,
+  "VisibilityChecks": 105,
+  "InvisibleChecks": 0,
+  "ForegroundEverIsland": false,
+  "LastLabel": "CPU  14%",
+  "State": 0,
+  "Style": 1,
+  "UserHidden": false,
+  "Suppressed": false,
+  "SuppressionReason": null,
+  "PointerChecks": 3149,
+  "AnimationFrames": 318,
+  "SuppressionTransitions": 1,
+  "HistoryCount": 60,
+  "ExerciseCompleted": false,
+  "StatesObserved": {
+    "Notch/Collapsed": 72,
+    "Notch/Expanded": 32,
+    "Notch/Hover": 1
+  },
+  "ObservedDpi": [
+    120
+  ],
+  "Frames": [],
+  "Recovery": {
+    "TrayAvailable": true,
+    "HotkeyAvailable": true,
+    "ReducedMotion": false,
+    "HighContrast": false,
+    "Warnings": []
+  },
+  "DisplayCount": 1,
+  "NotificationQueries": 351,
+  "NotificationQueryError": null,
+  "ForegroundSignals": 7,
+  "RenderCount": 449,
+  "TimersRemainingAfterExit": 0,
+  "PollingStoppedOnExit": true,
+  "Failure": null,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

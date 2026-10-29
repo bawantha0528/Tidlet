@@ -1,0 +1,39 @@
+{
+  "SchemaVersion": 1,
+  "Host": "Native Win32 CPU feasibility pill",
+  "CompletedUtc": "2026-10-29T16:45:33.6773512+00:00",
+  "ProcessArchitecture": "X64",
+  "LoadedWpfAssemblies": [],
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "Layered": true,
+    "NoActivate": true,
+    "ToolWindow": true,
+    "ClickThrough": true,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "Bounds": {
+      "X": 822,
+      "Y": 10,
+      "Width": 275,
+      "Height": 45
+    },
+    "ActiveTimers": 2,
+    "RenderCount": 81
+  },
+  "SampleAttempts": 86,
+  "AvailableSamples": 86,
+  "VisibilityChecks": 88,
+  "InvisibleChecks": 0,
+  "ForegroundEverIsland": false,
+  "LastLabel": "CPU  12%",
+  "PollingStoppedOnExit": true,
+  "Failure": null,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

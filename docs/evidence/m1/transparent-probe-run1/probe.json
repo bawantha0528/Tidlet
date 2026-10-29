@@ -1,0 +1,33 @@
+{
+  "SchemaVersion": 1,
+  "Host": "M1 minimal transparent WPF feasibility probe",
+  "CompletedUtc": "2026-10-29T16:07:01.9397586+00:00",
+  "ProcessArchitecture": "X64",
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "RequiredStylesPresent": true,
+    "Layered": true,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "X": 822,
+    "Y": 10,
+    "Width": 275,
+    "Height": 45
+  },
+  "SampleAttempts": 87,
+  "AvailableSamples": 86,
+  "VisibilityChecks": 87,
+  "InvisibleChecks": 0,
+  "ForegroundEverIsland": false,
+  "RenderCount": 82,
+  "LastLabel": "CPU  15%",
+  "Failure": null,
+  "PollingStoppedOnExit": true,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

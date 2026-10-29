@@ -38,6 +38,8 @@ jobs:
         run: ./scripts/test-measurement.ps1
       - name: App startup and natural exit
         run: ./scripts/smoke-app.ps1
+      - name: Native shell lifecycle and rendered states
+        run: ./scripts/smoke-shell.ps1
       - name: x64 and x86 app builds
         shell: pwsh
         run: |
@@ -53,4 +55,5 @@ jobs:
           path: |
             TestResults/**/*.trx
             artifacts/harness-tests/**
+            artifacts/native-shell-smoke/**
           if-no-files-found: error

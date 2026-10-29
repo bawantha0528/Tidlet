@@ -1,0 +1,36 @@
+{
+  "CapturedUtc": "2026-10-29T21:33:35.9965532+05:30",
+  "Configuration": "Release",
+  "TargetFramework": "net8.0-windows",
+  "Binaries": [
+    {
+      "File": "IsletMonitor.exe",
+      "SHA256": "A9ED6481480939D15997FA62E3BBD2724C0A6A4F95F01548C66A16C490D553D3"
+    },
+    {
+      "File": "IsletMonitor.dll",
+      "SHA256": "5A18FFCE2E40B1B4AB7471BE7252BE8CD62EF5DFB815396C0EB9A7D0D1D29F04"
+    },
+    {
+      "File": "Islet.Core.dll",
+      "SHA256": "CDA56160F16D2E7822FF4DE304CD5612E8CE35643243452DE8A431ECADBAAD0B"
+    },
+    {
+      "File": "Islet.Shell.dll",
+      "SHA256": "3C8BF1D6277B91630C2D6EADEC8F720B6AECC8380B464D69BB1C8DF52D5CF35F"
+    },
+    {
+      "File": "Islet.Windows.dll",
+      "SHA256": "71B3AE0DFB558A504D20D67A17D1C3B92C3CFCD300D0324EEBEED91E18AF3F6A"
+    },
+    {
+      "File": "IsletMonitor.deps.json",
+      "SHA256": "02307D6FF42F0237BC80133722E112F1DA1EFF4081AA8F8CBC45655D4455D87A"
+    },
+    {
+      "File": "IsletMonitor.runtimeconfig.json",
+      "SHA256": "C71152BF25E40D647B2440C5B39BE157A3D356106BE9D5B678AB97BB87B4E782"
+    }
+  ],
+  "LaunchMethod": "Start-Process; no debugger requested by harness"
+}

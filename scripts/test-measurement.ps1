@@ -1,4 +1,4 @@
-#requires -Version 7.0
+﻿#requires -Version 5.1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'Measurement.psm1') -Force
@@ -83,10 +83,12 @@ Write-TrxFixture 1 1 1
 Assert-Condition ($LASTEXITCODE -eq 0) 'Valid TRX fixture should pass.'
 foreach ($fixture in @(@(0,0,0,0),@(1,1,0,1),@(1,0,0,0))) {
     Write-TrxFixture @fixture
-    & $pwshPath -NoProfile -File (Join-Path $PSScriptRoot 'verify-test-results.ps1') -ResultsDirectory $trxRoot -ExpectedAssemblies Fixture.Tests.dll 2>$null | Out-Null
+    $oldEap = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'; try { & $pwshPath -NoProfile -File (Join-Path $PSScriptRoot 'verify-test-results.ps1') -ResultsDirectory $trxRoot -ExpectedAssemblies Fixture.Tests.dll 2>$null | Out-Null } finally { $ErrorActionPreference = $oldEap }
     Assert-Condition ($LASTEXITCODE -ne 0) 'Empty, failed or unexecuted fixture was accepted.'
 }
 
 [pscustomobject]@{ Result='Pass'; Checks=$checks } | ConvertTo-Json | Tee-Object -FilePath (Join-Path $out 'checks.json')
 
 exit 0
+
+

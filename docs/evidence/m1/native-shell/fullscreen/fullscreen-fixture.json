@@ -1,0 +1,7 @@
+{
+  "Mode": "Owned borderless fullscreen test fixture",
+  "FixtureForegroundConfirmed": false,
+  "Failure": "Windows did not allow the owned test fixture into the foreground.",
+  "NaturalExit": true,
+  "ExitCode": 1
+}

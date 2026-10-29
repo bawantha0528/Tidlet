@@ -1,0 +1,50 @@
+{
+  "RecordedUtc": "2026-10-29T21:41:25.8676768+05:30",
+  "Build": {
+    "Warnings": 0,
+    "Errors": 0,
+    "Command": "dotnet build -c Release --no-restore -m:1 -p:UseSharedCompilation=false -nodeReuse:false",
+    "Result": "Pass"
+  },
+  "Tests": {
+    "Windows": 7,
+    "Passed": 28,
+    "Skipped": 0,
+    "Core": 17,
+    "Result": "Pass",
+    "Executed": 28,
+    "Shell": 4,
+    "Failed": 0,
+    "Command": "dotnet test -c Release --no-build --no-restore --logger trx --results-directory TestResults/m1-final"
+  },
+  "TestResultGuard": {
+    "Suites": 3,
+    "Executed": 28,
+    "Result": "Pass"
+  },
+  "MeasurementTooling": {
+    "Checks": 24,
+    "Command": "pwsh -NoProfile -File scripts/test-measurement.ps1",
+    "Result": "Pass"
+  },
+  "DefaultAppSmoke": {
+    "Cases": 2,
+    "Result": "Pass"
+  },
+  "TransparentProbeSmoke": {
+    "LiveCpu": true,
+    "NaturalExit": true,
+    "Cases": 3,
+    "NativeStyles": true,
+    "Result": "Pass"
+  },
+  "PackagesAdded": 0,
+  "GitMutations": false,
+  "SystemSettingChanges": false,
+  "RealProcessTermination": false,
+  "HostedCi": "Not run",
+  "PhysicalMixedDpi": "Not tested",
+  "MilestoneStatus": "M1 incomplete; stopped at WPF working-set gate",
+  "FiveMinuteTrials": 2,
+  "MemoryGate": "Fail in both trials; unchanged 60,000,000-byte ceiling"
+}

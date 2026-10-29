@@ -1,0 +1,14 @@
+{
+  "StartedUtc": "2026-10-29T17:23:32.3228818+00:00",
+  "Scenario": "Collapsed",
+  "Style": "Notch",
+  "IsAdministrator": false,
+  "LogicalProcessors": 8,
+  "ProcessId": 3856,
+  "WarmupSeconds": 30,
+  "MeasuredSeconds": 300,
+  "NaturalExitAfterSeconds": 345,
+  "Scope": "Full approved native M1 shell; no WPF initialization",
+  "Fixture": null,
+  "NativeVisibilityMeaning": "WS_VISIBLE observed; occlusion and exhaustive input/focus audit remain separate"
+}

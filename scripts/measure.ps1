@@ -1,4 +1,4 @@
-#requires -Version 7.0
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
 Read-only external process observer. Never changes settings, trims memory or terminates a process.
@@ -116,3 +116,4 @@ finally {
 }
 $summary | ConvertTo-Json -Depth 8
 exit $exitCode
+

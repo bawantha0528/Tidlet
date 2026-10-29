@@ -1,6 +1,13 @@
-# Tidlet Monitor — progress
+﻿
 
-Updated: 29 October 2026 (Asia/Colombo).
+## M1 historical — WPF feasibility trial (FAILED gate; native renderer approved)
+
+- Opt-in 220 × 36 DIP transparent, borderless, topmost CPU pill; 8 DIP primary-display gap. Native no-activate, toolwindow and layered click-through style bits, PMv2 manifest with PerMonitor fallback.
+- Portable CPU readings/delta validation; GetSystemTimes startup probe and runtime failure handling.
+- Four-second background sampling; explicit UI dispatcher publication.
+- Two 300-second trials resulted in sampled maximum working set of 107.74 MB and 109.67 MB, exceeding the 60 MB collapsed budget.
+- Feasibility STOP was triggered per `AGENTS.md`. The user approved `docs/M1_RENDERER_PROPOSAL.md`, authorizing replacing resident WPF island rendering with a native C#/.NET 8 Win32 layered window.
+
 
 ## M0 — implemented and locally verified; external acceptance pending
 

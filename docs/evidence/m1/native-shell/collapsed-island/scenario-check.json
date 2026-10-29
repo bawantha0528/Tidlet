@@ -1,0 +1,25 @@
+﻿{
+    "Result":  "Pass",
+    "Scenario":  "Collapsed",
+    "Style":  "Island",
+    "RawCsvRecomputed":  true,
+    "LifetimeDiagnostics":  "Pass",
+    "SensorSamples":  85,
+    "PointerChecks":  3150,
+    "RenderCount":  76,
+    "WpfAssemblies":  0,
+    "NativeTimersAfterExit":  0,
+    "HiddenBehaviorEvidence":  "Visible scenario",
+    "WorkingSetMaxMB":  36.634624,
+    "CpuMachineNormalizedPercent":  0.029296864638675535,
+    "CpuCoreEquivalentPercent":  0.23437491710940428,
+    "Recovery":  {
+                     "TrayAvailable":  true,
+                     "HotkeyAvailable":  true,
+                     "ReducedMotion":  false,
+                     "HighContrast":  false,
+                     "Warnings":  [
+
+                                  ]
+                 }
+}

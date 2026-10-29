@@ -1,0 +1,20 @@
+[
+  {
+    "Trial": "transparent-probe-run1",
+    "Samples": 301,
+    "Result": "Fail",
+    "Recomputed": true,
+    "PeakMB": 107.741184,
+    "CpuPercent": 0.046873663147502485,
+    "ProbeExit": 0
+  },
+  {
+    "Trial": "transparent-probe-run2",
+    "Samples": 301,
+    "Result": "Fail",
+    "Recomputed": true,
+    "PeakMB": 109.666304,
+    "CpuPercent": 0.03906134578931372,
+    "ProbeExit": 0
+  }
+]

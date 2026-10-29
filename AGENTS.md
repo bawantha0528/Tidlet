@@ -62,3 +62,7 @@ Ask only for new dependencies, admin actions, blown budgets or scope changes; de
 ## Active project location — user instruction
 
 Use `C:\Users\bawan\OneDrive\Documents\Tidlet` as the sole development folder. All active source files and TidletMonitor.sln are directly in this folder. The earlier output repository and ZIP are reference backups only. Do not stage, commit, initialize Git or push; the user performs Git operations manually. If Windows blocks file access, report it without changing security settings or developing elsewhere.
+
+## Approved M1 renderer exception
+
+The user approved docs/M1_RENDERER_PROPOSAL.md after two transparent WPF working-set failures. Native C#/.NET 8 startup and Win32 layered island rendering are now authorized under docs/M1_NATIVE_PLAN.md. Shell presentation uses portable platform contracts; Windows owns Win32/GDI. Preserve WPF legacy experiments and avoid WPF initialization in the ambient host. Keep budgets unchanged and count every auxiliary window/process. This overrides the original WPF-only ambient-shell description, not the dependency, test, safety or manual-Git rules.

@@ -1,0 +1,1 @@
+The launcher had a post-processing expression typo after both the observer and app completed. Raw summary/CSV and native diagnostics are complete and preserved; verify-native-scenario.ps1 independently recomputed and validated them. The launcher expression was corrected for subsequent trials. No app or measurement data changed.

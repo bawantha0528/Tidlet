@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net8.0-windows</TargetFramework></PropertyGroup>
+  <PropertyGroup><TargetFramework>net8.0-windows</TargetFramework><AllowUnsafeBlocks>true</AllowUnsafeBlocks></PropertyGroup>
   <ItemGroup><ProjectReference Include="../Islet.Core/Islet.Core.csproj" /></ItemGroup>
 </Project>

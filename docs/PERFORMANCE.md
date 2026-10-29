@@ -1,6 +1,6 @@
 # Performance protocol
 
-Planning specification only; no measurements exist.
+Executed measurements now exist: M0 baseline and M1 feasibility trials. See PROGRESS.md and docs/evidence. This protocol remains the acceptance contract; a failed trial is not an accepted milestone.
 
 The authoritative protocol is [implementation plan, section 9](IMPLEMENTATION_PLAN.md#9-measurement-contract-and-stop-policy). This file is a quick checklist to carry into implementation.
 
