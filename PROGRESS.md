@@ -2,6 +2,53 @@
 
 Updated: 30 October 2026 (Asia/Colombo).
 
+## M3 — Customization, persistence/recovery, export/import, profiles, alerts and edge layout implemented; STOP at M3 for review
+
+**What was built**
+
+- Versioned Settings Schema & Validation (src/Islet.Core/Settings/SettingsDocument.cs):
+  - Style (Island, Notch, Bar), Edge (Top, Bottom, Left, Right), Theme (System, Light, Dark), AccentColorHex, Opacity (0.3-1.0), CornerRadius (0-32 DIP), TransitionDurationMs (200-300 ms), ReducedMotion.
+  - CollapsedMetric ("cpu", "ram", "network", "battery"), ExpansionTrigger (Click, Hover), VisibleWidgets, HotkeyChord ("Ctrl+Alt+I"), DoNotDisturb.
+  - Comprehensive ValidateAndSanitize() enforcing safe finite bounds and falling back to safe defaults without crashing.
+  - Value-equality Equals() and GetHashCode() implementation.
+- Edge Geometry (src/Islet.Core/Island/IslandGeometry.cs):
+  - Full positioning calculation for all 4 edges: Top, Bottom, Left, Right with appropriate monitor bounds clamping and style gap.
+- Atomic Persistence & Corruption Recovery (src/Islet.Core/Settings/SettingsStorage.cs):
+  - FileSettingsStore writing to %APPDATA%\IsletMonitor\settings.json.
+  - Atomic temporary file write and replacement.
+  - Automatic backup preservation in settings.backup.json.
+  - On corruption or truncation: preserves original to settings.corrupt.json, recovers from settings.backup.json, or falls back to safe defaults with plain-English warnings.
+  - Future schema protection: does not destructively overwrite files with newer SchemaVersion.
+- Import & Export (src/Islet.Core/Settings/SettingsEnvelope.cs):
+  - Declarative JSON envelope format with metadata and schema version.
+  - Strict 512 KB payload size limit and input validation against malformed or oversized inputs.
+- Alert Engine & Rules (src/Islet.Core/Alerts/AlertEngine.cs):
+  - Battery low warning (threshold <= 20%) with hysteresis (+5% reset), cooldown suppression (default 60s), and charging state auto-reset.
+  - Ping latency spike alert (>= 200 ms) with cooldown.
+  - Complete suppression during Do Not Disturb or suppressed desktop states.
+  - Pure in-app notifications (zero external network traffic or phone-home activity).
+- Profiles & Mode Management (src/Islet.Core/Profiles/ProfileManager.cs):
+  - Work (default), Gaming (Bar style, minimized distractions, suppressed alerts), and Meeting (quiet).
+  - Precedence: Manual Override > Meeting rule > Gaming rule > Work default; suppression always wins.
+  - Debounce timer (2.0 s) preventing rapid cycling or fluttering between profiles.
+  - Strictly controls only Tidlet layout/polling policy; NEVER modifies Windows power plans, registry, process priority, or system settings.
+
+**How it was verified (commands run, results)**
+
+| Executed check | Result |
+|---|---|
+| dotnet build src/Islet.Core -c Release | Pass; 0 warnings, 0 errors |
+| dotnet test tests/Islet.Core.Tests/ -c Release | Pass; 43 executed, 43 passed |
+| dotnet test tests/Islet.Windows.Tests/ -c Release | Pass; 18 executed, 18 passed |
+| dotnet test tests/Islet.Shell.Tests/ -c Release | Pass; 13 executed, 13 passed |
+| Total test suite | 74 executed, 74 passed, 0 failed, 0 skipped across all 3 assemblies |
+| scripts/test-measurement.ps1 | Pass; 24 checks |
+
+**M3 STOP Policy Gate**
+
+Per AGENTS.md and IMPLEMENTATION_PLAN.md, M0–M3 are now implemented and locally verified. M4–M7 remain deferred. Stopping here for user review.
+
+
 ## M2 — Tier 1 providers and widgets implemented; unit & integration tests pass
 
 **What was built**

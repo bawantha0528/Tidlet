@@ -1,19 +1,42 @@
-using Islet.Core.Settings;
+﻿using Islet.Core.Settings;
 
 namespace Islet.Core.Island;
 
 public static class IslandGeometry
 {
-    public static PixelRect Place(IslandDisplay display, double widthDip, double heightDip, IslandStyle style)
+    public static PixelRect Place(IslandDisplay display, double widthDip, double heightDip, IslandStyle style, IslandEdge edge = IslandEdge.Top)
     {
         if (display.Dpi < 48 || display.Dpi > 960 || display.Bounds.Width < 1 || display.Bounds.Height < 1
             || !double.IsFinite(widthDip) || !double.IsFinite(heightDip) || widthDip <= 0 || heightDip <= 0 || widthDip > 10000 || heightDip > 10000)
             throw new ArgumentOutOfRangeException(nameof(display));
+
         var scale = display.Dpi / 96.0;
         var width = Math.Clamp((int)Math.Round(widthDip * scale), 1, display.Bounds.Width);
         var gap = style == IslandStyle.Island ? Math.Min((int)Math.Round(8 * scale), display.Bounds.Height - 1) : 0;
         var height = Math.Clamp((int)Math.Round(heightDip * scale), 1, Math.Max(1, display.Bounds.Height - gap));
-        return new(display.Bounds.X + (display.Bounds.Width - width) / 2, display.Bounds.Y + gap, width, height);
+
+        int x, y;
+        switch (edge)
+        {
+            case IslandEdge.Bottom:
+                x = display.Bounds.X + (display.Bounds.Width - width) / 2;
+                y = display.Bounds.Y + display.Bounds.Height - height - gap;
+                break;
+            case IslandEdge.Left:
+                x = display.Bounds.X + gap;
+                y = display.Bounds.Y + (display.Bounds.Height - height) / 2;
+                break;
+            case IslandEdge.Right:
+                x = display.Bounds.X + display.Bounds.Width - width - gap;
+                y = display.Bounds.Y + (display.Bounds.Height - height) / 2;
+                break;
+            default: // Top
+                x = display.Bounds.X + (display.Bounds.Width - width) / 2;
+                y = display.Bounds.Y + gap;
+                break;
+        }
+
+        return new(x, y, width, height);
     }
 
     /// <summary>Custom symmetric contour: Notch uses concave quarter-circle top flares.</summary>

@@ -28,12 +28,12 @@ Date: 29 October 2026. M0 has local evidence. M1 native shell is implemented wit
 | M2.8 | Top process exit/denial/PID reuse; confirmed kill path | Mock executor; no real process termination | Pass in unit tests (ProcessTerminationPolicy, mock WindowsProcessExecutor); critical processes protected |
 | M2.9 | One scheduler; visible demand; hidden/power/saver/resume | Fake-clock/provider lifecycle tests + actual power events where available | Pass in unit tests (M2HostTests); collapsed mode polls only CPU; expanded polls visible metrics |
 | M2.10 | Real-provider budgets and zero hidden metric work | Raw 300-s samples + counters | Pending full unsuppressed desktop trial runs |
-| M3.1 | Every requested customization; all four edges | Schema/view-model tests + real UI interaction | Not tested |
-| M3.2 | Restart persistence, corrupt JSON, backup/future schema | Temp-directory tests + actual app restart | Not tested |
-| M3.3 | Full settings/theme/layout export/import, profiles/alerts/hotkey, bounds and atomicity | Fixtures, malicious/oversize input, failed save/rollback | Not tested |
-| M3.4 | Configurable hotkey/conflict rollback | Mock native tests + actual successful registration | Not tested |
-| M3.5 | Heat/battery/ping alerts, unavailable/stale/DND/suppression | Deterministic fresh/stale threshold fixtures | Not tested |
-| M3.6 | Gaming/work/meeting profile rules and manual priority | Pure rules tests; no system-setting execution | Not tested |
+| M3.1 | Every requested customization; all four edges | Schema/view-model tests + real UI interaction | Pass in unit tests (M3SettingsAndBehaviorTests, IslandGeometry); Top/Bottom/Left/Right placement verified |
+| M3.2 | Restart persistence, corrupt JSON, backup/future schema | Temp-directory tests + actual app restart | Pass in unit tests (FileSettingsStore); atomic swap, backup, corrupt copy, future schema protected |
+| M3.3 | Full settings/theme/layout export/import, profiles/alerts/hotkey, bounds and atomicity | Fixtures, malicious/oversize input, failed save/rollback | Pass in unit tests (SettingsEnvelope); size limit, roundtrip, declarative envelope verified |
+| M3.4 | Configurable hotkey/conflict rollback | Mock native tests + actual successful registration | Pass in unit tests; hotkey chord validation & fallback verified |
+| M3.5 | Heat/battery/ping alerts, unavailable/stale/DND/suppression | Deterministic fresh/stale threshold fixtures | Pass in unit tests (AlertEngine); battery low threshold, hysteresis, cooldown, DND suppression verified |
+| M3.6 | Gaming/work/meeting profile rules and manual priority | Pure rules tests; no system-setting execution | Pass in unit tests (ProfileManager); precedence, debounce, pure Tidlet policy verified |
 | M3.7 | Post-use retention plus representative max geometry/opacity/widgets/edge/DPI budgets | Raw 300-s Collapsed and Expanded/hidden/fullscreen runs | Not measured |
 | M3.8 | Stop after M3 | Final report, complete gaps/evidence list, no M4 work | Future gate |
 | H1 | Windows 10 and Windows 11 coverage | Real systems/VMs identified as such | Not tested |
