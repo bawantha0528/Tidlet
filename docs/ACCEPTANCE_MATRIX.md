@@ -18,16 +18,16 @@ Date: 29 October 2026. M0 has local evidence. M1 native shell is implemented wit
 | M1.6 | Fullscreen suppression/restoration, including borderless | SHQuery state tests + real app cases | Partial: SHQueryUserNotificationState suppression implemented; Hidden scenario verified (0 work); Fullscreen fixture requires active desktop foreground |
 | M1.7 | Finite 200–300-ms transitions, no resting frame loop | State/clock lifecycle tests + observable callbacks | Pass in unit tests (IslandTransitionTests, NativeRendererTests); no frame timer when collapsed or hidden |
 | M1.8 | Shell memory/CPU budgets (Native Win32 layered) | Raw 300-s samples for every style/scenario | Partial: Collapsed Island PASS (36.63 MB, 0.029% CPU); Collapsed Notch PASS (39.66 MB, 0.060% CPU); Hidden PASS (27.81 MB, 0.000% CPU); Bar, Expanded, Fullscreen, PostExpansion pending interactive desktop |
-| M2.1 | CPU/RAM correctness, first sample/reset/nonfinite/denial | Pure tests + standard-user live source check | M1 CPU subset tested; RAM and full M2 remain unstarted |
-| M2.2 | Network physical/virtual/no-duplicate deltas | Topology fixtures + available real interfaces | Not tested |
-| M2.3 | Battery absent, partial fields, signed rate/health validation | Fixtures + real battery where available | Not tested |
-| M2.4 | Disk PDH existence/status/warmup/reset | Counter fixtures + real standard-user counters | Not tested |
-| M2.5 | GPU absent/single/hybrid, correct adapter grouping | Identity/engine fixtures + real hybrid hardware | Not tested |
-| M2.6 | Ping/jitter, WLAN permission/disconnect/unavailable | Mocks + explicit optional live observation, no surprise prompts | Not tested |
-| M2.7 | Thermal fallback truthful or Unsupported | Official contract verification + available hardware | TODO(verify); not tested |
-| M2.8 | Top process exit/denial/PID reuse; confirmed kill path | Mock executor; no real process termination | Not tested |
-| M2.9 | One scheduler; visible demand; hidden/power/saver/resume | Fake-clock/provider lifecycle tests + actual power events where available | Not tested |
-| M2.10 | Real-provider budgets and zero hidden metric work | Raw 300-s samples + counters | Not measured |
+| M2.1 | CPU/RAM correctness, first sample/reset/nonfinite/denial | Pure tests + standard-user live source check | Pass in unit tests (MetricMathTests, WindowsProviderTests); live GlobalMemoryStatusEx verified |
+| M2.2 | Network physical/virtual/no-duplicate deltas | Topology fixtures + available real interfaces | Pass in unit tests; live GetIPStatistics verified |
+| M2.3 | Battery absent, partial fields, signed rate/health validation | Fixtures + real battery where available | Pass in unit tests; live GetSystemPowerStatus source verified |
+| M2.4 | Disk PDH existence/status/warmup/reset | Counter fixtures + real standard-user counters | Pass in unit tests; delta throughput calculation verified |
+| M2.5 | GPU absent/single/hybrid, correct adapter grouping | Identity/engine fixtures + real hybrid hardware | Pass in unit tests; DXGI adapter enumeration verified |
+| M2.6 | Ping/jitter, WLAN permission/disconnect/unavailable | Mocks + explicit optional live observation, no surprise prompts | Pass in unit tests; async ping + JitterCalculator verified |
+| M2.7 | Thermal fallback truthful or Unsupported | Official contract verification + available hardware | Unsupported (no-driver ACPI thermal-zone not present) |
+| M2.8 | Top process exit/denial/PID reuse; confirmed kill path | Mock executor; no real process termination | Pass in unit tests (ProcessTerminationPolicy, mock WindowsProcessExecutor); critical processes protected |
+| M2.9 | One scheduler; visible demand; hidden/power/saver/resume | Fake-clock/provider lifecycle tests + actual power events where available | Pass in unit tests (M2HostTests); collapsed mode polls only CPU; expanded polls visible metrics |
+| M2.10 | Real-provider budgets and zero hidden metric work | Raw 300-s samples + counters | Pending full unsuppressed desktop trial runs |
 | M3.1 | Every requested customization; all four edges | Schema/view-model tests + real UI interaction | Not tested |
 | M3.2 | Restart persistence, corrupt JSON, backup/future schema | Temp-directory tests + actual app restart | Not tested |
 | M3.3 | Full settings/theme/layout export/import, profiles/alerts/hotkey, bounds and atomicity | Fixtures, malicious/oversize input, failed save/rollback | Not tested |

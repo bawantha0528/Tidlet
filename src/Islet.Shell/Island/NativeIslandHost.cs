@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Islet.Core.Capabilities;
 using Islet.Core.Island;
 using Islet.Core.Metrics;
@@ -11,7 +11,11 @@ public sealed class NativeIslandHost : IDisposable
 {
     private readonly IIslandDesktop _desktop;
     private readonly ICpuProvider _cpu;
+    private readonly IRamProvider? _ram;
+    private readonly INetworkProvider? _network;
+    private readonly IBatteryProvider? _battery;
     private readonly Func<double> _now;
+    private string? _secondaryLabel;
     private IInteractiveIslandDesktop? _interactive;
     private NativeIslandOptions _options = new() { Minimal = true };
     private IslandTransition _transition = new(new(220, 36));
@@ -48,8 +52,21 @@ public sealed class NativeIslandHost : IDisposable
     public RecoveryStatus? Recovery => _interactive?.Recovery;
 
     public NativeIslandHost(IIslandDesktop desktop, ICpuProvider cpu, Func<double>? monotonicMilliseconds = null)
+        : this(desktop, cpu, null, null, null, monotonicMilliseconds) { }
+
+    public NativeIslandHost(
+        IIslandDesktop desktop,
+        ICpuProvider cpu,
+        IRamProvider? ram,
+        INetworkProvider? network,
+        IBatteryProvider? battery,
+        Func<double>? monotonicMilliseconds = null)
     {
-        _desktop = desktop; _cpu = cpu;
+        _desktop = desktop;
+        _cpu = cpu;
+        _ram = ram;
+        _network = network;
+        _battery = battery;
         var clock = Stopwatch.StartNew();
         _now = monotonicMilliseconds ?? (() => clock.Elapsed.TotalMilliseconds);
     }
@@ -126,28 +143,45 @@ public sealed class NativeIslandHost : IDisposable
     private void Sample()
     {
         SampleAttempts++;
-        // This M1 source is a bounded, no-I/O GetSystemTimes read. Expensive M2 sources
-        // require the asynchronous provider scheduler; never add them to this UI callback.
         var reading = _cpu.Sample();
+        bool changed;
         if (reading.State == CpuReadingState.Available && reading.Percent is { } value && double.IsFinite(value) && value is >= 0 and <= 100)
         {
             AvailableSamples++;
             AddHistory(value);
             var label = $"CPU  {value:0}%";
-            var changed = _label != label;
+            changed = _label != label;
             _label = label;
             _explanation = value < 20 ? "Your processor is handling a light workload."
                 : value < 75 ? "Your processor is working on your apps." : "Your processor is busy right now.";
-            if (changed || State != IslandState.Collapsed) Draw();
         }
         else
         {
             AddHistory(null);
             var label = reading.State == CpuReadingState.WarmingUp ? "CPU  measuring…" : "CPU  unavailable";
-            var changed = _label != label;
+            changed = _label != label;
             _label = label; _explanation = reading.Explanation;
-            if (changed || State != IslandState.Collapsed) Draw();
         }
+
+        if (State == IslandState.Expanded)
+        {
+            var parts = new List<string>();
+            if (_ram?.Sample() is { State: RamReadingState.Available, UsedPercent: { } ramPercent })
+                parts.Add($"RAM: {ramPercent:F0}%");
+            if (_network?.Sample() is { State: NetworkReadingState.Available, BytesReceivedPerSec: var inB })
+                parts.Add($"Net: ↓ {NetworkReading.FormatRate(inB)}");
+            if (_battery?.Sample() is { State: BatteryReadingState.Available, Percent: { } batPercent })
+                parts.Add($"Bat: {batPercent:F0}%");
+            var sec = parts.Count > 0 ? string.Join("  ·  ", parts) : null;
+            if (_secondaryLabel != sec) changed = true;
+            _secondaryLabel = sec;
+        }
+        else
+        {
+            _secondaryLabel = null;
+        }
+
+        if (changed || State != IslandState.Collapsed) Draw();
         Observe();
     }
 
@@ -252,7 +286,7 @@ public sealed class NativeIslandHost : IDisposable
         var size = _transition.At(_now());
         _renderBounds = IslandGeometry.Place(display, size.Width, size.Height, Style);
         _desktop.Render(new(Style, State, _renderBounds, display.Dpi / 96.0, _label,
-            _explanation, _history, _interactive?.Recovery.HighContrast == true));
+            _explanation, _history, _interactive?.Recovery.HighContrast == true, _secondaryLabel));
     }
 
     private void Observe()

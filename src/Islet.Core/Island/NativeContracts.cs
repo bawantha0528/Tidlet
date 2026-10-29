@@ -1,4 +1,4 @@
-using Islet.Core.Settings;
+﻿using Islet.Core.Settings;
 
 namespace Islet.Core.Island;
 
@@ -9,7 +9,7 @@ public readonly record struct IslandInput(IslandInputKind Kind, int Value = 0);
 public readonly record struct PixelRect(int X, int Y, int Width, int Height);
 public sealed record IslandDisplay(string Id, PixelRect Bounds, PixelRect WorkArea, uint Dpi);
 public sealed record IslandFrame(IslandStyle Style, IslandState State, PixelRect Bounds, double Scale,
-    string Label, string Explanation, IReadOnlyList<double?> History, bool HighContrast = false);
+    string Label, string Explanation, IReadOnlyList<double?> History, bool HighContrast = false, string? SecondaryLabel = null);
 public sealed record NativeIslandStatus(bool Visible, bool Layered, bool NoActivate, bool ToolWindow,
     bool ClickThrough, bool ForegroundIsIsland, uint Dpi, PixelRect Bounds, int ActiveTimers, int RenderCount);
 
@@ -25,3 +25,4 @@ public interface IIslandDesktop : IDisposable
     void Close();
     int Run();
 }
+

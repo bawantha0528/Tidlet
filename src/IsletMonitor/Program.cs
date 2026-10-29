@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -58,7 +58,11 @@ internal static class Program
         var exitCode = 1;
         string? failure = null;
         using var desktop = new NativeIslandDesktop();
-        using var host = new NativeIslandHost(desktop, new SystemCpuProvider(new NativeSystemCpuSource()));
+        var cpu = new SystemCpuProvider(new NativeSystemCpuSource());
+        var ram = new SystemRamProvider(new NativeSystemRamSource());
+        var net = new SystemNetworkProvider(new NativeSystemNetworkSource());
+        var battery = new SystemBatteryProvider(new NativeSystemBatterySource());
+        using var host = new NativeIslandHost(desktop, cpu, ram, net, battery);
         var frames = new HashSet<string>(StringComparer.Ordinal);
         try
         {
@@ -105,3 +109,4 @@ internal static class Program
         return exitCode;
     }
 }
+

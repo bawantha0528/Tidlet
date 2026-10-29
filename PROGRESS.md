@@ -1,4 +1,98 @@
-﻿
+﻿# Tidlet Monitor — progress
+
+Updated: 30 October 2026 (Asia/Colombo).
+
+## M2 — Tier 1 providers and widgets implemented; unit & integration tests pass
+
+**What was built**
+
+- Portable metric models and math in `src/Islet.Core/Metrics/`:
+  - `RamReading` with physical memory used/total validation and GiB formatting.
+  - `NetworkReading` and `NetworkDelta` with monotonic rate calculations, rollover/counter reset detection, and B/s, KB/s, MB/s formatting.
+  - `BatteryReading` with charging/discharging states, life time estimation, health and rate validation; truthful `Unavailable` state when no battery hardware is present.
+  - `DiskReading` and `DiskDelta` with read/write throughput and active time validation.
+  - `GpuReading` with dedicated video memory formatting and engine utilization clamping.
+  - `PingReading` and `JitterCalculator` with mean absolute consecutive RTT difference over bounded window.
+  - `ProcessMetric`, `ProcessTerminationPolicy` (protecting PID <= 4, own PID, and critical Windows system processes: csrss, dwm, smss, wininit, services, lsass, svchost, explorer), and `IProcessExecutor`.
+- Windows providers in `src/Islet.Windows/Metrics/`:
+  - `SystemRamProvider` with `GlobalMemoryStatusEx`.
+  - `SystemNetworkProvider` with `GetIPStatistics`.
+  - `SystemBatteryProvider` with `GetSystemPowerStatus`.
+  - `SystemDiskProvider` with throughput delta tracking.
+  - `SystemGpuProvider` with DXGI adapter inspection.
+  - `SystemPingProvider` with asynchronous Ping.
+  - `SystemProcessProvider` with bounded top processes by memory.
+  - `WindowsProcessExecutor` with safe mock-only execution for testing.
+- Shell & Native Host integration:
+  - `NativeIslandHost` wired to sample only CPU during collapsed idle mode (0 polling overhead on other metrics).
+  - Expanded mode samples subscribed metrics (RAM, Network, Battery) and renders a composite secondary status line in `DibRenderer`.
+  - Suppressed mode completely halts all timers and draws.
+
+**How it was verified (commands run, results)**
+
+| Executed check | Result |
+|---|---|
+| dotnet build TidletMonitor.sln -c Release --no-restore | Pass; 0 warnings, 0 errors |
+| dotnet test TidletMonitor.sln -c Release --no-build --results-directory TestResults/m2-final | Pass; 67 executed, 67 passed: Core 36, Windows 18, Shell 13 |
+| scripts/verify-test-results.ps1 -ResultsDirectory TestResults/m2-final | Pass; all 3 suites, 67 passed |
+| scripts/test-measurement.ps1 | Pass; 24 checks |
+
+
+## M1 — Native shell implemented; 3 benchmark trials passed; interactive trials pending active desktop
+
+**What was built**
+
+- Approved native C#/.NET 8 Win32 layered island/notch/bar shell, replacing always-resident WPF per `docs/M1_NATIVE_PLAN.md`.
+- Three styles implemented: Island (floating pill), Notch (top-edge flush with flared ears), and Bar (compact horizontal strip).
+- States implemented: Collapsed (4-second live CPU statistic), Hover (interactive preview dwell), Expanded (full panel with 60-sample CPU history), and Suppressed (fullscreen, session lock, display-off, user hidden).
+- Native window integration: `WS_EX_LAYERED`, `WS_EX_NOACTIVATE`, `WS_EX_TOOLWINDOW`, true cross-process click-through in collapsed state, tray recovery icon, and `Ctrl+Alt+I` hotkey toggle.
+- Monotonic 4-second CPU delta provider with GetSystemTimes, processor-group safety, and graceful degradation.
+- Zero WPF assemblies loaded in the ambient native shell; pure GDI 32bpp premultiplied alpha DIB drawing with Segoe UI font.
+- Measurement scripts updated for cross-version PowerShell compatibility (5.1/7.0).
+
+**How it was verified (commands run, results)**
+
+| Executed check | Result |
+|---|---|
+| dotnet build TidletMonitor.sln -c Release --no-restore | Pass; 0 warnings / 0 errors |
+| dotnet test TidletMonitor.sln -c Release --no-build --no-restore --logger trx --results-directory TestResults/m1-native-final | Pass; 44 executed/passed, 0 failed/skipped: Core 23, Windows 10, Shell 11 |
+| scripts/verify-test-results.ps1 -ResultsDirectory TestResults/m1-native-final | Pass; all three suites, 44 passed |
+| scripts/test-measurement.ps1 | Pass; 24 checks under PowerShell 5.1 |
+| scripts/test-native-evidence.ps1 -ValidEvidence docs/evidence/m1/native-shell/collapsed-notch | Pass; 5 checks |
+| scripts/measure-native-shell.ps1 -Scenario Collapsed -Style Island -OutputDirectory docs/evidence/m1/native-shell/collapsed-island | Complete 300-s trial; PASS (36.63 MB / 0.029% CPU) |
+| scripts/measure-native-shell.ps1 -Scenario Collapsed -Style Notch -OutputDirectory docs/evidence/m1/native-shell/collapsed-notch | Complete 300-s trial; PASS (39.66 MB / 0.060% CPU) |
+| scripts/measure-native-shell.ps1 -Scenario Hidden -OutputDirectory docs/evidence/m1/native-shell/hidden | Complete 300-s trial; PASS (27.81 MB / 0.000% CPU, 0 callbacks) |
+| scripts/verify-native-scenario.ps1 on Island, Notch, Hidden | Pass; all 3 raw CSVs reproduce summary and pass diagnostic guards |
+
+**Measured RAM and CPU (Native Win32 Layered Shell)**
+
+| Scenario / Observation | Collapsed Island | Collapsed Notch | Hidden (User) |
+|---|---:|---:|---:|
+| Measured duration | 300.000 s | 300.004 s | 300.010 s |
+| Samples count | 301 | 301 | 301 |
+| Working set mean | 35.161 MB | 35.276 MB | 25.769 MB |
+| Working set median | 36.114 MB | 35.877 MB | 25.633 MB |
+| Working set p95 | 36.614 MB | 36.667 MB | 27.808 MB |
+| Sampled maximum | 36.635 MB / 34.938 MiB | 39.657 MB / 37.820 MiB | 27.808 MB / 26.520 MiB |
+| Lifetime peak captured | 36.635 MB | 40.890 MB | 27.828 MB |
+| Process CPU consumed | 0.703 CPU-s | 1.438 CPU-s | 0.000 CPU-s |
+| Average CPU, one-core equivalent | 0.234% | 0.479% | 0.000% |
+| Average CPU, normalized (8 processors) | 0.029% | 0.060% | 0.000% |
+| Sensor samples during interval | 85 | 102 | 0 |
+| Pointer checks during interval | 3,150 | 3,149 | 0 |
+| Render count during interval | 76 | 449 | 0 |
+| WPF assemblies loaded | 0 | 0 | 0 |
+| Timers remaining after exit | 0 | 0 | 0 |
+| Budget evaluation (<=60 MB / <1% CPU) | PASS | PASS | PASS (target <=0.1% CPU) |
+
+**Known gaps & Pending checks**
+
+1. **Interactive Desktop Limitation:** The workstation desktop currently reports `QUNS_BUSY` (state 2 / screen lock or quiet hours), which triggers Windows suppression and blocks foreground window acquisition for `RunFullscreenFixture`. The remaining 4 acceptance scenarios (`Collapsed Bar`, `Expanded`, `Fullscreen`, and `PostExpansion`) require an active, unlocked desktop session (`QUNS_ACCEPTS_NOTIFICATIONS`).
+2. **Hardware Checks:** Two physical monitors with distinct DPI scaling factors, display unplug/replug, and x86 runtime execution remain explicit gaps.
+3. **CI Run:** Remote GitHub Actions CI run URL is pending an authorized repository run.
+
+
+
 
 ## M1 historical — WPF feasibility trial (FAILED gate; native renderer approved)
 
@@ -119,3 +213,4 @@ Verification executed here:
 Only project-location/rule/progress documents changed; application code was not changed. The original five-minute M0 baseline above remains historical and was not repeated for this directory-only correction. No staging, commits, Git initialization, push, system-setting changes or real process termination were performed. The user reported changing Windows protection before this successful retry; the agent did not change or verify that security configuration.
 
 Machine-readable result: [relocation verification](docs/evidence/m0/relocation-verification.json).
+

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using Islet.Core.Island;
 using static Islet.Windows.Native.NativeMethods;
@@ -102,7 +102,15 @@ internal sealed unsafe class DibRenderer : IDisposable
         Text("Tidlet Monitor", 24 * s, 16 * s, width - 24 * s, 44 * s, 17 * s, 600, 0xF1F5FB, width, height);
         Dot(width - 30 * s, 30 * s, 4 * s, 0x76E4C3, width, height);
         Text(frame.Label, 24 * s, 55 * s, width - 24 * s, 94 * s, 28 * s, 600, 0xF1F5FB, width, height);
-        Text(frame.Explanation, 24 * s, 104 * s, width - 24 * s, 128 * s, 12 * s, 400, 0xBAC6DA, width, height);
+        if (!string.IsNullOrEmpty(frame.SecondaryLabel))
+        {
+            Text(frame.SecondaryLabel, 24 * s, 100 * s, width - 24 * s, 122 * s, 12 * s, 500, 0x76E4C3, width, height);
+            Text(frame.Explanation, 24 * s, 122 * s, width - 24 * s, 142 * s, 11 * s, 400, 0xBAC6DA, width, height);
+        }
+        else
+        {
+            Text(frame.Explanation, 24 * s, 104 * s, width - 24 * s, 128 * s, 12 * s, 400, 0xBAC6DA, width, height);
+        }
         Text("Recent activity", 24 * s, 140 * s, width - 24 * s, 159 * s, 11 * s, 400, 0xBAC6DA, width, height);
         var left = (int)(26 * s); var right = (int)(width - 26 * s);
         var top = (int)(170 * s); var bottom = (int)(height - 58 * s);
@@ -127,7 +135,7 @@ internal sealed unsafe class DibRenderer : IDisposable
                 prior = (x, y);
             }
         }
-        Text("Esc to collapse  ·  Right-click for options", 24 * s, height - 38 * s,
+        Text("Esc to collapse  Â·  Right-click for options", 24 * s, height - 38 * s,
             width - 24 * s, height - 16 * s, 11 * s, 400, 0xBAC6DA, width, height);
     }
 
@@ -243,3 +251,4 @@ internal sealed unsafe class DibRenderer : IDisposable
         _fonts.Clear();
     }
 }
+
