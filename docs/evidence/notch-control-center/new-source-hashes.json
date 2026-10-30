@@ -1,0 +1,30 @@
+[
+  {
+    "File": "src/Islet.Core/Activities/FocusTimer.cs",
+    "SHA256": "D05E20BD6B8666C8FB744CA771315AEBB35DB0AA03EDE5EC0907B1417F9DC899"
+  },
+  {
+    "File": "src/Islet.Core/Activities/MediaContracts.cs",
+    "SHA256": "CC2A1EDB1F6B964E33CEA2A4A0F1D1FD09ADFEDB110042CCF3CCED1BC8B27ED1"
+  },
+  {
+    "File": "src/Islet.Core/Presentation/ControlCenter.cs",
+    "SHA256": "5B7A7D5E177DB060752749AD4F1E04E99D3CD675FDAEA5077B4F47F4809D2A00"
+  },
+  {
+    "File": "src/Islet.Windows/Media/SystemMediaProvider.cs",
+    "SHA256": "DADC71C9BF1B70C41F896D8ABE11F13D170B66DC0B8C714E0432A1BB29FA51D9"
+  },
+  {
+    "File": "src/Islet.Windows/Media/WindowsMediaSessionBackend.cs",
+    "SHA256": "D383C4F1D17303D1A76112E982E0A0453C3CAF7FDE98740C0768D32981226A93"
+  },
+  {
+    "File": "src/Islet.Shell/Island/NativeIslandHost.ControlCenter.cs",
+    "SHA256": "35803357180804B9979B3C1B7FAA87017EFCFD5EB774CEAE0468B2B2175A4D72"
+  },
+  {
+    "File": "src/Islet.Windows/Native/DibRenderer.ControlCenter.cs",
+    "SHA256": "1E53B3BB38BD5178FD398D17620FFBF97BA8DC49BC414698A12DEDC6E1D88E43"
+  }
+]

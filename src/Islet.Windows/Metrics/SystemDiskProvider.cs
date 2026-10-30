@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Islet.Core.Capabilities;
 using Islet.Core.Metrics;
 
@@ -43,48 +43,10 @@ public sealed class SystemDiskProvider(ISystemDiskSource source) : IDiskProvider
     public void Reset() => _delta.Reset();
 }
 
+// Legacy source contract supplies cumulative bytes, while real PDH supplies already formatted rates.
+// Use PdhDiskProvider for production. Never substitute made-up activity for missing counters.
 public sealed class NativeSystemDiskSource : ISystemDiskSource
 {
-    private ulong _totalRead;
-    private ulong _totalWrite;
-
     public bool TryRead(out ulong readBytes, out ulong writeBytes, out double? activePercent, out int error)
-    {
-        try
-        {
-            // Cumulative IO across standard running processes without requiring admin/diskperf
-            ulong r = 0;
-            
-            foreach (var process in Process.GetProcesses())
-            {
-                try
-                {
-                    // Minimal query; if access denied on protected process, skip without error
-                    r += (ulong)process.PrivateMemorySize64; // Fallback activity proxy when physical PDH counter is unconfigured
-                }
-                catch
-                {
-                    // Ignore inaccessible processes
-                }
-            }
-
-            _totalRead += 1024 * 1024; // Representative progress
-            _totalWrite += 512 * 1024;
-
-            readBytes = _totalRead;
-            writeBytes = _totalWrite;
-            activePercent = null;
-            error = 0;
-            return true;
-        }
-        catch (Exception ex)
-        {
-            readBytes = 0;
-            writeBytes = 0;
-            activePercent = null;
-            error = ex.HResult;
-            return false;
-        }
-    }
+    { readBytes = writeBytes = 0; activePercent = null; error = 50; return false; }
 }
-

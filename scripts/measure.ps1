@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
 Read-only external process observer. Never changes settings, trims memory or terminates a process.
@@ -16,11 +16,13 @@ param(
     [ValidateRange(0, 600)][int] $WarmupSeconds = 30,
     [ValidateRange(0, 4096)][int] $LogicalProcessorCount = 0,
     [string] $OutputDirectory = '',
+    [string] $ChildJournal = '',
     [switch] $AllowShortRun
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'Measurement.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'WorkerMeasurement.psm1') -Force
 if ($DurationSeconds -lt 300 -and -not $AllowShortRun) {
     throw 'Acceptance requires at least 300 seconds. Use -AllowShortRun only for a diagnostic.'
 }
@@ -30,6 +32,9 @@ if (-not $OutputDirectory) {
 $null = New-Item -ItemType Directory -Path $OutputDirectory -Force
 $outputRoot = (Resolve-Path -LiteralPath $OutputDirectory).Path
 $samples = [System.Collections.Generic.List[object]]::new()
+$componentSamples = [System.Collections.Generic.List[object]]::new()
+$observedExits = @{}
+$aggregatePeak = 0L
 $target = $null
 $observer = [System.Diagnostics.Process]::GetCurrentProcess()
 $observerCpuStart = $observer.TotalProcessorTime.TotalSeconds
@@ -62,7 +67,7 @@ try {
         ScenarioIsOperatorSupplied = $true
         IsAcceptanceDuration = $DurationSeconds -ge 300
         NumericalLimitsOnly = $true
-        Children = 'M0 has no child processes. Future helpers must be measured separately and included.'
+        Children = if ($ChildJournal) { 'Aggregate parent plus identity-checked journaled workers; exited CPU retained; exit peaks conservatively included once.' } else { 'No child journal supplied; helpers require aggregate accounting.' }
     }
     $warmupClock = [Diagnostics.Stopwatch]::StartNew()
     while ($warmupClock.Elapsed.TotalSeconds -lt $WarmupSeconds) {
@@ -70,6 +75,8 @@ try {
         if ($target.HasExited) { throw 'Target exited during warmup.' }
         Start-Sleep -Milliseconds 100
     }
+    $baselineWorkers=Get-WorkerRecords $ChildJournal
+    foreach($key in @($baselineWorkers.Keys)) { if($baselineWorkers[$key].ExitedUtc){$observedExits[$key]=$true} }
     $clock = [Diagnostics.Stopwatch]::StartNew()
     $nextDue = 0.0
     do {
@@ -78,12 +85,60 @@ try {
         $target.Refresh()
         if ($target.HasExited) { throw 'Target exited before the measurement completed.' }
         if ($target.StartTime.ToUniversalTime().Ticks -ne $identityTicks) { throw 'Process identity changed.' }
+        $parentCpu=$target.TotalProcessorTime.TotalSeconds; $parentWorking=$target.WorkingSet64
+        $parentPrivate=$target.PrivateMemorySize64; $parentPeak=$target.PeakWorkingSet64
+        $components = [System.Collections.Generic.List[object]]::new()
+        $records=Get-WorkerRecords $ChildJournal
+        foreach($key in @($records.Keys)) {
+            $record=$records[$key]
+            $child=$null
+            try {
+                if ($record.ExitedUtc) {
+                    if ($null -eq $record.CpuSeconds -or -not $record.PeakWorkingSetBytes) { throw 'Exited worker has no complete resource costs.' }
+                    $components.Add([pscustomobject]@{ProcessId=$record.ProcessId;StartedUtc=$record.StartedUtc;StartTimeUtcTicks=$record.StartTimeUtcTicks;Active=$false;CpuSeconds=[double]$record.CpuSeconds;
+                        WorkingSetBytes=0L;PrivateBytes=0L;PeakWorkingSetBytes=[long]$record.PeakWorkingSetBytes;IncludeExitPeak=(-not $observedExits.ContainsKey($key))})
+                    $observedExits[$key]=$true
+                } else {
+                    try { $child=[Diagnostics.Process]::GetProcessById($record.ProcessId); $child.Refresh(); $childWorking=$child.WorkingSet64 }
+                    catch {
+                        Start-Sleep -Milliseconds 50
+                        $updated=Get-WorkerRecords $ChildJournal
+                        if (-not $updated.ContainsKey($key) -or -not $updated[$key].ExitedUtc) { throw 'Worker exited without a final cost record; evidence incomplete.' }
+                        $record=$updated[$key]
+                        if ($null -eq $record.CpuSeconds -or -not $record.PeakWorkingSetBytes) { throw 'Exited worker cost missing.' }
+                        $components.Add([pscustomobject]@{ProcessId=$record.ProcessId;StartedUtc=$record.StartedUtc;StartTimeUtcTicks=$record.StartTimeUtcTicks;Active=$false;CpuSeconds=[double]$record.CpuSeconds;
+                            WorkingSetBytes=0L;PrivateBytes=0L;PeakWorkingSetBytes=[long]$record.PeakWorkingSetBytes;IncludeExitPeak=(-not $observedExits.ContainsKey($key))})
+                        $observedExits[$key]=$true
+                        continue
+                    }
+                    if ($child.StartTime.ToUniversalTime().Ticks -ne [long]$record.StartTimeUtcTicks -or
+                        $child.MainModule.FileName -ne $exePath) { throw 'Worker identity/executable changed.' }
+                    $components.Add([pscustomobject]@{ProcessId=$record.ProcessId;StartedUtc=$record.StartedUtc;StartTimeUtcTicks=$record.StartTimeUtcTicks;Active=$true;CpuSeconds=$child.TotalProcessorTime.TotalSeconds;
+                        WorkingSetBytes=$childWorking;PrivateBytes=$child.PrivateMemorySize64;PeakWorkingSetBytes=$child.PeakWorkingSet64;IncludeExitPeak=$false})
+                }
+            } finally { if($child){$child.Dispose()} }
+        }
+        $cost=Get-WorkerCost -Components $components.ToArray()
+        $aggregatePeak=[math]::Max($aggregatePeak,$parentPeak+$cost.PeakWorkingSetBytes)
+        foreach($component in $components) {
+            $componentSamples.Add([pscustomobject]@{SampleIndex=$samples.Count;ElapsedSeconds=$clock.Elapsed.TotalSeconds;ProcessId=$component.ProcessId;StartedUtc=$component.StartedUtc;
+                StartTimeUtcTicks=$component.StartTimeUtcTicks;Active=$component.Active;CpuSeconds=$component.CpuSeconds;WorkingSetBytes=$component.WorkingSetBytes;PrivateBytes=$component.PrivateBytes;
+                PeakWorkingSetBytes=$component.PeakWorkingSetBytes;IncludeExitPeak=$component.IncludeExitPeak})
+        }
         $samples.Add([pscustomobject][ordered]@{
+            SampleIndex = $samples.Count
             ElapsedSeconds = $clock.Elapsed.TotalSeconds
-            TotalCpuSeconds = $target.TotalProcessorTime.TotalSeconds
-            WorkingSetBytes = $target.WorkingSet64
-            PrivateBytes = $target.PrivateMemorySize64
-            LifetimePeakWorkingSetBytes = $target.PeakWorkingSet64
+            TotalCpuSeconds = $parentCpu + $cost.CpuSeconds
+            WorkingSetBytes = $parentWorking + $cost.WorkingSetBytes
+            PrivateBytes = $parentPrivate + $cost.PrivateBytes
+            LifetimePeakWorkingSetBytes = $aggregatePeak
+            ParentCpuSeconds = $parentCpu
+            ParentWorkingSetBytes = $parentWorking
+            ParentPrivateBytes = $parentPrivate
+            WorkerCpuSeconds = $cost.CpuSeconds
+            WorkerWorkingSetBytes = $cost.WorkingSetBytes
+            WorkerPrivateBytes = $cost.PrivateBytes
+            ActiveWorkers = $cost.ActiveWorkers
             HandleCount = $target.HandleCount
             ThreadCount = $target.Threads.Count
         })
@@ -110,6 +165,7 @@ finally {
     $observer.Refresh()
     $summary | Add-Member NoteProperty ObserverCpuSeconds ($observer.TotalProcessorTime.TotalSeconds - $observerCpuStart)
     if ($samples.Count) { $samples.ToArray() | Export-Csv -LiteralPath (Join-Path $outputRoot 'samples.csv') -NoTypeInformation -Encoding utf8 }
+    if ($ChildJournal) { $componentSamples.ToArray() | Export-Csv -LiteralPath (Join-Path $outputRoot 'workers.csv') -NoTypeInformation -Encoding utf8 }
     $summary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $outputRoot 'summary.json') -Encoding utf8
     if ($null -ne $target) { $target.Dispose() }
     $observer.Dispose()

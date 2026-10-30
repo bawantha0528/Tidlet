@@ -1,0 +1,11 @@
+{
+  "Result": "DiagnosticOnly",
+  "Scenario": "Collapsed",
+  "MediaReads": 0,
+  "LoadedMediaAssemblies": [],
+  "NoWpf": true,
+  "TimersAfterExit": 0,
+  "ObservedStates": {
+    "Notch/Collapsed": 13
+  }
+}

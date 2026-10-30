@@ -1,0 +1,23 @@
+[
+  {
+    "Frame": "Notch-Dark",
+    "Width": 775,
+    "Height": 400,
+    "GreenDominantPixels": 0,
+    "CardColor": "#080809"
+  },
+  {
+    "Frame": "Notch-Light",
+    "Width": 775,
+    "Height": 400,
+    "GreenDominantPixels": 0,
+    "CardColor": "#FFFFFF"
+  },
+  {
+    "Frame": "Full-Dark",
+    "Width": 1075,
+    "Height": 700,
+    "GreenDominantPixels": 0,
+    "CardColor": "#080809"
+  }
+]

@@ -1,11 +1,11 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using Islet.Core.Island;
 using static Islet.Windows.Native.NativeMethods;
 
 namespace Islet.Windows.Native;
 
-internal sealed unsafe class DibRenderer : IDisposable
+internal sealed unsafe partial class DibRenderer : IDisposable
 {
     private sealed class Surface : IDisposable
     {
@@ -48,6 +48,7 @@ internal sealed unsafe class DibRenderer : IDisposable
 
     public void Draw(nint window, IslandFrame frame)
     {
+        SetPalette(frame);
         var width = frame.Bounds.Width;
         var height = frame.Bounds.Height;
         EnsureSize(width, height);
@@ -69,7 +70,7 @@ internal sealed unsafe class DibRenderer : IDisposable
             {
                 var coverage = Math.Clamp(Math.Min(x + 1 - edge, width - edge - x), 0, 1);
                 var alpha = (int)Math.Round(coverage * 248);
-                output.Pixels[y * output.Width + x] = Premultiply(frame.HighContrast ? 0 : 0x141A25, frame.HighContrast && alpha > 0 ? 255 : alpha);
+                output.Pixels[y * output.Width + x] = Premultiply(_background, frame.HighContrast && alpha > 0 ? 255 : alpha);
             }
         }
         DrawContent(frame, width, height);
@@ -84,12 +85,13 @@ internal sealed unsafe class DibRenderer : IDisposable
 
     private void DrawContent(IslandFrame frame, int width, int height)
     {
+        if (frame.Dashboard is not null) { DrawDashboard(frame, width, height); return; }
         var s = frame.Scale;
         var dipHeight = height / s;
         if (frame.State == IslandState.Collapsed || dipHeight < 70)
         {
             var inset = frame.Style == Core.Settings.IslandStyle.Notch ? 32 : 22;
-            Dot(inset * s, height / 2.0, 3 * s, 0x76E4C3, width, height);
+            Dot(inset * s, height / 2.0, 3 * s, 0x3B82F6, width, height);
             Text(frame.Label, (inset + 15) * s, 0, width - 12 * s, height, 14 * s, 600, 0xF1F5FB, width, height);
             return;
         }
@@ -100,11 +102,11 @@ internal sealed unsafe class DibRenderer : IDisposable
             return;
         }
         Text("Tidlet Monitor", 24 * s, 16 * s, width - 24 * s, 44 * s, 17 * s, 600, 0xF1F5FB, width, height);
-        Dot(width - 30 * s, 30 * s, 4 * s, 0x76E4C3, width, height);
+        Dot(width - 30 * s, 30 * s, 4 * s, 0x3B82F6, width, height);
         Text(frame.Label, 24 * s, 55 * s, width - 24 * s, 94 * s, 28 * s, 600, 0xF1F5FB, width, height);
         if (!string.IsNullOrEmpty(frame.SecondaryLabel))
         {
-            Text(frame.SecondaryLabel, 24 * s, 100 * s, width - 24 * s, 122 * s, 12 * s, 500, 0x76E4C3, width, height);
+            Text(frame.SecondaryLabel, 24 * s, 100 * s, width - 24 * s, 122 * s, 12 * s, 500, 0x3B82F6, width, height);
             Text(frame.Explanation, 24 * s, 122 * s, width - 24 * s, 142 * s, 11 * s, 400, 0xBAC6DA, width, height);
         }
         else
@@ -128,10 +130,10 @@ internal sealed unsafe class DibRenderer : IDisposable
                 var y = bottom - (int)Math.Round((bottom - top) * Math.Clamp(value.Value, 0, 100) / 100);
                 if (prior is { } p)
                 {
-                    Line(p.X, p.Y, x, y, 0x76E4C3, width, height);
-                    Line(p.X, p.Y + 1, x, y + 1, 0x76E4C3, width, height);
+                    Line(p.X, p.Y, x, y, 0x3B82F6, width, height);
+                    Line(p.X, p.Y + 1, x, y + 1, 0x3B82F6, width, height);
                 }
-                else Dot(x, y, Math.Max(1, s), 0x76E4C3, width, height);
+                else Dot(x, y, Math.Max(1, s), 0x3B82F6, width, height);
                 prior = (x, y);
             }
         }
@@ -169,11 +171,16 @@ internal sealed unsafe class DibRenderer : IDisposable
     }
 
     private void Text(string text, double x, double y, double right, double bottom,
-        double fontPixels, int weight, int color, int width, int height)
+        double fontPixels, int weight, int color, int width, int height, bool alignRight = false)
     {
         if (string.IsNullOrEmpty(text) || right <= x || bottom <= y || y >= height || x >= width) return;
         var mask = _mask!;
-        mask.Pixels.Clear();
+        for (var row = Math.Max(0, (int)y); row < Math.Min(height, (int)Math.Ceiling(bottom)); row++)
+        {
+            var start = Math.Clamp((int)x, 0, width);
+            var end = Math.Clamp((int)Math.Ceiling(right), start, width);
+            mask.Pixels.Slice(row * mask.Width + start, end - start).Clear();
+        }
         var key = ((int)Math.Round(fontPixels), weight);
         if (!_fonts.TryGetValue(key, out var font))
         {
@@ -188,7 +195,7 @@ internal sealed unsafe class DibRenderer : IDisposable
             if (SetTextColor(mask.Dc, 0xFFFFFF) == uint.MaxValue || SetBkColor(mask.Dc, 0) == uint.MaxValue
                 || SetBkMode(mask.Dc, 1) == 0) throw new InvalidOperationException("Windows could not configure text drawing.");
             var rect = new Rect { Left = (int)x, Top = (int)y, Right = (int)right, Bottom = (int)bottom };
-            if (DrawTextW(mask.Dc, text, text.Length, ref rect, 0x20 | 0x4 | 0x800 | 0x8000) == 0)
+            if (DrawTextW(mask.Dc, text, text.Length, ref rect, 0x20 | 0x4 | 0x800 | 0x8000 | (alignRight ? 2u : 0u)) == 0)
                 throw new InvalidOperationException("Windows could not draw island text.");
             if (!GdiFlush()) throw new InvalidOperationException("Windows could not finish island text drawing.");
             var src = mask.Pixels;

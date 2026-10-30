@@ -1,0 +1,38 @@
+[
+  {
+    "File": "IsletMonitor.exe",
+    "Matches": true
+  },
+  {
+    "File": "IsletMonitor.dll",
+    "Matches": true
+  },
+  {
+    "File": "Islet.Core.dll",
+    "Matches": true
+  },
+  {
+    "File": "Islet.Shell.dll",
+    "Matches": true
+  },
+  {
+    "File": "Islet.Windows.dll",
+    "Matches": true
+  },
+  {
+    "File": "IsletMonitor.deps.json",
+    "Matches": true
+  },
+  {
+    "File": "IsletMonitor.runtimeconfig.json",
+    "Matches": true
+  },
+  {
+    "File": "Microsoft.Windows.SDK.NET.dll",
+    "Matches": true
+  },
+  {
+    "File": "WinRT.Runtime.dll",
+    "Matches": true
+  }
+]

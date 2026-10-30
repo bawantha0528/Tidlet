@@ -247,7 +247,7 @@ public sealed partial class NativeIslandDesktop
             case 0x312:
                 if ((int)wParam == HotkeyId) Input?.Invoke(new(IslandInputKind.Toggle));
                 return true;
-            case 0x201: Input?.Invoke(new(IslandInputKind.LeftClick)); return true;
+            case 0x201: Input?.Invoke(new(IslandInputKind.LeftClick, X: unchecked((short)(lParam.ToInt64() & 0xFFFF)), Y: unchecked((short)((lParam.ToInt64() >> 16) & 0xFFFF)))); return true;
             case 0x7B: Input?.Invoke(new(IslandInputKind.ContextMenu)); return true;
             case ForegroundMessage:
                 Interlocked.Exchange(ref _eventPending, 0);

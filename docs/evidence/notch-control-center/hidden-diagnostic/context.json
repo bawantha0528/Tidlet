@@ -1,0 +1,7 @@
+{
+  "Scenario": "Hidden",
+  "DurationSeconds": 30,
+  "WarmupSeconds": 5,
+  "Acceptance": false,
+  "ExecutableSHA256": "FD2778CEF3660D7881CFD5C37B4FE4BB3A3349C947D559143DD0CCFEFCDD18DA"
+}

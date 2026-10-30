@@ -42,7 +42,10 @@ public sealed class NativeResourceTests
                 var size=IslandSize.For(style,state);
                 desktop.Render(new(style,state,IslandGeometry.Place(display,size.Width,size.Height,style),
                     display.Dpi/96.0,"CPU  25%","Fixture values for resource tests only.",
-                    [20,25,null,40,25]));
+                    [20,25,null,40,25], Dashboard: new([
+                        new(Islet.Core.Presentation.MonitorPage.Cpu, "Processor", "25%", "Fixture only", 25,
+                            "Fixture values for native resource tests only.", [new("Idle", "75%")], [20, 25, null, 40, 25])
+                    ])));
                 Assert.IsTrue(NativeMethods.GetGuiResources(-1,0)>0,"Live native surfaces should own GDI resources.");
             }
     }

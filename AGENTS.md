@@ -66,3 +66,14 @@ Use `C:\Users\bawan\OneDrive\Documents\Tidlet` as the sole development folder. A
 ## Approved M1 renderer exception
 
 The user approved docs/M1_RENDERER_PROPOSAL.md after two transparent WPF working-set failures. Native C#/.NET 8 startup and Win32 layered island rendering are now authorized under docs/M1_NATIVE_PLAN.md. Shell presentation uses portable platform contracts; Windows owns Win32/GDI. Preserve WPF legacy experiments and avoid WPF initialization in the ambient host. Keep budgets unchanged and count every auxiliary window/process. This overrides the original WPF-only ambient-shell description, not the dependency, test, safety or manual-Git rules.
+
+## Approved dashboard presentation revision
+
+The user requested a Stats-inspired information layout with original colors on their M3 branch. Follow docs/UI_REDESIGN_PLAN.md: native overview/module pages, capability-driven real data and preserved island/notch/bar modes. Do not reintroduce representative disk increments or an unqueried GPU adapter. GPU/advanced sensors remain explicitly unavailable until genuine providers exist. This revision does not start M4-M7 or certify all earlier acceptance gates.
+
+Additional validation: scripts/smoke-dashboard.ps1 renders eight pages in two themes and exits naturally; scripts/measure-native-shell.ps1 measures the full app. Pure collapsed/expanded trials reject unexpected state/style history. Record module navigation within expanded trials, retained raw CSV, binary hashes and physical-hardware gaps. Render-buffer previews are not desktop screenshots. A successful local run is not a hosted CI pass. Continue the manual-Git policy.
+## Approved Notch media/focus extension
+
+The user approved music controls and a focus timer for the compact black Notch UI, and explicitly approved Microsoft.Windows.SDK.NET.Ref 10.0.17763.56. Follow the appended control-center plan in docs/UI_REDESIGN_PLAN.md and the dependency/runtime/license inventory in DECISIONS.md. This authorizes the named extension, not M4-M7 or additional dependencies. Keep Windows media APIs in Islet.Windows, load the projection lazily, use mock executors for every automated playback command, preserve the full dashboard, and start no media polling when its card is invisible. The deadline-based focus timer requires no hidden ticking. Validate scripts/smoke-control-center.ps1 and repeat expanded Notch performance measurement. Keep all Git operations manual.
+
+The user approved docs/MEDIA_MEMORY_PROPOSAL.md's demand-started music-worker implementation by saying "do next step". Reuse the approved package/executable, initialize WinRT only in the worker, exit naturally when invisible, test playback only via mocks, and measure aggregate parent/worker costs. No new dependency or M4 hardware-helper work is authorized. Budgets and manual-Git rules remain unchanged.

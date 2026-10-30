@@ -1,0 +1,14 @@
+﻿{
+    "StartedUtc":  "2026-10-30T02:27:55.2328319+00:00",
+    "Scenario":  "Expanded",
+    "Style":  "Notch",
+    "IsAdministrator":  false,
+    "LogicalProcessors":  8,
+    "ProcessId":  11000,
+    "WarmupSeconds":  30,
+    "MeasuredSeconds":  300,
+    "NaturalExitAfterSeconds":  345,
+    "Scope":  "Native Tidlet dashboard with real metric providers; no WPF initialization",
+    "Fixture":  null,
+    "NativeVisibilityMeaning":  "WS_VISIBLE observed; occlusion and exhaustive input/focus audit remain separate"
+}

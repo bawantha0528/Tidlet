@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Islet.Core.Settings;
 
@@ -29,7 +29,7 @@ public sealed record SettingsDocument
     public IslandStyle Style { get; init; } = IslandStyle.Island;
     public IslandEdge Edge { get; init; } = IslandEdge.Top;
     public ThemeMode Theme { get; init; } = ThemeMode.System;
-    public string AccentColorHex { get; init; } = "#76E4C3";
+    public string AccentColorHex { get; init; } = "#3B82F6";
     public double Opacity { get; init; } = 0.98;
     public double CornerRadius { get; init; } = 18.0;
     public int TransitionDurationMs { get; init; } = 250;
@@ -91,7 +91,7 @@ public sealed record SettingsDocument
             .ToList() ?? new List<string> { "cpu", "ram", "network", "battery" };
 
         var chord = string.IsNullOrWhiteSpace(HotkeyChord) ? "Ctrl+Alt+I" : HotkeyChord.Trim();
-        var hex = string.IsNullOrWhiteSpace(AccentColorHex) || !AccentColorHex.StartsWith('#') ? "#76E4C3" : AccentColorHex.Trim();
+        var hex = string.IsNullOrWhiteSpace(AccentColorHex) || !AccentColorHex.StartsWith('#') ? "#3B82F6" : AccentColorHex.Trim();
 
         return this with
         {

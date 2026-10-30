@@ -1,0 +1,26 @@
+﻿[
+    {
+        "Case":  "Notch-Dark",
+        "Result":  "Pass",
+        "MediaReads":  3,
+        "MediaState":  1,
+        "RealPlaybackCommands":  0,
+        "VisualReview":  "Separate rendered-buffer inspection required"
+    },
+    {
+        "Case":  "Notch-Light",
+        "Result":  "Pass",
+        "MediaReads":  3,
+        "MediaState":  1,
+        "RealPlaybackCommands":  0,
+        "VisualReview":  "Separate rendered-buffer inspection required"
+    },
+    {
+        "Case":  "Full-Dark",
+        "Result":  "Pass",
+        "MediaReads":  0,
+        "MediaState":  0,
+        "RealPlaybackCommands":  0,
+        "VisualReview":  "Separate rendered-buffer inspection required"
+    }
+]

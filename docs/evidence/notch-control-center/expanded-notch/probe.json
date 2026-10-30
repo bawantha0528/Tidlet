@@ -1,0 +1,114 @@
+{
+  "SchemaVersion": 2,
+  "Host": "Tidlet Monitor native shell",
+  "CompletedUtc": "2026-10-30T02:33:40.6603782+00:00",
+  "Options": {
+    "Minimal": false,
+    "ExitAfterSeconds": 345,
+    "Style": 1,
+    "State": 2,
+    "Hidden": false,
+    "Page": 0,
+    "Theme": null,
+    "ExerciseDashboard": false,
+    "Exercise": false
+  },
+  "ProcessArchitecture": "X64",
+  "LoadedWpfAssemblies": [],
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "Layered": true,
+    "NoActivate": true,
+    "ToolWindow": true,
+    "ClickThrough": false,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "Bounds": {
+      "X": 572,
+      "Y": 0,
+      "Width": 775,
+      "Height": 400
+    },
+    "ActiveTimers": 4,
+    "RenderCount": 479
+  },
+  "SampleAttempts": 344,
+  "AvailableSamples": 343,
+  "VisibilityChecks": 346,
+  "InvisibleChecks": 0,
+  "ForegroundEverIsland": false,
+  "LastLabel": "CPU  8%",
+  "State": 2,
+  "Style": 1,
+  "UserHidden": false,
+  "Suppressed": false,
+  "SuppressionReason": null,
+  "LoadedMediaAssemblies": [
+    "Microsoft.Windows.SDK.NET",
+    "WinRT.Runtime"
+  ],
+  "MediaCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "MediaReads": 134,
+  "MediaCommands": 0,
+  "MediaStatus": {
+    "State": 1,
+    "Title": "Not playing",
+    "Subtitle": "Play something in a media app",
+    "SessionToken": null,
+    "Playing": false,
+    "CanToggle": false,
+    "CanPrevious": false,
+    "CanNext": false,
+    "Position": null,
+    "Duration": null
+  },
+  "FocusStatus": {
+    "State": 0,
+    "Remaining": "00:25:00",
+    "Duration": "00:25:00",
+    "Display": "25:00"
+  },
+  "CompactNotch": true,
+  "DashboardSamples": 344,
+  "SelectedPage": 0,
+  "Requests": 0,
+  "PointerChecks": 3149,
+  "AnimationFrames": 0,
+  "SuppressionTransitions": 1,
+  "HistoryCount": 60,
+  "ExerciseCompleted": false,
+  "DashboardExerciseCompleted": false,
+  "StatesObserved": {
+    "Notch/Expanded": 346
+  },
+  "ObservedDpi": [
+    120
+  ],
+  "Frames": [],
+  "Recovery": {
+    "TrayAvailable": true,
+    "HotkeyAvailable": true,
+    "ReducedMotion": false,
+    "HighContrast": false,
+    "Warnings": []
+  },
+  "DisplayCount": 1,
+  "NotificationQueries": 346,
+  "NotificationQueryError": null,
+  "ForegroundSignals": 0,
+  "RenderCount": 479,
+  "TimersRemainingAfterExit": 0,
+  "PollingStoppedOnExit": true,
+  "Failure": null,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

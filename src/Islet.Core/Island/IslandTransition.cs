@@ -11,9 +11,9 @@ public readonly record struct IslandSize(double Width, double Height)
         (IslandStyle.Bar, IslandState.Collapsed) => new(480, 28),
         (IslandStyle.Notch, IslandState.Hover) => new(380, 110),
         (_, IslandState.Hover) => new(360, 100),
-        (IslandStyle.Bar, IslandState.Expanded) => new(720, 320),
-        (IslandStyle.Notch, IslandState.Expanded) => new(640, 320),
-        _ => new(640, 300)
+        (IslandStyle.Bar, IslandState.Expanded) => new(860, 560),
+        (IslandStyle.Notch, IslandState.Expanded) => new(860, 560),
+        _ => new(860, 560)
     };
 }
 

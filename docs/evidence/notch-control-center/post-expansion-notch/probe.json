@@ -1,0 +1,133 @@
+{
+  "SchemaVersion": 2,
+  "Host": "Tidlet Monitor native shell",
+  "CompletedUtc": "2026-10-30T02:39:39.6400714+00:00",
+  "Options": {
+    "Minimal": false,
+    "ExitAfterSeconds": 345,
+    "Style": 1,
+    "State": 0,
+    "Hidden": false,
+    "Page": 0,
+    "Theme": null,
+    "ExerciseDashboard": false,
+    "Exercise": true
+  },
+  "ProcessArchitecture": "X64",
+  "LoadedWpfAssemblies": [],
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "Layered": true,
+    "NoActivate": true,
+    "ToolWindow": true,
+    "ClickThrough": true,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "Bounds": {
+      "X": 810,
+      "Y": 0,
+      "Width": 300,
+      "Height": 52
+    },
+    "ActiveTimers": 4,
+    "RenderCount": 448
+  },
+  "SampleAttempts": 121,
+  "AvailableSamples": 119,
+  "VisibilityChecks": 150,
+  "InvisibleChecks": 1,
+  "ForegroundEverIsland": false,
+  "LastLabel": "CPU  12%",
+  "State": 0,
+  "Style": 1,
+  "UserHidden": false,
+  "Suppressed": false,
+  "SuppressionReason": null,
+  "LoadedMediaAssemblies": [
+    "Microsoft.Windows.SDK.NET",
+    "WinRT.Runtime"
+  ],
+  "MediaCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "MediaReads": 9,
+  "MediaCommands": 0,
+  "MediaStatus": {
+    "State": 0,
+    "Title": "Looking for a player",
+    "Subtitle": "Windows media sessions",
+    "SessionToken": null,
+    "Playing": false,
+    "CanToggle": false,
+    "CanPrevious": false,
+    "CanNext": false,
+    "Position": null,
+    "Duration": null
+  },
+  "FocusStatus": {
+    "State": 0,
+    "Remaining": "00:25:00",
+    "Duration": "00:25:00",
+    "Display": "25:00"
+  },
+  "CompactNotch": true,
+  "DashboardSamples": 34,
+  "SelectedPage": 0,
+  "Requests": 17,
+  "PointerChecks": 3123,
+  "AnimationFrames": 299,
+  "SuppressionTransitions": 3,
+  "HistoryCount": 60,
+  "ExerciseCompleted": true,
+  "DashboardExerciseCompleted": false,
+  "StatesObserved": {
+    "Notch/Collapsed": 81,
+    "Island/Collapsed": 2,
+    "Island/Hover": 2,
+    "Island/Expanded": 2,
+    "Notch/Hover": 2,
+    "Notch/Expanded": 23,
+    "Bar/Collapsed": 12,
+    "Bar/Hover": 2,
+    "Bar/Expanded": 23,
+    "Suppressed": 1
+  },
+  "ObservedDpi": [
+    120
+  ],
+  "Frames": [
+    "Bar-Collapsed",
+    "Bar-Expanded",
+    "Bar-Hover",
+    "Island-Collapsed",
+    "Island-Expanded",
+    "Island-Hover",
+    "Notch-Collapsed",
+    "Notch-Expanded",
+    "Notch-Hover"
+  ],
+  "Recovery": {
+    "TrayAvailable": true,
+    "HotkeyAvailable": true,
+    "ReducedMotion": false,
+    "HighContrast": false,
+    "Warnings": []
+  },
+  "DisplayCount": 1,
+  "NotificationQueries": 348,
+  "NotificationQueryError": null,
+  "ForegroundSignals": 0,
+  "RenderCount": 448,
+  "TimersRemainingAfterExit": 0,
+  "PollingStoppedOnExit": true,
+  "Failure": null,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

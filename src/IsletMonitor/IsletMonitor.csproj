@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType><StartupObject>IsletMonitor.Program</StartupObject>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
+    <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework><WindowsSdkPackageVersion>10.0.17763.56</WindowsSdkPackageVersion><SupportedOSPlatformVersion>10.0.10240.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF><AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath><OutputPath>bin/$(Configuration)/net8.0-windows/</OutputPath>
     <AssemblyName>IsletMonitor</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>

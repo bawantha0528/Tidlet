@@ -26,6 +26,13 @@ public static class IslandLaunchArguments
                 case "--probe-report":
                     if (++index >= args.Length || string.IsNullOrWhiteSpace(args[index])) return false;
                     report = args[index]; break;
+                case "--page":
+                    if (++index >= args.Length || !Enum.TryParse<Islet.Core.Presentation.MonitorPage>(args[index], true, out var page) || !Enum.IsDefined(page)) return false;
+                    options = options with { Page = page }; break;
+                case "--theme":
+                    if (++index >= args.Length || !Enum.TryParse<ThemeMode>(args[index], true, out var theme) || theme is not (ThemeMode.Light or ThemeMode.Dark)) return false;
+                    options = options with { Theme = theme }; break;
+                case "--exercise-dashboard": options = options with { ExerciseDashboard = true }; break;
                 case "--style":
                     if (++index >= args.Length || !Enum.TryParse<IslandStyle>(args[index], true, out var style) || !Enum.IsDefined(style)) return false;
                     options = options with { Style = style }; break;
@@ -37,6 +44,12 @@ public static class IslandLaunchArguments
         }
         if (options.Minimal && (options.ExitAfterSeconds is null || report is null
             || seen.Any(s => s is not ("--native-probe" or "--exit-after-seconds" or "--probe-report")))) return false;
+        if (seen.Contains("--page") && !seen.Contains("--state")) options = options with { State = IslandState.Expanded };
+        if (options.ExerciseDashboard)
+        {
+            if (options.Exercise || options.Hidden || report is null) return false;
+            options = options with { State = IslandState.Expanded, ExitAfterSeconds = options.ExitAfterSeconds ?? 24 };
+        }
         if (options.Exercise && options.ExitAfterSeconds is null) options = options with { ExitAfterSeconds = 24 };
         return true;
     }

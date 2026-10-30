@@ -1,0 +1,111 @@
+{
+  "SchemaVersion": 2,
+  "Host": "Tidlet Monitor native shell",
+  "CompletedUtc": "2026-10-30T02:41:36.8020525+00:00",
+  "Options": {
+    "Minimal": false,
+    "ExitAfterSeconds": 45,
+    "Style": 1,
+    "State": 0,
+    "Hidden": false,
+    "Page": 0,
+    "Theme": null,
+    "ExerciseDashboard": false,
+    "Exercise": false
+  },
+  "ProcessArchitecture": "X64",
+  "LoadedWpfAssemblies": [],
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "Layered": true,
+    "NoActivate": true,
+    "ToolWindow": true,
+    "ClickThrough": true,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "Bounds": {
+      "X": 810,
+      "Y": 0,
+      "Width": 300,
+      "Height": 52
+    },
+    "ActiveTimers": 4,
+    "RenderCount": 11
+  },
+  "SampleAttempts": 11,
+  "AvailableSamples": 10,
+  "VisibilityChecks": 13,
+  "InvisibleChecks": 0,
+  "ForegroundEverIsland": false,
+  "LastLabel": "CPU  9%",
+  "State": 0,
+  "Style": 1,
+  "UserHidden": false,
+  "Suppressed": false,
+  "SuppressionReason": null,
+  "LoadedMediaAssemblies": [],
+  "MediaCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "MediaReads": 0,
+  "MediaCommands": 0,
+  "MediaStatus": {
+    "State": 0,
+    "Title": "Looking for a player",
+    "Subtitle": "Windows media sessions",
+    "SessionToken": null,
+    "Playing": false,
+    "CanToggle": false,
+    "CanPrevious": false,
+    "CanNext": false,
+    "Position": null,
+    "Duration": null
+  },
+  "FocusStatus": {
+    "State": 0,
+    "Remaining": "00:25:00",
+    "Duration": "00:25:00",
+    "Display": "25:00"
+  },
+  "CompactNotch": true,
+  "DashboardSamples": 0,
+  "SelectedPage": 0,
+  "Requests": 0,
+  "PointerChecks": 410,
+  "AnimationFrames": 0,
+  "SuppressionTransitions": 1,
+  "HistoryCount": 11,
+  "ExerciseCompleted": false,
+  "DashboardExerciseCompleted": false,
+  "StatesObserved": {
+    "Notch/Collapsed": 13
+  },
+  "ObservedDpi": [
+    120
+  ],
+  "Frames": [],
+  "Recovery": {
+    "TrayAvailable": true,
+    "HotkeyAvailable": true,
+    "ReducedMotion": false,
+    "HighContrast": false,
+    "Warnings": []
+  },
+  "DisplayCount": 1,
+  "NotificationQueries": 46,
+  "NotificationQueryError": null,
+  "ForegroundSignals": 0,
+  "RenderCount": 11,
+  "TimersRemainingAfterExit": 0,
+  "PollingStoppedOnExit": true,
+  "Failure": null,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

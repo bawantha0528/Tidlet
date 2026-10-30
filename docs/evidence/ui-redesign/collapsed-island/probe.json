@@ -1,0 +1,84 @@
+{
+  "SchemaVersion": 2,
+  "Host": "Tidlet Monitor native shell",
+  "CompletedUtc": "2026-10-29T19:50:06.5919854+00:00",
+  "Options": {
+    "Minimal": false,
+    "ExitAfterSeconds": 345,
+    "Style": 0,
+    "State": 0,
+    "Hidden": false,
+    "Page": 0,
+    "Theme": null,
+    "ExerciseDashboard": false,
+    "Exercise": false
+  },
+  "ProcessArchitecture": "X64",
+  "LoadedWpfAssemblies": [],
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "Layered": true,
+    "NoActivate": true,
+    "ToolWindow": true,
+    "ClickThrough": true,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "Bounds": {
+      "X": 822,
+      "Y": 10,
+      "Width": 275,
+      "Height": 45
+    },
+    "ActiveTimers": 4,
+    "RenderCount": 81
+  },
+  "SampleAttempts": 86,
+  "AvailableSamples": 85,
+  "VisibilityChecks": 88,
+  "InvisibleChecks": 0,
+  "ForegroundEverIsland": false,
+  "LastLabel": "CPU  16%",
+  "State": 0,
+  "Style": 0,
+  "UserHidden": false,
+  "Suppressed": false,
+  "SuppressionReason": null,
+  "DashboardSamples": 0,
+  "SelectedPage": 0,
+  "Requests": 0,
+  "PointerChecks": 3148,
+  "AnimationFrames": 0,
+  "SuppressionTransitions": 1,
+  "HistoryCount": 60,
+  "ExerciseCompleted": false,
+  "DashboardExerciseCompleted": false,
+  "StatesObserved": {
+    "Island/Collapsed": 88
+  },
+  "ObservedDpi": [
+    120
+  ],
+  "Frames": [],
+  "Recovery": {
+    "TrayAvailable": true,
+    "HotkeyAvailable": true,
+    "ReducedMotion": false,
+    "HighContrast": false,
+    "Warnings": []
+  },
+  "DisplayCount": 1,
+  "NotificationQueries": 346,
+  "NotificationQueryError": null,
+  "ForegroundSignals": 0,
+  "RenderCount": 81,
+  "TimersRemainingAfterExit": 0,
+  "PollingStoppedOnExit": true,
+  "Failure": null,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

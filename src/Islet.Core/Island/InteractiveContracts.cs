@@ -31,5 +31,8 @@ public sealed record NativeIslandOptions
     public IslandStyle Style { get; init; } = IslandStyle.Island;
     public IslandState State { get; init; } = IslandState.Collapsed;
     public bool Hidden { get; init; }
+    public Islet.Core.Presentation.MonitorPage Page { get; init; }
+    public ThemeMode? Theme { get; init; }
+    public bool ExerciseDashboard { get; init; }
     public bool Exercise { get; init; }
 }

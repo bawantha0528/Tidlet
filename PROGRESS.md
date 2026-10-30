@@ -1,4 +1,4 @@
-﻿# Tidlet Monitor — progress
+# Tidlet Monitor — progress
 
 Updated: 30 October 2026 (Asia/Colombo).
 
@@ -261,3 +261,75 @@ Only project-location/rule/progress documents changed; application code was not 
 
 Machine-readable result: [relocation verification](docs/evidence/m0/relocation-verification.json).
 
+
+## 30 October 2026 - Stats-inspired dashboard revision
+
+This is the user's requested presentation revision on their current M3 branch. It does not certify all historical M1-M3 acceptance criteria or start M4-M7. Active folder remains C:\Users\bawan\OneDrive\Documents\Tidlet. No staging or commits.
+
+**What was built**
+
+Original native charcoal/jade/amber and warm light themes; overview cards and eight selectable pages (Overview, CPU, Memory, Network, Disk, GPU, Battery, Apps); utilization rings, bounded history and paired byte-rate charts; aligned details, memory-ranked process rows and combined module summaries. Kept island/notch/bar, no-activation, click-through collapse, tray/hotkey recovery and fullscreen/power suppression. Short mouse clicks use native client-coordinate messages and shared hit-test geometry. The expanded canvas fits small/high-DPI displays within the existing DIB allocation limit. Native text masks now clear only the region read for each label.
+
+Connected real RAM/network/battery/process readings and replaced fabricated disk activity with built-in PDH read/write rates, collected asynchronously with at most one request outstanding. Old disk/GPU native placeholders now fail truthfully. No real GPU value, thermal data, clock speed, memory subcategory or unavailable battery health/rate is fabricated. Absent batteries are hidden from the overview and explained on their page. Non-CPU providers are sampled only while expanded; histories/deltas reset on resume. Theme switching is session-only; normal launches read existing theme/accent preferences, and diagnostic launches skip personal settings.
+
+**How it was verified**
+
+- Release build: dotnet build -c Release --no-restore -m:1 -p:UseSharedCompilation=false -nodeReuse:false; passed, zero warnings/errors. SDK 8.0.414 retained; no dependency added.
+- dotnet test -c Release --no-build --no-restore --logger trx --results-directory TestResults/ui-redesign-final: 84 passed, zero failed/skipped (Core 47, Shell 16, Windows 21). TRX suite verifier passed.
+- Same suite with RunConfiguration.TargetPlatform=x86: 84 passed. Actual ABI test output logged native pointer size 4. This is execution under the installed 32-bit runtime, not a flag-only inference.
+- Tests include invalid/missing percentages and memory, unsupported hardware, denied/throwing sources, polling suspension/resume, DPI-scaled short-click targets/theme selection, bounded pending disk requests/reset generations, native ABI and real surface/font disposal.
+- scripts/smoke-shell.ps1 -IncludeFullscreenFixture: seven cases passed, all nine style/state combinations captured, zero hidden draw/sample/pointer work; owned borderless fullscreen hide/resume passed. Exclusive D3D games remain untested.
+- scripts/smoke-dashboard.ps1 -OutputDirectory artifacts/ui-dashboard-final: passed, 16 actual rendered page/theme frames, 23 expanded samples/disk requests, zero WPF assemblies, zero timers after natural exit. Visual inspection included both overview themes, CPU, memory, network, battery, unavailable GPU and process detail pages. PNG conversions preserve the actual app buffer; no invented demo data or desktop screenshot is claimed.
+- scripts/test-measurement.ps1: 24 checks passed. scripts/test-native-evidence.ps1: six checks passed, including rejection of mixed style/state histories, altered summaries, incomplete CSV, WPF loading and leaked timers. All benchmark apps exit naturally; no forced GC, trimming, process termination or settings change.
+- Initial sandbox desktop launch failed because tray/hotkey access was unavailable; tests/app checks were then run successfully with the normal non-administrator desktop token. Earlier folder-write failures were independently traced to Controlled Folder Access; user resolved access. The agent changed no security settings.
+- Workflow now includes dashboard smoke and captures; hosted CI was not dispatched or claimed passed.
+
+**Measured RAM and CPU**
+
+Sequential full-shell trials on the same Release binaries, 30 seconds warmup plus at least 300 measured seconds. Decimal MB, sampled maximum, CPU normalized by eight logical processors. Raw CSV, summary, binary hashes and native lifecycle diagnostics live in docs/evidence/ui-redesign. No helper process. Target architecture x64; host reports Windows 10.0.26200.0, one display at DPI 120 (125%).
+
+| Scenario | Duration | Peak working set | Average CPU | Result |
+| --- | ---: | ---: | ---: | --- |
+| Collapsed Island | 300.0096 s / 301 samples | 42.647552 MB | 0.02018165% | Pass |
+| Expanded Island dashboard | 300.0196 s / 301 samples | 64.598016 MB | 0.37823044% | Pass |
+| User-hidden full shell | 300.0107 s / 301 samples | 37.154816 MB | 0.00000000% observed | Pass |
+
+Collapsed details: mean 32.688706 MB, lifetime peak 42.672128 MB; 0.484375 CPU-seconds / 0.16145317% core-equivalent CPU. Native diagnostics confirmed only Island/Collapsed in state history, 85 valid CPU samples, 81 redraws, zero expanded dashboard samples and zero disk requests. No WPF assemblies, foreground activation or timers left after natural exit. Working-set decreases are retained as observed, not induced by trimming.
+
+Expanded details: mean 56.524991 MB, median 55.439360 MB, p95 59.486208 MB; lifetime/sample peak 64.598016 MB. CPU 9.078125 seconds / 3.02584356% core-equivalent / 0.37823044% normalized. The run remained Island/Expanded while navigating modules and ended on Battery detail, rather than remaining on Overview. All expanded providers kept sampling: 344 dashboard samples and disk requests, 350 renders, 60 retained samples, no animations, zero WPF assemblies or timers after exit. This is an expanded-with-graphs measurement, not proof of every page/style/theme combination. All seven binary/manifest hashes match the collapsed trial.
+Hidden details: mean 32.415839 MB, median 29.675520 MB, p95/sample peak 37.154816 MB; startup/lifetime peak 40.701952 MB. The 300.0107-second observation consumed zero recorded CPU time (at the process counter's resolution), rather than proof that no CPU instruction ever executes. Independent native proof confirms not visible, zero CPU/dashboard samples, disk requests, pointer checks and renders; no WPF assemblies, foreground activation, or timers left after natural exit. The generic observer leaves HiddenBehaviorVerified false by design; the separate native verifier establishes visibility and zero-work behavior. All three CSV summaries were independently reproduced, and all seven current app binaries/manifests exactly match every trial.
+**Known gaps**
+
+- GPU/per-adapter counters are unfinished; GPU page explains this. Temperature/fans and missing battery health/rate require separate provider/helper work. No zero substitution.
+- Existing network source still aggregates BCL interfaces; physical-adapter filtering through GetIfTable2 and virtual/VPN duplication remain unresolved provider issues. UI does not assert that the displayed interface name accounts for every aggregated byte.
+- Settings schemas/storage/profile/alert tests in the user's branch are not proof of a complete settings UI, widget ordering, all hotkey customization, alerts or auto-profile integration. Dashboard theme changes are not persisted by this revision.
+- Two physical displays at different DPI, Windows 10 hardware, hybrid GPUs, absent-battery hardware and screen-reader/UIA audit remain unverified. Mock coverage is not hardware acceptance. Exclusive games are not covered by the owned borderless fixture.
+- Measurements apply to the captured binaries/scenarios, not every style/theme/device. Existing framework support/servicing risk remains unchanged. No remote CI result is claimed.
+
+**Next step**
+
+Presentation revision complete and measured for these scenarios; ready for user review. Review the saved preview and remaining provider/hardware/settings gaps before further work. No staging or commits; M4-M7 remain deferred.
+## 30 October 2026 - Reference color follow-up
+
+**What was built:** applied the user's latest direction to use the supplied reference's white and neutral-gray dark surfaces with blue/red accents and no green, superseding the earlier jade/amber choice. Dark panels #4D4D50, white panels #FFFFFF, blue #3B82F6, red #E64B58/#F05B67. Battery rings are blue. Native/schema/host defaults changed to blue; green-dominant accents from existing settings render as blue without rewriting personal settings. No layout, metric sampling, Windows API or dependency changes.
+
+**How it was verified:** Release build passed with zero warnings/errors. Existing x64 test suite passed all 84 tests, zero failures/skips (TestResults/reference-colors). scripts/smoke-dashboard.ps1 -OutputDirectory artifacts/reference-colors passed: all 16 pages/themes rendered, zero WPF assemblies and zero timers after natural exit. Both overview themes were visually inspected. Sampled pixels across all 16 rendered frames contained zero green-dominant colors; actual panel pixels matched #4D4D50/#FFFFFF and footer accent pixels matched #3B82F6. PNG previews and palette-checks.json are in artifacts/reference-colors. git diff --check passed.
+
+**Measured RAM and CPU:** the five-minute measurements above apply to the preceding palette's binaries. They were not repeated for this cosmetic follow-up; no new performance-gate pass is claimed. No trimming, forced GC or settings changes.
+
+**Known gaps:** existing sensor/provider, settings integration and physical-hardware limitations are unchanged. Pixel checks are sampled, supplemented by visual inspection; they are not a claim that every possible custom theme has been audited.
+
+**Next step:** user review of the dark and white PNG previews. No staging, commits or new dependencies.
+## Black Notch control center extension - 30 October 2026 (memory gate failed; stopped for review)
+
+**What was built:** The user approved music controls/focus timing and the pinned Microsoft.Windows.SDK.NET.Ref 10.0.17763.56 dependency. A compact expanded Notch home now has a media card, 25-minute focus timer, CPU/RAM bars, live network rates and links to real module pages. Monitor opens the full dashboard; its Notch button returns home. Dark views use #0D0C0F roots / #080809 cards; white mode and blue/red accents remain. Media capability/permission/player failures disable actions with an explanation. The provider is lazy and single-flight; only the visible media card requests data. The timer uses an elapsed-time deadline without a hidden ticking loop. Session data is invalidated across hidden/navigation transitions. Compact home does not sample invisible disk/GPU/process modules. All existing user work and manual-Git policy are preserved.
+
+**How it was verified:** Locked restore and normal Release build passed, zero warnings/errors. All 92 tests passed in each of x64 and actual x86 test runtimes (50 Core / 18 Shell / 24 Windows); x86 ABI output confirms pointer size 4. Both three-suite result guards passed. New tests cover deadline/pause/resume/reset/completion, missing media/disabled hit targets, lazy loading, denied access, stale-token rejection, bounded pending work and a native click routed to the mock playback executor. No real music command was issued. smoke-control-center passed three native view cases; smoke-dashboard rendered 16 full pages/themes; smoke-shell -IncludeFullscreenFixture passed seven cases/nine style-state combinations and owned fullscreen hide/resume. Measurement harness passed 24 checks. Both compact themes and full dark CPU frame were visually inspected; dark/white card pixels and absence of green were checked. CI was updated, not run remotely. See docs/evidence/notch-control-center for retained results/frames; detailed TRX/raw diagnostics are in TestResults and artifacts.
+
+**Measured RAM and CPU:** Expanded Notch passed: 301.001441 seconds / 302 samples, peak 71.04512 MB, mean 63.804911 MB, 0.261496879% machine CPU (2.091975035% core-equivalent). Post-expansion collapsed Notch failed: 300.003635 seconds / 301 samples, peak 68.837376 MB, mean 65.447167 MB, 0.085936459% machine CPU (0.687491670% core-equivalent); lifetime peak 79.413248 MB includes earlier expanded exercise. Memory exceeds 60 MB by 8.837376 MB, while collapsed CPU passes. Both native lifetime checks passed; raw CSV recomputation reproduced Pass/Fail respectively. Both media assemblies loaded, no WPF/helper, normal non-admin token, eight logical processors, one display at 125%, Windows build 26200. All nine app/runtime hashes match. No GC/trim or budget relaxation. Hidden behavior passed the natural-exit smoke; a short diagnostic is recorded separately and is not a five-minute acceptance pass. The new hidden 300-second run was not started after the failed gate.
+
+**Known gaps:** No active media player was present: real native manager access/NoSession was exercised, while playback dispatch was tested only through mocks. Player-specific metadata/transport behavior and old Windows 10 fallback require real-device checks. New native controls are pointer-driven; broader accessibility/keyboard navigation is incomplete. Focus is session-only and has no alarm/notification. SDK redistribution notices/rights must be finalized before M7 release packaging. Existing GPU/sensor/network filtering/M2-M3 acceptance and physical hardware gaps remain. The initial standard build was locked by the old user app until the user closed it; the normal path was then rebuilt. No process was terminated or security setting changed.
+
+**Next step:** Implementation stopped at the failed 60 MB gate. Review docs/MEDIA_MEMORY_PROPOSAL.md before further changes. It proposes a demand-started non-elevated media worker that exits naturally when its card is invisible, retains the current UI/timer, uses the already approved SDK package and counts combined costs against the unchanged budgets. A narrow verified native WinRT/COM bridge is an alternative. Neither has been implemented. No M4-M7 work or commits.
+
+Short diagnostic follow-up (not acceptance): cold collapsed 31.012272 s, peak 40.787968 MB, 0.012595820% machine CPU; cold hidden 30.017261 s, peak 37.486592 MB, zero observed CPU delta and zero metric/pointer/render calls. Neither loaded media/WPF assemblies or issued a media request/control. Both exited naturally. These characterize the baseline and do not erase the 300-second post-expansion failure.

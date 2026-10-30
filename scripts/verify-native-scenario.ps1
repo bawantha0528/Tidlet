@@ -1,9 +1,10 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 [CmdletBinding()]
 param([Parameter(Mandatory)][string] $ArtifactDirectory)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'Measurement.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'WorkerMeasurement.psm1') -Force
 $root=(Resolve-Path -LiteralPath $ArtifactDirectory).Path
 $context=Get-Content -LiteralPath (Join-Path $root 'context.json') -Raw | ConvertFrom-Json
 $summary=Get-Content -LiteralPath (Join-Path $root 'summary.json') -Raw | ConvertFrom-Json
@@ -21,6 +22,12 @@ if($computed.WorkingSetMaxBytes -ne $summary.WorkingSetMaxBytes -or
     $computed.Result -ne $summary.Result -or $summary.DurationSeconds -lt 300) { throw 'Raw CSV does not reproduce the complete summary.' }
 if($data.ExitCode -ne 0 -or $data.Failure -or -not $data.NaturalExit -or -not $data.PollingStoppedOnExit -or
     $data.LoadedWpfAssemblies.Count -ne 0 -or $data.TimersRemainingAfterExit -ne 0 -or $data.ForegroundEverIsland) { throw 'Native module/lifetime/focus diagnostics failed.' }
+    if ($scenario -in @('Collapsed','Expanded')) {
+        $expectedState = $context.Style + '/' + $(if ($scenario -eq 'Expanded') { 'Expanded' } else { 'Collapsed' })
+        $unexpected = @($data.StatesObserved.PSObject.Properties | Where-Object { $_.Name -ne $expectedState })
+        if ($unexpected.Count -ne 0) { throw 'State history contains interaction or suppression; this is not a pure scenario measurement.' }
+    }
+if($data.SchemaVersion -ge 3){$null=Assert-WorkerAggregateEvidence -Root $root -Probe $data -Scenario $scenario}
 $native=$data.LastObservation
 if(-not $native.Layered -or -not $native.NoActivate -or -not $native.ToolWindow) { throw 'Native styles missing.' }
 if($scenario -in @('Hidden','Fullscreen')) {

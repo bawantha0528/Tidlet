@@ -1,92 +1,95 @@
 # Tidlet Monitor
 
-An MIT-licensed Windows system monitor designed for a small top-edge island, plain-English readings and low resource use.
+A local, MIT-licensed Windows system monitor with a compact island, notch or bar and a clear, detailed dashboard. Built with C#/.NET 8 and a native Win32 layered renderer, following the approved renderer exception after the original transparent WPF experiment exceeded its memory budget.
 
-**Current status: native M1 shell implemented; final performance verification in progress.** The user approved replacing always-resident WPF rendering after its memory gate failed. The native comparison passed at 30.74 MB peak; the complete Island shell passed at 36.63 MB peak. Remaining style/scenario measurements and physical-hardware acceptance are tracked in [progress](PROGRESS.md).
 
-## Build and test
+The new Notch UI builds with 92 tests passing on x64 and actual x86 runtimes. **The memory gate failed after opening music:** 68.84 MB collapsed versus the 60 MB limit; average CPU was 0.086%. Expanded Notch passed at 71.05 MB / 0.261% CPU. Each complete trial measured at least 300 seconds on eight logical processors. Implementation is stopped for review of the [media memory proposal](docs/MEDIA_MEMORY_PROPOSAL.md); see [raw evidence](docs/evidence/notch-control-center/README.md). Previous dashboard measurements remain historical. The user performs all commits manually.
 
-Prerequisites: Windows 10/11, the exact .NET SDK **8.0.414** pinned by global.json, and PowerShell 7 for scripts. The developer scaffold is framework-dependent and requires the matching .NET 8 Windows Desktop runtime. No admin rights or driver is needed by the app.
+## The dashboard
 
-Use a local repository directory that accepts writes. Set these environment variables for this terminal only before the following commands:
+Open the island to see processor, memory, network, disk, battery and top-app cards. Select a card or a module tab for its history chart and detail rows, alongside a combined summary. Switch between reference-inspired near-black and white themes with blue/red accents using the top-right button. The information layout is inspired by [Stats](https://github.com/exelban/stats); Tidlet uses its own Windows implementation and branding, with no copied source or artwork.
+
+- CPU: whole-system utilization, idle headroom, up to 60 recent readings.
+- Memory: physical RAM used/available/total and utilization history.
+- Network: download/upload byte rates and a paired chart from the existing Windows provider.
+- Disk: genuine read/write byte rates across physical disks, collected through Windows PDH in one background request at a time.
+- Battery: charge level, charging state and estimated remaining time when Windows supplies it. A machine without a battery hides its overview card; its module still explains why.
+- Apps: largest accessible process working sets, refreshed at most every four seconds while expanded. No process actions are added by this redesign.
+- GPU: explicitly unavailable until a genuine per-adapter counter provider is connected. No generic adapter or fake utilization is shown.
+
+Missing, warming-up and failed readings have explanations; no missing sensor is replaced with zero. Temperatures, fan speeds, clock speed, memory subcategories and battery health/rate are not invented. Expanded-only providers stop sampling when collapsed or hidden. Histories are bounded and reset on resume.
+
+**Known provider gap:** the existing network implementation aggregates active BCL interfaces; required physical-adapter filtering through GetIfTable2 is unfinished, so virtual/VPN interfaces may duplicate traffic. This UI change does not establish full M2/M3 acceptance. Current settings schemas/persistence tests also do not prove a complete settings window or every customization option.
+
+## Notch control center
+
+Expanded Notch has a compact 620x320 DIP home: system music title/player controls, a 25-minute focus timer, live CPU/RAM bars and download/upload rates. Dark mode uses near-black surfaces throughout; white mode and blue/red accents remain available. The Monitor button opens the full overview; CPU/RAM/network and Disk/Apps/Power open their detailed pages. The full Notch header returns home.
+
+Click the focus row to start, pause or resume; the reset arrow restores 25 minutes. Completion appears in the panel. It continues by elapsed time while hidden, without a background ticking loop, and resets when the app exits. No sound or notification is generated. Music controls are disabled when no player exists or the player does not support an action. Only participating Windows media apps can supply track data; there is no built-in music player.
+
+```powershell
+cd "C:\Users\bawan\OneDrive\Documents\Tidlet"
+& ".\src\IsletMonitor\bin\Release\net8.0-windows\IsletMonitor.exe" --style Notch --state Expanded --theme Dark
+```
+## Run
+
+Prerequisites: Windows 10/11, SDK **8.0.414** pinned by global.json, matching .NET 8 Windows Desktop runtime, and PowerShell 7 for developer scripts. The app needs no administrator rights or driver. The user-approved Microsoft.Windows.SDK.NET.Ref 10.0.17763.56 targeting pack supplies native Windows media interop; it is pinned for .NET 8. Music controls require Windows 10 1809 or later and a participating player; older Windows 10 receives an explanation. See DECISIONS.md for the SDK license and runtime inventory.
 
 ```powershell
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 $env:TESTINGPLATFORM_TELEMETRY_OPTOUT = '1'
-
 dotnet restore TidletMonitor.sln --locked-mode
 dotnet build -c Release
+dotnet run --project src/IsletMonitor -c Release --no-build
+```
+
+Hover over the collapsed island, then click to open it. Escape or an outside click collapses it. **Ctrl+Alt+I** toggles the dashboard; the tray menu remains available if the shortcut is occupied. Right-click for module selection, Island/Notch/Bar, display selection, theme, hide/show or exit. Dashboard tabs and cards are clickable; native menus provide the keyboard route.
+
+Fullscreen/presentation, session lock, display-off and suspend suppress the island. Explicitly hiding it stops metric/pointer/animation/foreground work. The complete expanded canvas scales to fit small/high-DPI screens. Two physical monitors at different DPI still require hardware validation.
+
+Existing saved theme/accent preferences are read on normal launches. The dashboard theme button is session-only and does not overwrite settings. Broader settings/profile/alert UI acceptance remains separate.
+
+For a direct dashboard launch:
+
+```powershell
+src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe --state Expanded
+src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe --page Memory --theme Light
+```
+
+## Verify and measure
+
+```powershell
 dotnet test -c Release --logger trx --results-directory TestResults
 pwsh -NoProfile -File scripts/verify-test-results.ps1
 pwsh -NoProfile -File scripts/test-measurement.ps1
-```
-
-Tests use the disclosed Microsoft test SDK/framework/adapter only; application projects have no NuGet package references. Exact transitive versions are locked and described in [the inventory](docs/DEPENDENCIES.md). CI rejects zero discovered tests, skipped/incomplete suites and failures. The workflow is configured, but remote CI is not claimed passed until an actual run exists.
-
-```powershell
-dotnet run --project src/IsletMonitor -c Release --no-build
-```
-
-Use the tray menu to exit. To run the historical M0 scaffold baseline with natural exit:
-
-```powershell
-$app = Start-Process -FilePath src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe -ArgumentList '--scaffold','--exit-after-seconds','350' -PassThru
-pwsh -NoProfile -File scripts/measure.ps1 -ProcessId $app.Id -Scenario ScaffoldIdle -DurationSeconds 300 -WarmupSeconds 30
-```
-
-The measurement script never changes system settings, kills processes, forces garbage collection or trims working sets. Short diagnostic runs require an explicit flag and cannot claim budget acceptance. Scenario names are operator-supplied; hidden/fullscreen behavior needs separate evidence.
-
-## Running the M1 shell
-
-The default app now starts the approved native island, without initializing WPF. Hover to reveal the preview and click to expand. Escape or an outside click collapses the panel. Ctrl+Alt+I toggles it; if that shortcut is already in use, the tray menu remains available.
-
-Right-click the island or its tray icon for Island/Notch/Bar, display selection, Hide/Show and Exit. The app suppresses itself for Windows presentation/fullscreen states, borderless fullscreen, session lock, display-off and suspend. User-hidden mode stops metric, pointer, animation and foreground watches. All settings are temporary in M1; persistence/customization belongs to M3.
-
-```powershell
-dotnet run --project src/IsletMonitor -c Release --no-build
-```
-
-Developer checks:
-
-```powershell
-pwsh -NoProfile -File scripts/smoke-shell.ps1
 pwsh -NoProfile -File scripts/smoke-shell.ps1 -IncludeFullscreenFixture
-pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Collapsed -Style Island -OutputDirectory artifacts/measurements/my-shell-trial
+pwsh -NoProfile -File scripts/smoke-dashboard.ps1
+pwsh -NoProfile -File scripts/smoke-control-center.ps1
+pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Collapsed -Style Island -OutputDirectory artifacts/measurements/my-collapsed-trial
+pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Expanded -Style Island -OutputDirectory artifacts/measurements/my-expanded-trial
+pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Hidden -OutputDirectory artifacts/measurements/my-hidden-trial
 ```
 
-The optional fullscreen fixture is an owned, visible test window that closes itself; it is not an exclusive D3D game. Each acceptance measurement needs a fresh directory and at least five measured minutes. Do not run overlapping visible trials. Raw CSV, native diagnostics and independently recomputed checks are separate evidence.
+Each measurement needs a fresh directory, 30 seconds of warmup and at least 300 measured seconds. Do not overlap visible trials or interact with the benchmark. The verifier rejects state/style changes, tampered summaries, incomplete observations, loaded WPF assemblies and leaked timers. It never changes system settings, forces garbage collection, trims memory or terminates a process. Test windows exit naturally. The fullscreen fixture is a borderless test window; exclusive games remain untested.
 
-The original WPF experiments remain available through --scaffold and --island-probe. --native-probe selects the minimal native comparison host, which differs from the complete shell in resident services. Each probe requires an explicit report path and timed exit. See docs/M1_NATIVE_PLAN.md and PROGRESS.md.
+Dashboard smoke captures 16 actual rendered frames (eight pages, two themes) in ignored artifacts, using real data and no personal settings. Frames are the app's own rendered buffer, not a desktop screenshot. Missing-hardware and invalid-value tests use fixtures. Tests of process actions use mock executors.
 
+Budgets remain **60 MB collapsed / 100 MB expanded**, collapsed average CPU **<1% over five minutes**, and approximately zero hidden/fullscreen CPU. See [PROGRESS.md](PROGRESS.md) and [performance definitions](docs/PERFORMANCE.md) for actual results; historic renderer measurements do not validate a newer binary.
 
-## Architecture
+## Architecture and scope
 
-- Islet.Core: portable capabilities, settings contracts, CPU reading states/math and display boundary; no Windows or WPF APIs.
-- Islet.Shell: native presentation/lifecycle controller and launch validation; legacy WPF experiments remain isolated.
-- Islet.Windows: Win32 layered renderer, CPU provider, display/power/fullscreen/tray/hotkey adapters; no production NuGet dependency.
-- IsletMonitor: application entry and composition.
-- tests / scripts / docs: genuine tests, verification tooling, plans and evidence.
+- Islet.Core: portable readings/validation, capabilities, presentation models/layout, settings/theme/profile/alert contracts; no Windows/WPF APIs.
+- Islet.Shell: native presentation and lifecycle controller; isolated legacy WPF experiments.
+- Islet.Windows: native drawing and Windows metrics, tray, display, power, fullscreen and hotkey adapters.
+- IsletMonitor: composition and entry point.
+- tests / scripts / docs: verification, performance evidence and engineering decisions.
 
-M1 currently adds only the real CPU feasibility source. No sample history, full widget set, settings persistence or fixers are implemented.
+The historical WPF experiments remain behind --scaffold and --island-probe. The minimal --native-probe comparison host differs from the full dashboard and requires a timed exit plus explicit report path. Hosted CI is configured; a passing remote run is not claimed without evidence.
 
-## Performance and compatibility
+No accounts, telemetry, cloud sync, messaging, phone-home updates, background service or driver. Readings stay local; diagnostics write only to an explicitly requested report path. Normal launches may read/recover existing local settings. No helper, compatibility export, fixers, creature or release packaging is introduced (M4-M7 remain deferred).
 
-Targets for later island implementation: collapsed <=60 MB resident working set and <1% average normalized CPU over five minutes; expanded graphs <=100 MB; approximately zero hidden/fullscreen CPU. A plain M0 scaffold baseline is not a transparent-island pass.
+.NET 8 support ends **10 November 2026**. The requested target is retained; no machine installation or framework upgrade was performed. See [Microsoft's support policy](https://dotnet.microsoft.com/en-us/platform/support/policy).
 
-See [PROGRESS](PROGRESS.md) for actual commands/results and [PERFORMANCE](docs/PERFORMANCE.md) for definitions. x64/x86 build coverage does not prove native-layout or x86 runtime behavior; M1 tests ran on both x64 and x86, and an x86 live app smoke passed; this does not prove Windows 10 or ARM64 coverage. Physical mixed-DPI monitors, missing/hybrid hardware and 8 GB reference-machine testing remain explicit gaps.
-
-.NET 8 reaches end of support on 10 November 2026. This scaffold deliberately honors the requested target; its installed SDK/runtime are older servicing builds. Any target change or machine installation requires a separate decision. See [Microsoft's lifecycle policy](https://dotnet.microsoft.com/en-us/platform/support/policy).
-
-## Privacy and safety
-
-The native shell reads CPU times locally and keeps at most 60 history samples in memory. It writes diagnostics only to an explicitly requested report path. The normal app makes no network requests and writes no persistent settings in M1. The explicit M0 scaffold collects no sensor data. No accounts, telemetry, messaging, cloud sync, background service, driver or phone-home updater. Build/test tooling has separate Microsoft dependencies; its telemetry is opted out through process-local environment settings. No third-party test assets are shipped in the application.
-
-Future monitoring stays local, capabilities explain unavailable values, and tests of process actions/fixers use mock executors. No machine setting has been changed to implement or benchmark this scaffold.
-
-## Roadmap and contribution
-
-Read [AGENTS](AGENTS.md), [the detailed plan](docs/IMPLEMENTATION_PLAN.md), [decisions](DECISIONS.md), [API register](docs/API_REGISTER.md) and [acceptance matrix](docs/ACCEPTANCE_MATRIX.md) before changes. Every milestone requires a build, real tests, 300-second measurement and progress update. The user performs all commits manually; do not stage or commit automatically.
-
-M1 island → M2 metrics/widgets → M3 customization, then stop for review. Helper, diagnostics/fixers, creature and release packaging are later milestones.
+Read [AGENTS.md](AGENTS.md), [the original plan](docs/IMPLEMENTATION_PLAN.md), [UI plan](docs/UI_REDESIGN_PLAN.md), [decisions](DECISIONS.md) and [API register](docs/API_REGISTER.md). The user owns all staging and commits; this work does not perform Git writes.
 
 Licensed under [MIT](LICENSE).

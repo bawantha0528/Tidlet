@@ -1,0 +1,92 @@
+{
+  "SchemaVersion": 1,
+  "LocalDate": "2026-10-30",
+  "Scope": "Original Stats-inspired native presentation revision on user M3 branch",
+  "Finalized": true,
+  "Build": {
+    "Warnings": 0,
+    "Result": "Pass",
+    "Errors": 0,
+    "Configuration": "Release",
+    "Sdk": "8.0.414",
+    "Command": "dotnet build -c Release --no-restore -m:1 -p:UseSharedCompilation=false -nodeReuse:false"
+  },
+  "Tests": {
+    "X64": {
+      "Failed": 0,
+      "Skipped": 0,
+      "Passed": 84,
+      "TrxDirectory": "TestResults/ui-redesign-final"
+    },
+    "X86": {
+      "Failed": 0,
+      "Skipped": 0,
+      "Passed": 84,
+      "TrxDirectory": "TestResults/ui-redesign-x86",
+      "ActualAbiPointerSize": 4
+    }
+  },
+  "Smoke": {
+    "StyleStateFrames": 9,
+    "DashboardProbe": "artifacts/ui-dashboard-final/probe.json",
+    "Fullscreen": "Owned borderless fixture hide/resume passed; exclusive games untested",
+    "VisualReview": "Actual rendered buffers inspected; no invented data",
+    "DashboardPagesAndThemes": 16,
+    "ShellCases": 7
+  },
+  "Tooling": {
+    "GitStagingOrCommits": false,
+    "ProcessActionsTested": "Mocks only",
+    "MeasurementChecks": 24,
+    "SystemSettingChanges": false,
+    "NativeEvidenceChecks": 6,
+    "HostedCi": "Not dispatched",
+    "NewDependencies": 0
+  },
+  "Performance": {
+    "Expanded": "Pass: remained expanded; navigated to Battery detail",
+    "Hidden": "Pass: zero observed CPU time and native zero-work evidence",
+    "ArchitectureEvidence": "ProcessArchitecture X64 in native probe reports; generic observer architecture placeholder retained as raw data",
+    "Collapsed": "Pass: CSV and native state independently verified",
+    "BinaryManifestsMatch": true,
+    "Trials": [
+      {
+        "Scenario": "Collapsed",
+        "DurationSeconds": 300.0096001,
+        "SampleCount": 301,
+        "PeakWorkingSetMB": 42.647552,
+        "AverageCpuMachineNormalizedPercent": 0.020181645847272337,
+        "AverageCpuCoreEquivalentPercent": 0.1614531667781787,
+        "Result": "Pass"
+      },
+      {
+        "Scenario": "Expanded",
+        "DurationSeconds": 300.0196415,
+        "SampleCount": 301,
+        "PeakWorkingSetMB": 64.598016,
+        "AverageCpuMachineNormalizedPercent": 0.37823044495571806,
+        "AverageCpuCoreEquivalentPercent": 3.0258435596457445,
+        "Result": "Pass"
+      },
+      {
+        "Scenario": "Hidden",
+        "DurationSeconds": 300.01068910000004,
+        "SampleCount": 301,
+        "PeakWorkingSetMB": 37.154816,
+        "AverageCpuMachineNormalizedPercent": 0,
+        "AverageCpuCoreEquivalentPercent": 0,
+        "Result": "Pass"
+      }
+    ],
+    "CurrentBinariesMatchEveryTrial": true
+  },
+  "KnownGaps": [
+    "GPU provider unfinished",
+    "Thermals/fans and missing advanced battery data unavailable",
+    "Network virtual/VPN filtering unfinished",
+    "Full settings UI/profile/alert integration not certified",
+    "Physical mixed-DPI displays and older Windows untested",
+    "Screen-reader/UIA audit open"
+  ],
+  "CompletedUtc": "2026-10-29T20:02:54.8853467+00:00"
+}

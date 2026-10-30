@@ -26,7 +26,7 @@ public sealed class IslandTransitionTests
         var transition = new IslandTransition(IslandSize.For(IslandStyle.Island, IslandState.Collapsed));
         transition.Begin(IslandSize.For(IslandStyle.Bar, IslandState.Expanded), 0, true);
         Assert.IsFalse(transition.Active);
-        Assert.AreEqual(new IslandSize(720, 320), transition.At(0));
+        Assert.AreEqual(IslandSize.For(IslandStyle.Bar, IslandState.Expanded), transition.At(0));
     }
 
     [TestMethod]

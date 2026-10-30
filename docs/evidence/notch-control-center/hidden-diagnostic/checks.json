@@ -1,0 +1,11 @@
+{
+  "Result": "DiagnosticOnly",
+  "Scenario": "Hidden",
+  "MediaReads": 0,
+  "LoadedMediaAssemblies": [],
+  "NoWpf": true,
+  "TimersAfterExit": 0,
+  "ObservedStates": {
+    "Suppressed": 2
+  }
+}
