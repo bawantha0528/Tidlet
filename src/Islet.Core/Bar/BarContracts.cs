@@ -5,7 +5,7 @@ public enum BarMode { Overlay, Reserve }
 public enum BarEdge { Top, Bottom }
 public enum BarAlignment { Left, Center, Right }
 public enum MonitorSelection { Primary, All, Selected }
-public enum BarModule { Cpu, Ram, Network, Battery, Gpu, Disk, Sensors }
+public enum BarModule { Cpu, Ram, Network, Battery, Gpu, Disk, Sensors, FrameRate }
 public enum BarTheme { Dark, Light, System }
 public enum BarItemStyle { Auto, TwoLine, Speed, Battery, Ring, Bar, Sparkline, IconWithText, IconOnly }
 
@@ -65,6 +65,10 @@ public sealed record BarSettings
     public int IntervalSeconds {get;init;}=3;
     public BarModule[] Items {get;init;}=[BarModule.Cpu,BarModule.Ram,BarModule.Network,BarModule.Battery];
     public BarModule[] ItemOrder {get;init;}=[];
+    [JsonIgnore] public bool GamingMode {get;init;}
+    private static readonly IReadOnlyList<BarModule> GamingItems=Array.AsReadOnly(new[]{BarModule.FrameRate,BarModule.Gpu,BarModule.Cpu,BarModule.Ram,BarModule.Battery});
+    public static IEnumerable<BarModule> ConfigurableModules=>Enum.GetValues<BarModule>().Where(x=>x!=BarModule.FrameRate);
+    [JsonIgnore] public IReadOnlyList<BarModule> VisibleItems=>GamingMode?GamingItems:Items;
     public bool Pause {get;init;}
     public BarTheme Theme{get;init;}=BarTheme.Dark;
     public string Accent{get;init;}="#0A84FF";
@@ -78,14 +82,14 @@ public sealed record BarSettings
     private static readonly ModulePreference DefaultPreference=new();
     public BarSettings WithItemVisibility(BarModule module,bool enabled)
     {
-        Validate();if(!Enum.IsDefined(module))throw new ArgumentOutOfRangeException(nameof(module));
+        Validate();if(!ConfigurableModules.Contains(module))throw new ArgumentOutOfRangeException(nameof(module));
         var order=RememberedOrder();
         return this with{ItemOrder=order,Items=order.Where(item=>item==module?enabled:Items.Contains(item)).ToArray()};
     }
-    private BarModule[] RememberedOrder()=>ItemOrder.Concat(Items).Concat(Enum.GetValues<BarModule>()).Distinct().ToArray();
+    private BarModule[] RememberedOrder()=>ItemOrder.Concat(Items).Concat(ConfigurableModules).Distinct().ToArray();
     public BarSettings MoveItemEarlier(BarModule module)
     {
-        Validate();if(!Enum.IsDefined(module))throw new ArgumentOutOfRangeException(nameof(module));
+        Validate();if(!ConfigurableModules.Contains(module))throw new ArgumentOutOfRangeException(nameof(module));
         var visible=Array.IndexOf(Items,module);if(visible<=0)return this;
         var order=RememberedOrder();var index=Array.IndexOf(order,module);var previous=Array.IndexOf(order,Items[visible-1]);
         (order[index],order[previous])=(order[previous],order[index]);
@@ -95,12 +99,12 @@ public sealed record BarSettings
     {
         if(Version!=1 || !Enum.IsDefined(Mode)||!Enum.IsDefined(Edge)||!Enum.IsDefined(Alignment)||!Enum.IsDefined(Monitors)
             || !double.IsFinite(Opacity)||Opacity is <.2 or >1 || IntervalSeconds is not (1 or 2 or 3 or 5)
-            || Items is null||Items.Length>7||Items.Any(x=>!Enum.IsDefined(x))||Items.Distinct().Count()!=Items.Length
-            || ItemOrder is null||ItemOrder.Length>7||ItemOrder.Any(x=>!Enum.IsDefined(x))||ItemOrder.Distinct().Count()!=ItemOrder.Length)
+            || Items is null||Items.Length>7||Items.Any(x=>!ConfigurableModules.Contains(x))||Items.Distinct().Count()!=Items.Length
+            || ItemOrder is null||ItemOrder.Length>7||ItemOrder.Any(x=>!ConfigurableModules.Contains(x))||ItemOrder.Distinct().Count()!=ItemOrder.Length)
             throw new InvalidDataException("Bar settings contain an unsupported value.");
         if(!Enum.IsDefined(Theme)||Accent is null||Accent.Length!=7||Accent[0]!='#'||Accent.Skip(1).Any(c=>!Uri.IsHexDigit(c))
             ||PingTarget is null||PingTarget.Length>253||PingTarget.Any(c=>char.IsWhiteSpace(c)||c is '/' or '\\')||Modules is null||Modules.Count>7
-            ||Modules.Any(p=>!Enum.IsDefined(p.Key)||p.Value is null||!Enum.IsDefined(p.Value.Style)||p.Value.UpdateSeconds is not(1 or 2 or 3 or 5)))
+            ||Modules.Any(p=>!ConfigurableModules.Contains(p.Key)||p.Value is null||!Enum.IsDefined(p.Value.Style)||p.Value.UpdateSeconds is not(1 or 2 or 3 or 5)))
             throw new InvalidDataException("Theme or module settings contain an unsupported value.");
         return this;
     }
@@ -133,7 +137,7 @@ public sealed record BarDisplay(string Id,bool Primary,BarRect Bounds,BarRect Wo
 public readonly record struct BarPlacement(BarRect Pixels,double Scale,BarMode ActualMode,string? Notice);
 public sealed record BarSnapshot(double? Cpu,double? Ram,double? Battery,string CpuReason,string RamReason,string NetworkReason,string BatteryReason,
     double? Download,double? Upload,bool Loading=false,bool CpuLoading=false,bool NetworkLoading=false,double? Gpu=null,string GpuReason="GPU readings are not enabled.",bool GpuLoading=false,
-    bool CpuRefreshing=false,bool NetworkRefreshing=false,bool GpuRefreshing=false);
+    bool CpuRefreshing=false,bool NetworkRefreshing=false,bool GpuRefreshing=false,FrameReading Frames=default);
 public readonly record struct BarItemLayout(BarModule Module,double X,double Width);
 public static class BarLayout
 {
@@ -147,7 +151,7 @@ public static class BarLayout
         BarItemStyle.IconOnly=>32,
         BarItemStyle.IconWithText when module==BarModule.Network=>105,
         BarItemStyle.IconWithText=>84,
-        _ when module==BarModule.Network=>88,
+        _ when module is BarModule.Network or BarModule.FrameRate=>88,
         _=>54
     };
     public static BarRect BottomOverlay(BarDisplay display,BarSettings settings,double scale)=>CompactOverlay(display,settings,scale,BarEdge.Bottom);
@@ -159,7 +163,7 @@ public static class BarLayout
         var inset=Math.Min((int)Math.Ceiling(8*scale),Math.Max(0,(right-left-1)/2));
         var gap=Math.Min((int)Math.Ceiling(4*scale),Math.Max(0,bottom-top-1));
         var height=Math.Min((int)Math.Ceiling(HeightDip(BarEdge.Bottom)*scale),bottom-top-gap);
-        var requested=24+settings.Items.Sum(module=>Size(settings,module,true))+Math.Max(0,settings.Items.Length-1)*10;
+        var requested=24+settings.VisibleItems.Sum(module=>Size(settings,module,true))+Math.Max(0,settings.VisibleItems.Count-1)*10;
         var width=Math.Min(right-left-inset*2,(int)Math.Ceiling(requested*scale));
         var x=settings.Alignment switch{BarAlignment.Left=>left+inset,BarAlignment.Right=>right-inset-width,_=>left+(right-left-width)/2};
         var y=edge==BarEdge.Bottom?bottom-gap-height:top+gap;
@@ -167,7 +171,7 @@ public static class BarLayout
     }
     public static BarItemLayout[] Items(BarSettings settings,double width,bool batteryAvailable)
     {
-        var modules=settings.Items.Where(x=>x!=BarModule.Battery||batteryAvailable).ToArray();
+        var modules=settings.VisibleItems.Where(x=>x!=BarModule.Battery||batteryAvailable).ToArray();
         var spacing=Math.Max(0,modules.Length-1)*10;
         var withMeters=modules.Sum(module=>Size(settings,module,true))+spacing+24<=width+.01;
         var total=modules.Sum(module=>Size(settings,module,withMeters))+spacing;

@@ -132,3 +132,9 @@ See [engineering rules](AGENTS.md), [progress](PROGRESS.md), [decisions](DECISIO
 ## License and credits
 
 [MIT License](LICENSE). UI inspired by Stats (exelban/stats, MIT). [Stats repository](https://github.com/exelban/stats)
+
+### Gaming Mode
+
+Right-click the monitor strip or the Tidlet tray icon and select **Gaming Mode**. The same strip shows FPS and frame time, GPU, CPU, RAM, and battery when present. Select **Gaming Mode** again to restore your normal strip. Tidlet starts in normal mode on the next launch.
+
+FPS uses the official **PresentMon 2.6.0 x64 standalone console**. Download the executable from the release assets and place it next to `IsletMonitor.exe`. Tidlet checks the published SHA-256 before launching it. The capture follows the foreground window while the strip is visible, and FPS reflects displayed frames. Click **FPS** for its current status. Windows can deny frame tracing to a standard account, in which case the strip shows **Unavailable**. The strip's existing fullscreen hiding applies in Gaming Mode. [PresentMon release assets](https://github.com/GameTechDev/PresentMon/releases/expanded_assets/v2.6.0) · [PresentMon license](https://github.com/GameTechDev/PresentMon/blob/v2.6.0/LICENSE.txt)

@@ -41,7 +41,7 @@ public sealed class MonitorBarHost : IDisposable
         item.Update(sample,scale,24,null,true,false);
         return item.PreviewDrawing;
     }
-    public void ApplySettings(BarSettings settings){settings.Validate();_save(settings);_settings=settings;Rebuild();SettingsChanged?.Invoke();}
+    public void ApplySettings(BarSettings settings){settings=(settings with{GamingMode=_settings.GamingMode}).Validate();_save(settings);_settings=settings;Rebuild();SettingsChanged?.Invoke();}
     public void ActivateModule(BarModule module)
     {
         if(_windows.Count==0)return;
@@ -78,7 +78,15 @@ public sealed class MonitorBarHost : IDisposable
             foreach(var display in selected)
             {
                 var window=new BarWindow(_desktop,display,_settings,_windows.Count==0);
-                window.MenuRequested+=module=>Menu(window,module);window.Clicked+=module=>ModuleClicked?.Invoke(module,window.ItemRect(module),window.Display,window.Scale);
+                window.MenuRequested+=module=>Menu(window,module);window.Clicked+=module=>
+                {
+                    if(module==BarModule.FrameRate)
+                    {
+                        MessageBox.Show(_lastSnapshot?.Frames.Status??"Waiting for frame capture.", "Gaming Mode · FPS");
+                        return;
+                    }
+                    ModuleClicked?.Invoke(module,window.ItemRect(module),window.Display,window.Scale);
+                };
                 window.RefreshRequested+=()=>Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background,new Action(UpdateVisibility));
                 window.DisplaysChanged+=()=>Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background,new Action(Rebuild));
                 window.ExitRequested+=Dispose;_windows.Add(window);
@@ -102,6 +110,7 @@ public sealed class MonitorBarHost : IDisposable
             case 14:next=next with{Alignment=BarAlignment.Left};break;case 15:next=next with{Alignment=BarAlignment.Center};break;case 16:next=next with{Alignment=BarAlignment.Right};break;
             case 17:next=next with{Monitors=MonitorSelection.Primary};break;case 18:next=next with{Monitors=MonitorSelection.All};break;
             case 19:next=next with{Edge=BarEdge.Top,RevealAtTop=true,Mode=BarMode.Overlay};break;
+            case 20:next=next with{GamingMode=!next.GamingMode};break;
             case 99:Dispose();return;
             case 100:DashboardRequested?.Invoke();return;case 101:SettingsRequested?.Invoke();return;
         }
@@ -125,7 +134,7 @@ public sealed class MonitorBarHost : IDisposable
         }
         ApplyVisibility();
         if(environmentHidden)Suppressed?.Invoke();
-        if(_settings.TopReveal&&_settings.Items.Length>0&&!environmentHidden)
+        if(_settings.TopReveal&&_settings.VisibleItems.Count>0&&!environmentHidden)
         {
             if(_edge is null){_edge=new DispatcherTimer(DispatcherPriority.Background){Interval=TimeSpan.FromMilliseconds(120)};_edge.Tick+=EdgeTick;}
             if(!_edge.IsEnabled)_edge.Start();
@@ -147,7 +156,7 @@ public sealed class MonitorBarHost : IDisposable
     private void ApplyVisibility()
     {
         var wasRunning=_samples.IsEnabled;
-        foreach(var window in _windows)window.SetHidden(window.EnvironmentHidden||_settings.Items.Length==0||(_settings.TopReveal&&!window.Reveal.Visible));
+        foreach(var window in _windows)window.SetHidden(window.EnvironmentHidden||_settings.VisibleItems.Count==0||(_settings.TopReveal&&!window.Reveal.Visible));
         var visible=_windows.Any(x=>!x.Hidden)&&!_settings.Pause;
         var interval=TimeSpan.FromSeconds(_windows.Any(x=>x.Surface.SlowPolling)?Math.Max(5,_settings.IntervalSeconds):_settings.IntervalSeconds);
         if(_samples.Interval!=interval)_samples.Interval=interval;
@@ -375,6 +384,11 @@ public sealed class MonitorBarHost : IDisposable
             }
             switch(_module)
             {
+                case BarModule.FrameRate:
+                    label=s.Frames.Milliseconds is double ms?$"FPS · {ms:0.0} ms":"FPS";
+                    value=s.Frames.Milliseconds is double interval?$"{1000/interval:0}":s.Frames.Unavailable?"Unavailable":"Measuring";
+                    _help=s.Frames.Status??"Waiting for frame capture.";
+                    break;
                 case BarModule.Cpu:value=s.Loading||s.CpuLoading?"Measuring":Percent(s.Cpu);_help=s.CpuReason;break;
                 case BarModule.Ram:value=s.Loading?"Measuring":Percent(s.Ram);_help=s.RamReason;break;
                 case BarModule.Battery:value=Percent(s.Battery);_help=s.BatteryReason;break;

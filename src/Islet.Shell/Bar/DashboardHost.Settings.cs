@@ -97,7 +97,7 @@ public sealed partial class DashboardHost
                 () => Change(s => s with { Pause = !s.Pause }, settings.Pause ? "Monitoring resumed. Saved." : "Monitoring paused. Saved."));
 
             Heading(drawing, "MODULES", ref y);
-            foreach (var item in Enum.GetValues<BarModule>())
+            foreach (var item in BarSettings.ConfigurableModules)
                 Choice(drawing, item.ToString(), settings.Items.Contains(item) ? "In strip  ›" : "Hidden  ›", ref y, () => OpenModuleSettings(item));
             Heading(drawing, "IMPORT & EXPORT", ref y);
             Choice(drawing, "Export settings", "Save local JSON", ref y, () => Run(_actions.ExportSettings));

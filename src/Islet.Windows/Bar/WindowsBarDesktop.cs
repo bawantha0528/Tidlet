@@ -176,7 +176,8 @@ public sealed class WindowsBarDesktop(string recoveryDirectory) : IBarDesktop
             try
             {
                 AppendMenuW(menu,0,100,"Open Dashboard");AppendMenuW(menu,0,101,"Settings");AppendMenuW(menu,0x800,0,null);
-                Add(1,paused?"Resume monitoring":"Pause monitoring");if(module is not null)Add(2,$"Hide {module}");Add(3,"Restore default items");
+                Add(1,paused?"Resume monitoring":"Pause monitoring");if(!_settings.GamingMode){if(module is not null)Add(2,$"Hide {module}");Add(3,"Restore default items");}
+                Add(20,"Gaming Mode",_settings.GamingMode);
                 Add(10,"Overlay mode",_settings.Mode==BarMode.Overlay);Add(11,"Reserve work area",_settings.Mode==BarMode.Reserve);
                 Add(12,"Top edge",_settings.Edge==BarEdge.Top&&!_settings.TopReveal);Add(19,"Top · reveal on hover",_settings.TopReveal);Add(13,"Bottom · above taskbar",_settings.Edge==BarEdge.Bottom);
                 Add(14,"Align left",_settings.Alignment==BarAlignment.Left);Add(15,"Align center",_settings.Alignment==BarAlignment.Center);Add(16,"Align right",_settings.Alignment==BarAlignment.Right);
