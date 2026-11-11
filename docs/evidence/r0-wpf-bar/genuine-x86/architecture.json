@@ -1,0 +1,12 @@
+{
+  "ApphostMachine": "0x014C",
+  "OptionalHeaderMagic": "0x010B",
+  "PerMonitorV2Manifest": true,
+  "AsInvokerManifest": true,
+  "SdkVersion": "8.0.414",
+  "InstalledApphostPack": "Microsoft.NETCore.App.Host.win-x86/8.0.20",
+  "CoreRuntime": "8.0.14",
+  "DesktopRuntime": "8.0.14",
+  "RuntimePathSource": "External module enumeration; actual in-process bitness in probe.json",
+  "ComparisonIsolatesBitnessOnly": false
+}

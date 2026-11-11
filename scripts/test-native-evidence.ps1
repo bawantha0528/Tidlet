@@ -30,7 +30,8 @@ $data.LoadedWpfAssemblies=@('PresentationFramework')
 $data | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $probePath -Encoding utf8
 Check $false
 $data=$probeOriginal | ConvertFrom-Json
-$data.StatesObserved | Add-Member -NotePropertyName 'Notch/Hover' -NotePropertyValue 1 -Force
+if ((Get-Content (Join-Path $root 'context.json') -Raw|ConvertFrom-Json).Scenario -eq 'PostExpansion') { $data.ExerciseCompleted=$false }
+else { $data.StatesObserved | Add-Member -NotePropertyName 'Notch/Hover' -NotePropertyValue 1 -Force }
 $data | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $probePath -Encoding utf8
 Check $false
 Set-Content -LiteralPath $probePath -Value $probeOriginal -Encoding utf8
@@ -61,6 +62,7 @@ if(($probeOriginal|ConvertFrom-Json).SchemaVersion -ge 3){
         [IO.File]::WriteAllText($components,$original)
         $extra++
     }
-}[pscustomobject]@{Result='Pass';Checks=(6+);WorkerOmissionChecks=;Cases=@('Valid CSV/native proof','Leaked timer','WPF loaded','Altered summary','Incomplete duration','Unexpected style/state history')} | ConvertTo-Json
+}
+[pscustomobject]@{Result='Pass';Checks=(6+$extra);WorkerOmissionChecks=$extra;Cases=@('Valid CSV/native proof','Leaked timer','WPF loaded','Altered summary','Incomplete duration','Unexpected style/state history')} | ConvertTo-Json
 
 

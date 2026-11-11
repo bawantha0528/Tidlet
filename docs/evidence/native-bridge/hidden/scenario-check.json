@@ -1,0 +1,25 @@
+﻿{
+    "Result":  "Pass",
+    "Scenario":  "Hidden",
+    "Style":  "Notch",
+    "RawCsvRecomputed":  true,
+    "LifetimeDiagnostics":  "Pass",
+    "SensorSamples":  0,
+    "PointerChecks":  0,
+    "RenderCount":  0,
+    "WpfAssemblies":  0,
+    "NativeTimersAfterExit":  0,
+    "HiddenBehaviorEvidence":  "Native visibility false; zero sample/pointer/draw calls",
+    "WorkingSetMaxMB":  38.4,
+    "CpuMachineNormalizedPercent":  0,
+    "CpuCoreEquivalentPercent":  0,
+    "Recovery":  {
+                     "TrayAvailable":  true,
+                     "HotkeyAvailable":  false,
+                     "ReducedMotion":  false,
+                     "HighContrast":  false,
+                     "Warnings":  [
+                                      "Ctrl+Alt+I is already in use or unavailable; use the tray menu."
+                                  ]
+                 }
+}

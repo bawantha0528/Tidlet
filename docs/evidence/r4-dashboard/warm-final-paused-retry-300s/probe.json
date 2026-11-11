@@ -1,0 +1,200 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 0,
+  "EverHidden": false,
+  "VisibilityChecks": 179,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 0,
+  "NetworkReads": 0,
+  "LastSnapshot": null,
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": true,
+    "Theme": 0,
+    "Accent": "#0A84FF",
+    "UseBits": false,
+    "Fahrenheit": false,
+    "PingEnabled": false,
+    "PingTarget": "",
+    "WifiDetailsEnabled": false,
+    "Modules": {}
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "DashboardPage": "CPU",
+  "DashboardOpens": 1,
+  "DashboardReads": 0,
+  "DashboardFrames": 0,
+  "DashboardWorkersDrained": true,
+  "DashboardPageHistory": [
+    "CPU"
+  ],
+  "DashboardPerPixelOpacity": false,
+  "DiagnosticDashboardInputHeld": true,
+  "DashboardEvents": [
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 0.0153624,
+      "Reads": 0,
+      "Frames": 0
+    },
+    {
+      "Action": "Open",
+      "Page": "CPU",
+      "Seconds": 0.1094264,
+      "Reads": 0,
+      "Frames": 0
+    },
+    {
+      "Action": "Close",
+      "Page": "CPU",
+      "Seconds": 345.0114653,
+      "Reads": 0,
+      "Frames": 0
+    }
+  ],
+  "DashboardCoreDetailRequests": 0,
+  "DashboardProcessDetailRequests": 0,
+  "BaselineDashboardReads": 0,
+  "BaselineDashboardFrames": 0,
+  "BaselineDashboardOpen": true,
+  "DashboardCaptures": [
+    {
+      "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\docs\\evidence\\r4-dashboard\\warm-final-paused-retry-300s\\bar.dashboard.100.png",
+      "Percent": 100,
+      "Width": 860,
+      "Height": 580,
+      "StartedSeconds": 343.1142844,
+      "CompletedSeconds": 343.178873
+    }
+  ],
+  "RequestedDashboardCapturePercent": 100,
+  "ChartWork": 0,
+  "ProcessWork": 0,
+  "DiagnosticPopupInputHeld": false,
+  "BaselinePopupReads": 0,
+  "BaselinePopupFrames": 0,
+  "BaselinePopupOpen": false,
+  "PopupEvents": [],
+  "PopupOpens": 0,
+  "PopupCloses": 0,
+  "PresentationAllocatedBytes": 0,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": null,
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Windows",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Memory",
+    "System.Text.Encoding.Extensions",
+    "System.Text.Encodings.Web",
+    "System.Runtime.Intrinsics",
+    "System.Numerics.Vectors",
+    "System.Private.Uri",
+    "System.Collections.Concurrent",
+    "System.Reflection.Emit.Lightweight",
+    "System.Reflection.Primitives",
+    "System.Reflection.Emit.ILGeneration",
+    "System.ComponentModel.Primitives",
+    "System.Threading.Thread",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "System.ObjectModel",
+    "UIAutomationProvider",
+    "System.IO.FileSystem.DriveInfo",
+    "System.Net.Requests"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

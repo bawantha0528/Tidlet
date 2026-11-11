@@ -1,0 +1,74 @@
+{
+  "Version": 1,
+  "Mode": "Overlay",
+  "Edge": "Top",
+  "Alignment": "Right",
+  "Monitors": "Primary",
+  "SelectedMonitor": null,
+  "Opacity": 0.8,
+  "IntervalSeconds": 3,
+  "Items": [
+    "Cpu",
+    "Ram",
+    "Network",
+    "Battery"
+  ],
+  "ItemOrder": [],
+  "Pause": false,
+  "Theme": "Dark",
+  "Accent": "#0A84FF",
+  "UseBits": false,
+  "Fahrenheit": false,
+  "PingEnabled": false,
+  "PingTarget": "",
+  "WifiDetailsEnabled": false,
+  "Modules": {},
+  "Tools": {
+    "Order": [
+      "Screenshot",
+      "Clipboard",
+      "Git",
+      "EyeCare",
+      "AiLimits"
+    ],
+    "Modules": {
+      "Screenshot": {
+        "Enabled": true,
+        "Paused": false,
+        "HotkeyModifiers": 0,
+        "HotkeyKey": 0
+      },
+      "Clipboard": {
+        "Enabled": true,
+        "Paused": false,
+        "HotkeyModifiers": 0,
+        "HotkeyKey": 0
+      },
+      "Git": {
+        "Enabled": true,
+        "Paused": false,
+        "HotkeyModifiers": 0,
+        "HotkeyKey": 0
+      },
+      "EyeCare": {
+        "Enabled": true,
+        "Paused": false,
+        "HotkeyModifiers": 0,
+        "HotkeyKey": 0
+      },
+      "AiLimits": {
+        "Enabled": true,
+        "Paused": true,
+        "HotkeyModifiers": 0,
+        "HotkeyKey": 0
+      }
+    },
+    "Enabled": [
+      "Screenshot",
+      "Clipboard",
+      "Git",
+      "EyeCare",
+      "AiLimits"
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "Version": 1,
+  "Mode": "Overlay",
+  "Edge": "Top",
+  "Alignment": "Center",
+  "Monitors": "All",
+  "SelectedMonitor": null,
+  "Opacity": 0.8,
+  "IntervalSeconds": 3,
+  "Items": [
+    "Cpu",
+    "Ram",
+    "Network",
+    "Battery"
+  ],
+  "Pause": false
+}

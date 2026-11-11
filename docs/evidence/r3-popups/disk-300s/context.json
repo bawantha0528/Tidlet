@@ -1,0 +1,13 @@
+{
+    "Scenario":  "Disk",
+    "Gate":  "Popup",
+    "WorkingSetLimitBytes":  90000000,
+    "WarmupSeconds":  30,
+    "DurationSeconds":  300,
+    "ExpectedArchitecture":  "X86",
+    "OtherTidletProcesses":  [
+                                 13064
+                             ],
+    "CaptureKind":  "WPF 100/150 percent render exports, not desktop screenshots",
+    "ClosePopupSeconds":  null
+}

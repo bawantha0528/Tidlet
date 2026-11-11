@@ -1,0 +1,42 @@
+﻿{
+    "Scenario":  "Bar",
+    "Result":  "Fail",
+    "Violations":  [
+                       "WorkingSet"
+                   ],
+    "DurationSeconds":  301.002362,
+    "RequiredDurationSeconds":  300,
+    "SampleCount":  302,
+    "SampleIntervalSeconds":  1,
+    "WorkingSetMeanBytes":  99447801.218543053,
+    "WorkingSetMedianBytes":  98054144,
+    "WorkingSetP95Bytes":  112746496,
+    "WorkingSetMaxBytes":  112783360,
+    "WorkingSetMaxMB":  112.78336,
+    "WorkingSetMaxMiB":  107.55859375,
+    "LifetimePeakWorkingSetBytes":  112799744,
+    "CpuSeconds":  1.03125,
+    "CpuCoreEquivalentPercent":  0.34260528493793013,
+    "CpuMachineNormalizedPercent":  0.042825660617241267,
+    "LogicalProcessorDenominator":  8,
+    "HiddenBehaviorVerified":  false,
+    "Metadata":  {
+                     "SchemaVersion":  1,
+                     "StartedUtc":  "2026-10-30T08:34:12.0267263Z",
+                     "ProcessId":  22068,
+                     "ProcessStartUtc":  "2026-10-30T08:34:11.5698884Z",
+                     "ExecutableName":  "IsletMonitor.exe",
+                     "ExecutableSHA256":  "3D6CC68DCEE6C478405C37B9B171CA276DA13A27DDA95F3F998D8D446D286E35",
+                     "ProcessArchitecture":  "TODO(verify): set from measured build configuration",
+                     "RuntimeProductVersion":  "8,0,2025,41914 @Commit: 574100b692e71fa3426931adf4c1ba42e4ee5213",
+                     "WindowsVersion":  "Microsoft Windows NT 10.0.26200.0",
+                     "ProcessorAffinityHex":  "FF",
+                     "DenominatorSource":  "Observer Environment.ProcessorCount; verify target quota/group capacity",
+                     "WarmupSeconds":  30,
+                     "ScenarioIsOperatorSupplied":  true,
+                     "IsAcceptanceDuration":  true,
+                     "NumericalLimitsOnly":  true,
+                     "Children":  "No child journal supplied; helpers require aggregate accounting."
+                 },
+    "ObserverCpuSeconds":  2.234375
+}

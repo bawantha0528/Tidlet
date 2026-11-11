@@ -1,0 +1,8 @@
+{
+  "AllComparisonAssetsExist": true,
+  "ImagesViewed": "Final CPU 100% and RAM 150%, plus earlier CPU/RAM 100% smoke",
+  "ActualDesktopDpiPercent": 125,
+  "Physical100And150DesktopScreenshots": false,
+  "Comparison": "docs/reference/r2-comparison.html",
+  "ReferenceFolderIgnored": true
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "File": "IsletMonitor.exe",
+    "Identical": true
+  },
+  {
+    "File": "IsletMonitor.dll",
+    "Identical": true
+  },
+  {
+    "File": "Islet.Shell.dll",
+    "Identical": true
+  },
+  {
+    "File": "Islet.Windows.dll",
+    "Identical": true
+  },
+  {
+    "File": "Islet.Core.dll",
+    "Identical": true
+  },
+  {
+    "File": "IsletMonitor.deps.json",
+    "Identical": true
+  },
+  {
+    "File": "IsletMonitor.runtimeconfig.json",
+    "Identical": true
+  }
+]

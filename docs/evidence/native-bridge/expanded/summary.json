@@ -1,0 +1,42 @@
+﻿{
+    "Scenario":  "Expanded",
+    "Result":  "Pass",
+    "Violations":  [
+
+                   ],
+    "DurationSeconds":  300.0001653,
+    "RequiredDurationSeconds":  300,
+    "SampleCount":  301,
+    "SampleIntervalSeconds":  1,
+    "WorkingSetMeanBytes":  50734022.166112959,
+    "WorkingSetMedianBytes":  50294784,
+    "WorkingSetP95Bytes":  56098816,
+    "WorkingSetMaxBytes":  57012224,
+    "WorkingSetMaxMB":  57.012224,
+    "WorkingSetMaxMiB":  54.37109375,
+    "LifetimePeakWorkingSetBytes":  57020416,
+    "CpuSeconds":  5.609375,
+    "CpuCoreEquivalentPercent":  1.869790636412026,
+    "CpuMachineNormalizedPercent":  0.23372382955150325,
+    "LogicalProcessorDenominator":  8,
+    "HiddenBehaviorVerified":  false,
+    "Metadata":  {
+                     "SchemaVersion":  1,
+                     "StartedUtc":  "2026-10-30T04:59:39.6364141Z",
+                     "ProcessId":  2672,
+                     "ProcessStartUtc":  "2026-10-30T04:59:39.0755929Z",
+                     "ExecutableName":  "IsletMonitor.exe",
+                     "ExecutableSHA256":  "3D6CC68DCEE6C478405C37B9B171CA276DA13A27DDA95F3F998D8D446D286E35",
+                     "ProcessArchitecture":  "TODO(verify): set from measured build configuration",
+                     "RuntimeProductVersion":  "8,0,2025,41914 @Commit: 574100b692e71fa3426931adf4c1ba42e4ee5213",
+                     "WindowsVersion":  "Microsoft Windows NT 10.0.26200.0",
+                     "ProcessorAffinityHex":  "FF",
+                     "DenominatorSource":  "Observer Environment.ProcessorCount; verify target quota/group capacity",
+                     "WarmupSeconds":  30,
+                     "ScenarioIsOperatorSupplied":  true,
+                     "IsAcceptanceDuration":  true,
+                     "NumericalLimitsOnly":  true,
+                     "Children":  "Aggregate parent plus identity-checked journaled workers; exited CPU retained; exit peaks conservatively included once."
+                 },
+    "ObserverCpuSeconds":  2.84375
+}

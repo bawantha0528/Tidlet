@@ -4,4 +4,7 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../Islet.Core/Islet.Core.csproj" /></ItemGroup>
+  <ItemGroup><Compile Remove="Island/**/*.cs;ScaffoldWindow.cs" /></ItemGroup>
+  <ItemGroup><EmbeddedResource Include="Bar/*-theme.json" /></ItemGroup>
 </Project>
+

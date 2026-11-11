@@ -1,0 +1,22 @@
+[
+  {
+    "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\Release\\net8.0-windows\\IsletMonitor.exe",
+    "Hash": "D135BD2D5FF54F02D7FF63DA4B6CDF2D6CCD1BC4167E709B3795F5D771A3AAF4"
+  },
+  {
+    "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\Release\\net8.0-windows\\IsletMonitor.dll",
+    "Hash": "0F52084F4084C2361806C34A840797B9ADEEFA784D791DDB81012893A63BE858"
+  },
+  {
+    "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\Release\\net8.0-windows\\Islet.Shell.dll",
+    "Hash": "F11CC5EE954750FA0DA2485D1D10C39D4946AD3159C59D82762AB2DBEE31C350"
+  },
+  {
+    "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\Release\\net8.0-windows\\Islet.Windows.dll",
+    "Hash": "B7E1678F8150D28C390E57825B815DE7084A43D12F99A6C0C8A9B7A5EBD70B1C"
+  },
+  {
+    "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\Release\\net8.0-windows\\Islet.Core.dll",
+    "Hash": "D49656B98833BBDC09531F51614B6B2D3F8FB268F2632E70E15CDE6850159EBE"
+  }
+]

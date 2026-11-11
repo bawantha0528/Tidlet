@@ -1,0 +1,13 @@
+{
+    "Page":  "CPU",
+    "NumericalExit":  0,
+    "LifecyclePass":  true,
+    "ExpectedActivity":  true,
+    "DashboardReads":  343,
+    "DashboardFrames":  342,
+    "LifetimePeakWorkingSetBytes":  87199744,
+    "LifetimeWithinLimit":  true,
+    "BinaryHashesUnchanged":  true,
+    "OverallAccepted":  true,
+    "PhysicalInteractionVerified":  false
+}

@@ -1,0 +1,31 @@
+{
+  "Mode": "R0 WPF feasibility only",
+  "Transparent": false,
+  "SoftwareRendering": true,
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "MenuCreations": 0,
+  "FirstFrame": true,
+  "Samples": 115,
+  "TimersStopped": true,
+  "Scale": 1.25,
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BarHeightDip": 24,
+  "ChartWork": 0,
+  "ProcessWork": 0,
+  "AppBarReservations": 0,
+  "LoadedMediaAssemblies": [],
+  "LegacyNativeRendererPresent": false,
+  "LegacyShellPresent": false,
+  "ExitCode": 0,
+  "NaturalExit": true
+}

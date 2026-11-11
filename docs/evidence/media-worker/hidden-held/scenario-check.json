@@ -1,0 +1,25 @@
+﻿{
+    "Result":  "Pass",
+    "Scenario":  "Hidden",
+    "Style":  "Notch",
+    "RawCsvRecomputed":  true,
+    "LifetimeDiagnostics":  "Pass",
+    "SensorSamples":  0,
+    "PointerChecks":  0,
+    "RenderCount":  0,
+    "WpfAssemblies":  0,
+    "NativeTimersAfterExit":  0,
+    "HiddenBehaviorEvidence":  "Native visibility false; zero sample/pointer/draw calls",
+    "WorkingSetMaxMB":  37.90848,
+    "CpuMachineNormalizedPercent":  0.0006510222082638838,
+    "CpuCoreEquivalentPercent":  0.00520817766611107,
+    "Recovery":  {
+                     "TrayAvailable":  true,
+                     "HotkeyAvailable":  true,
+                     "ReducedMotion":  false,
+                     "HighContrast":  false,
+                     "Warnings":  [
+
+                                  ]
+                 }
+}

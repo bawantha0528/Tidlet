@@ -1,0 +1,201 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 115,
+  "EverHidden": false,
+  "VisibilityChecks": 175,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 115,
+  "NetworkReads": 115,
+  "LastSnapshot": {
+    "Cpu": 22.586872586872587,
+    "Ram": 88.68345763540775,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "6.9 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 9276,
+    "Upload": 3694
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": false
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "ChartWork": 344,
+  "ProcessWork": 345,
+  "DiagnosticPopupInputHeld": true,
+  "BaselinePopupReads": 30,
+  "BaselinePopupFrames": 29,
+  "BaselinePopupOpen": true,
+  "PopupEvents": [
+    {
+      "Action": "Open",
+      "Module": "Gpu",
+      "Seconds": 0.0030483
+    },
+    {
+      "Action": "Close",
+      "Module": "Gpu",
+      "Seconds": 344.9979561
+    }
+  ],
+  "PopupOpens": 1,
+  "PopupCloses": 1,
+  "PresentationAllocatedBytes": 22552176,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": {
+    "Cpu": null,
+    "System": null,
+    "User": null,
+    "Idle": null,
+    "FrequencyGhz": null,
+    "MaxGhz": null,
+    "Uptime": "18:16:35.2810000",
+    "Memory": null,
+    "Cores": [],
+    "Classes": [],
+    "Processes": [],
+    "Explanation": "Windows reported metrics.",
+    "Capabilities": {
+      "Gpu": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      }
+    },
+    "Network": null,
+    "Battery": null,
+    "Disk": null,
+    "Gpu": {
+      "Adapters": [
+        {
+          "Luid": 64693,
+          "Name": "Intel(R) Iris(R) Xe Graphics",
+          "Usage": 1.8119945123626218,
+          "DedicatedMemory": 134217728,
+          "Explanation": "Busiest Windows engine; process samples sharing an engine are combined."
+        },
+        {
+          "Luid": 65731,
+          "Name": "NVIDIA GeForce GTX 1650",
+          "Usage": 0,
+          "DedicatedMemory": 3221225472,
+          "Explanation": "Busiest Windows engine; process samples sharing an engine are combined."
+        }
+      ],
+      "Explanation": "Adapters are shown separately. Memory is dedicated hardware capacity, not current allocation."
+    }
+  },
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Windows",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Threading.Thread",
+    "System.ComponentModel.Primitives",
+    "System.Memory",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Private.Uri",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "System.Text.Encoding.Extensions",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "System.Net.NetworkInformation",
+    "System.IO.FileSystem.DriveInfo",
+    "System.Net.Primitives",
+    "System.Net.Requests",
+    "System.ObjectModel",
+    "UIAutomationProvider"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

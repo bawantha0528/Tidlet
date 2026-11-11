@@ -1,0 +1,284 @@
+﻿[
+    {
+        "Name":  "layout-dashboard",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/layout-dashboard.svg",
+        "Bytes":  416,
+        "SHA256":  "281AB865B4C04DAB32A04023473E448F58BE6A7AD90769450AC3349D79DC4AED",
+        "Elements":  [
+                         "rect",
+                         "rect",
+                         "rect",
+                         "rect"
+                     ]
+    },
+    {
+        "Name":  "cpu",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/cpu.svg",
+        "Bytes":  590,
+        "SHA256":  "EC83BB69EC029D367D749AFC445B39C8E95891EBF99B0400652677C2B149B99C",
+        "Elements":  [
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "rect",
+                         "rect"
+                     ]
+    },
+    {
+        "Name":  "memory-stick",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/memory-stick.svg",
+        "Bytes":  510,
+        "SHA256":  "9214439AC142C10156434542908436087FB174C71C46E30CFB46971C56BA33D2",
+        "Elements":  [
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "rect"
+                     ]
+    },
+    {
+        "Name":  "hard-drive",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/hard-drive.svg",
+        "Bytes":  459,
+        "SHA256":  "324363C40F54E4CA843DE0AD1D023B063B70A26A83BB2E0A9E9F4AAD9AF37378",
+        "Elements":  [
+                         "path",
+                         "path",
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "network",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/network.svg",
+        "Bytes":  445,
+        "SHA256":  "626BE730FEEA1E5EA7539FBF78B4A3FCB927CE5D7DC43364F2216908672AC792",
+        "Elements":  [
+                         "rect",
+                         "rect",
+                         "rect",
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "battery",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/battery.svg",
+        "Bytes":  292,
+        "SHA256":  "BD0E96DA226BECA6D150EE25F04BC5CA8466C1ED91E806C2179723E173AF2282",
+        "Elements":  [
+                         "path",
+                         "rect"
+                     ]
+    },
+    {
+        "Name":  "monitor",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/monitor.svg",
+        "Bytes":  346,
+        "SHA256":  "D1A443233345724859DE8E4FB48968BA91E885E12DDBD710701548BD91B39428",
+        "Elements":  [
+                         "rect",
+                         "line",
+                         "line"
+                     ]
+    },
+    {
+        "Name":  "settings-2",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/settings-2.svg",
+        "Bytes":  324,
+        "SHA256":  "06D06C191BD7EB28AFAF9D40ACB5C49EF69448FDEDA91801D9823D7C440A4E10",
+        "Elements":  [
+                         "path",
+                         "path",
+                         "circle",
+                         "circle"
+                     ]
+    },
+    {
+        "Name":  "app-window",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/app-window.svg",
+        "Bytes":  329,
+        "SHA256":  "78635D0DA597104F526EA01DEDE8AB4D04CCABC7A2229C4BAF17F921B15985DE",
+        "Elements":  [
+                         "rect",
+                         "path",
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "x",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/x.svg",
+        "Bytes":  260,
+        "SHA256":  "4A9CDAB38FBB96162E7DACE28E33F4CA0E49D8963A6162ABC3D4691B7D675117",
+        "Elements":  [
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "chevron-right",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/chevron-right.svg",
+        "Bytes":  237,
+        "SHA256":  "2758143D7B2434E4AA7307DFD34405C87909FF4052F21B5F3F40D45224B4F19B",
+        "Elements":  [
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "arrow-down",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/arrow-down.svg",
+        "Bytes":  262,
+        "SHA256":  "2B641C7A59D39450EDFED72067FCC9940A1A316A737346AF23B4B9103C0689F2",
+        "Elements":  [
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "arrow-up",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/arrow-up.svg",
+        "Bytes":  261,
+        "SHA256":  "8C22C25874C80BB062BEF985D207D8F1D4A4D7847237D0A8CF720A3235968518",
+        "Elements":  [
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "audio-lines",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/audio-lines.svg",
+        "Bytes":  349,
+        "SHA256":  "3942B8A5D6BCCC927A55F857F0D44B90E2663470CD2D569000C9B60C37578DFA",
+        "Elements":  [
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "timer",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/timer.svg",
+        "Bytes":  327,
+        "SHA256":  "6771297BE65225D462C930865B6F9EE1617AA453885BE4C8116A7512A77AC2B6",
+        "Elements":  [
+                         "line",
+                         "line",
+                         "circle"
+                     ]
+    },
+    {
+        "Name":  "sun",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/sun.svg",
+        "Bytes":  485,
+        "SHA256":  "A3955C8B0425FCC5C9BA12D2BDD77FE53B2CD5DD05E7742A56F342E996FB2EF8",
+        "Elements":  [
+                         "circle",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path",
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "moon",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/moon.svg",
+        "Bytes":  334,
+        "SHA256":  "205B959E940D5841F0CE1D09C933153DA9D9C94130A54D5CC0C68C2AF1D403DA",
+        "Elements":  [
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "minus",
+        "Source":  "https://raw.githubusercontent.com/lucide-icons/lucide/1.62.0/icons/minus.svg",
+        "Bytes":  232,
+        "SHA256":  "A0C743AB6DBF545D8A6E19EF3874F48EDE686CE68D25E231BD81F540D97B1F19",
+        "Elements":  [
+                         "path"
+                     ]
+    },
+    {
+        "Name":  "chart-column",
+        "SHA256":  "244BE324FD2BD3E809F11408D79AD9D741EB7A0C146E6F7907F96C04C9A66834"
+    },
+    {
+        "Name":  "command",
+        "SHA256":  "E6E6BEDD4343A5DDEC5EDB211ADE09E6546FF6C80EACC60EBB1C877CD5CA7247"
+    },
+    {
+        "Name":  "fan",
+        "SHA256":  "ED7E0CD8C810A78E4F5800FE4104266FBF56F004B7DC6C9D3E647C4F15718A41"
+    },
+    {
+        "Name":  "globe",
+        "SHA256":  "4A026CBAA0947DE47FD0325F91D39F2AB5C84CA2D247694A263151AAEE019B47"
+    },
+    {
+        "Name":  "bluetooth",
+        "SHA256":  "9E4F38146A405BB2436B5964D0016C99F066F1537AF4C9E7F9016C0FE68B9FE0"
+    },
+    {
+        "Name":  "clock",
+        "SHA256":  "68076EBFB1CF878EB648BEAE23D3A43CE39CBC1A6AF2BFB4F53BD38B453C05BC"
+    },
+    {
+        "Name":  "tv",
+        "SHA256":  "B2AEC0568D2F5D33B15B03A15B19E6C3EF9A31C6EB2C63162FADA020A1870B4C"
+    },
+    {
+        "Name":  "settings",
+        "SHA256":  "BEC4F8F2D64D29FD439F0AA5E5D70F7C139B3EB835B17083F34CDA7C65D691E7"
+    },
+    {
+        "Name":  "heart",
+        "SHA256":  "7F675650F7B50090606DBAAF926F4AEDE1CCC1E007B34B7E0BA7D6E47584E6B5"
+    },
+    {
+        "Name":  "bug",
+        "SHA256":  "3D8AE4ED005A2B8834BDA10A1EED316DE23EAEAE25BC7A06A07B13592BECCAD9"
+    },
+    {
+        "Name":  "pause",
+        "SHA256":  "31D5FA88D4D3B5676F2DE8A963255723CC92898C91A9825D96DB90E591717FAB"
+    },
+    {
+        "Name":  "power",
+        "SHA256":  "21375E329EE1C3F56074271889B43F9699B4B8406A9DA7990166B5246D562DD2"
+    },
+    {
+        "Name":  "gauge",
+        "SHA256":  "B4B1ABF8588DB6F166FF1454F20C448A74F56E9B7865EAC7D230A250CC40ADDC"
+    },
+    {
+        "Name":  "rotate-cw",
+        "SHA256":  "1F9413F142A6DA1873751B79AEBD9AB49D55BD8281003A2BAC1E5870CB79864E"
+    },
+    {
+        "Name":  "sliders-horizontal",
+        "SHA256":  "8A17C36945AABF38E7B4CDD5C6DC05FF6CF4E1F5B7A22B33E897BDCFCA968675"
+    }
+]

@@ -1,0 +1,9 @@
+{
+  "Accepted": false,
+  "Reason": "Mixed CPU/RAM navigation and early popup closure; diagnostic render exports occurred during observation",
+  "NumericalWindowPeakMB": 84.770816,
+  "LifetimePeakMB": 92.91776,
+  "TargetPopupGateClaimed": false,
+  "TargetAfterCloseGateClaimed": false,
+  "Next": "Bounded held-input diagnostic trial; normal interaction unchanged"
+}

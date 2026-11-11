@@ -1,0 +1,9 @@
+# Settings behavior follow-through
+
+Continue only after the remaining wide-page resource gate passes. Existing UI-completion authorization applies; no new dependency, helper, Git or system-setting action.
+
+1. Separate monitoring pause from environment suppression. Fullscreen/screen-off still closes the application and popups. Pause should keep the application available, stop application/popup queries, drain pending work without overlap and show an explicit paused state. Resume must wait for prior source disposal; no hidden charts/process work.
+2. Propagate settings changes from every entry point, including tray/context menu and import. Update open page cadence; apply module popup preferences. Add module settings access in the application header, retaining wide content and bar-only compact popup activation. Make enable/disable semantics clear and keep at least one bar item.
+3. Apply bits/bytes and Celsius/Fahrenheit formatting consistently across bar, popup and wide pages, without changing raw portable metric samples. Validate fixed-width traffic layout and invalid values. Keep optional outbound checks disabled until a real opt-in is implemented; do not offer a nonfunctional switch.
+4. Add mock lifecycle tests for paused startup, pause with pending read, resume ordering and settings propagation; render/counter tests for units and module controls. Run Release/tests on x64/x86. Use isolated binaries for full resource trials, retaining startup/tail/hash accounting and the approved limits. Stop on any failure.
+5. Theme/system/high contrast, installed Windows icons, translation resources and accessibility follow as a separate tested polish stage. No startup registration or machine-settings action is executed during validation. Do not mark remaining UI complete from stored settings alone.

@@ -1,0 +1,13 @@
+{
+    "Lifecycle":  "Pass",
+    "NumericalExit":  0,
+    "Samples":  115,
+    "Windows":  1,
+    "TrayRemoved":  true,
+    "ClosedPopupChartWork":  0,
+    "ClosedPopupProcessWork":  0,
+    "GpuProof":  true,
+    "LifetimePeakWorkingSetBytes":  76800000,
+    "BinaryHashesUnchanged":  true,
+    "OverallAccepted":  true
+}

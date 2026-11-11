@@ -17,6 +17,11 @@ public static class IslandLaunchArguments
             switch (flag)
             {
                 case "--native-probe": options = options with { Minimal = true }; break;
+                case "--hold-diagnostic-input": options = options with { HoldDiagnosticInput = true }; break;
+                case "--auto-reveal-bar": options = options with { AutoRevealBar = true }; break;
+                case "--surface":
+                    if (++index >= args.Length || !Enum.TryParse<Islet.Core.Presentation.MonitorSurface>(args[index], true, out var surface) || surface is not (Islet.Core.Presentation.MonitorSurface.Application or Islet.Core.Presentation.MonitorSurface.Module)) return false;
+                    options = options with { Surface = surface }; break;
                 case "--hidden": options = options with { Hidden = true }; break;
                 case "--exercise-shell": options = options with { Exercise = true }; break;
                 case "--exit-after-seconds":
@@ -35,22 +40,26 @@ public static class IslandLaunchArguments
                 case "--exercise-dashboard": options = options with { ExerciseDashboard = true }; break;
                 case "--style":
                     if (++index >= args.Length || !Enum.TryParse<IslandStyle>(args[index], true, out var style) || !Enum.IsDefined(style)) return false;
-                    options = options with { Style = style }; break;
+                    options = options with { Style = style, StyleSpecified = true }; break;
                 case "--state":
                     if (++index >= args.Length || !Enum.TryParse<IslandState>(args[index], true, out var state) || !Enum.IsDefined(state)) return false;
                     options = options with { State = state }; break;
                 default: return false;
             }
         }
+        if (options.Surface == Islet.Core.Presentation.MonitorSurface.Module)
+            options = options with { State = IslandState.Expanded, Page = options.Page == Islet.Core.Presentation.MonitorPage.Overview ? Islet.Core.Presentation.MonitorPage.Cpu : options.Page };
+        if (options.Surface == Islet.Core.Presentation.MonitorSurface.Application && !seen.Contains("--state")) options = options with { State = IslandState.Collapsed };
         if (options.Minimal && (options.ExitAfterSeconds is null || report is null
             || seen.Any(s => s is not ("--native-probe" or "--exit-after-seconds" or "--probe-report")))) return false;
-        if (seen.Contains("--page") && !seen.Contains("--state")) options = options with { State = IslandState.Expanded };
+        if (seen.Contains("--page") && !seen.Contains("--state") && options.Surface != Islet.Core.Presentation.MonitorSurface.Application) options = options with { State = IslandState.Expanded };
         if (options.ExerciseDashboard)
         {
             if (options.Exercise || options.Hidden || report is null) return false;
             options = options with { State = IslandState.Expanded, ExitAfterSeconds = options.ExitAfterSeconds ?? 24 };
         }
         if (options.Exercise && options.ExitAfterSeconds is null) options = options with { ExitAfterSeconds = 24 };
+        if (options.HoldDiagnosticInput && (report is null || options.ExitAfterSeconds is null || options.Minimal)) return false;
         return true;
     }
 }

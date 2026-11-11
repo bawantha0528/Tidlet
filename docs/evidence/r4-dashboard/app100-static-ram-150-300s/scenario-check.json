@@ -1,0 +1,16 @@
+{
+    "Page":  "RAM",
+    "NumericalExit":  0,
+    "LifecyclePass":  true,
+    "ExpectedActivity":  true,
+    "DashboardReads":  345,
+    "DashboardFrames":  344,
+    "LifetimePeakWorkingSetBytes":  84983808,
+    "LifetimeWithinLimit":  true,
+    "BinaryHashesUnchanged":  true,
+    "CaptureVerified":  true,
+    "CapturePercent":  150,
+    "AttributionOnly":  false,
+    "OverallAccepted":  true,
+    "PhysicalInteractionVerified":  false
+}

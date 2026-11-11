@@ -1,0 +1,38 @@
+[
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\Islet.Core.dll",
+        "Hash":  "EE19D551A079476F06EA589A44F07CCB450E2BC2A7499304808D3C825D34065B"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\Islet.Shell.dll",
+        "Hash":  "5C3DB7E3885473FDB0AFF3E3E79FC23C8A4B163DE4907CEC925CD25679DD1BFB"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\Islet.Windows.dll",
+        "Hash":  "DCBDB31A70247C2BA9F4C542CCB5723A8FB155CBD6571108C6180DD0AFBD8948"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\IsletMonitor.deps.json",
+        "Hash":  "C27BCEC9DA83163D86B1E45F4C7F3266BE8D332255E0B708FCDECD5E99CC1065"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\IsletMonitor.dll",
+        "Hash":  "A2A4187EFCB23ED52DDF6B84760E04A31FEA3FCC9D2BC48ABD64AF26BBE5A986"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\IsletMonitor.exe",
+        "Hash":  "D135BD2D5FF54F02D7FF63DA4B6CDF2D6CCD1BC4167E709B3795F5D771A3AAF4"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\IsletMonitor.runtimeconfig.json",
+        "Hash":  "C71152BF25E40D647B2440C5B39BE157A3D356106BE9D5B678AB97BB87B4E782"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\Microsoft.Windows.SDK.NET.dll",
+        "Hash":  "43B12F190D22F258039DF567EF407333DC41DC95AC7B232DBF94AAB069C65BBB"
+    },
+    {
+        "Path":  "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\r4-provider-comparison\\WinRT.Runtime.dll",
+        "Hash":  "BCF3A14E8712A90837FC5C0D8C8A24696AF2BD7F74E9767597EC81EDEDFB23DB"
+    }
+]

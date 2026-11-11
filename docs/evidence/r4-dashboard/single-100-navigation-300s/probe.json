@@ -1,0 +1,893 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 115,
+  "EverHidden": false,
+  "VisibilityChecks": 175,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 115,
+  "NetworkReads": 115,
+  "LastSnapshot": {
+    "Cpu": 14.899154196486663,
+    "Ram": 85.1137302848759,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "6.6 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 2362,
+    "Upload": 123052
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": false,
+    "Theme": 0,
+    "Accent": "#0A84FF",
+    "UseBits": false,
+    "Fahrenheit": false,
+    "PingEnabled": false,
+    "PingTarget": "",
+    "WifiDetailsEnabled": false,
+    "Modules": {}
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "DashboardPage": "CPU",
+  "DashboardOpens": 1,
+  "DashboardReads": 201,
+  "DashboardFrames": 157,
+  "DashboardWorkersDrained": true,
+  "DashboardPageHistory": [
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard",
+    "Sensors",
+    "CPU",
+    "RAM",
+    "Dashboard"
+  ],
+  "DashboardPerPixelOpacity": false,
+  "DiagnosticDashboardInputHeld": true,
+  "DashboardEvents": [
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 0.0166692,
+      "Reads": 0,
+      "Frames": 0
+    },
+    {
+      "Action": "Open",
+      "Page": "CPU",
+      "Seconds": 0.1144233,
+      "Reads": 1,
+      "Frames": 0
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 4.1091955,
+      "Reads": 5,
+      "Frames": 4
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 8.1215122,
+      "Reads": 10,
+      "Frames": 8
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 12.1292685,
+      "Reads": 10,
+      "Frames": 8
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 16.1375083,
+      "Reads": 11,
+      "Frames": 9
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 20.1451577,
+      "Reads": 15,
+      "Frames": 12
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 24.1633461,
+      "Reads": 19,
+      "Frames": 15
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 28.1697639,
+      "Reads": 19,
+      "Frames": 15
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 32.1727048,
+      "Reads": 20,
+      "Frames": 16
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 36.1797419,
+      "Reads": 25,
+      "Frames": 20
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 40.1857934,
+      "Reads": 28,
+      "Frames": 22
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 44.192273,
+      "Reads": 28,
+      "Frames": 22
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 48.1824301,
+      "Reads": 29,
+      "Frames": 23
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 52.1928218,
+      "Reads": 33,
+      "Frames": 26
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 56.1961715,
+      "Reads": 37,
+      "Frames": 29
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 60.2056151,
+      "Reads": 37,
+      "Frames": 29
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 64.1966321,
+      "Reads": 38,
+      "Frames": 30
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 68.2028219,
+      "Reads": 42,
+      "Frames": 33
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 72.2017443,
+      "Reads": 46,
+      "Frames": 36
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 76.199221,
+      "Reads": 46,
+      "Frames": 36
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 80.1974499,
+      "Reads": 47,
+      "Frames": 37
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 84.2034376,
+      "Reads": 51,
+      "Frames": 40
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 88.2114739,
+      "Reads": 56,
+      "Frames": 44
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 92.2217703,
+      "Reads": 56,
+      "Frames": 44
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 96.2320743,
+      "Reads": 57,
+      "Frames": 45
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 100.2405097,
+      "Reads": 61,
+      "Frames": 48
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 104.2423593,
+      "Reads": 65,
+      "Frames": 51
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 108.257747,
+      "Reads": 65,
+      "Frames": 51
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 112.267228,
+      "Reads": 66,
+      "Frames": 52
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 116.2799418,
+      "Reads": 71,
+      "Frames": 56
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 120.2870353,
+      "Reads": 75,
+      "Frames": 59
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 124.302498,
+      "Reads": 75,
+      "Frames": 59
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 128.3123545,
+      "Reads": 76,
+      "Frames": 60
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 132.3066009,
+      "Reads": 80,
+      "Frames": 63
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 136.3183663,
+      "Reads": 84,
+      "Frames": 66
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 140.3227131,
+      "Reads": 84,
+      "Frames": 66
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 144.3219567,
+      "Reads": 85,
+      "Frames": 67
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 148.3268461,
+      "Reads": 89,
+      "Frames": 70
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 152.3295392,
+      "Reads": 93,
+      "Frames": 73
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 156.3315854,
+      "Reads": 93,
+      "Frames": 73
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 160.3248257,
+      "Reads": 94,
+      "Frames": 74
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 164.3333832,
+      "Reads": 98,
+      "Frames": 77
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 168.3436283,
+      "Reads": 102,
+      "Frames": 80
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 172.3379713,
+      "Reads": 102,
+      "Frames": 80
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 176.3408476,
+      "Reads": 103,
+      "Frames": 81
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 180.3417338,
+      "Reads": 107,
+      "Frames": 84
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 184.338351,
+      "Reads": 111,
+      "Frames": 87
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 188.3461087,
+      "Reads": 111,
+      "Frames": 87
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 192.3480266,
+      "Reads": 112,
+      "Frames": 88
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 196.3458351,
+      "Reads": 116,
+      "Frames": 91
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 200.3405422,
+      "Reads": 120,
+      "Frames": 94
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 204.3414877,
+      "Reads": 120,
+      "Frames": 94
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 208.3407043,
+      "Reads": 121,
+      "Frames": 95
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 212.345606,
+      "Reads": 125,
+      "Frames": 98
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 216.3364729,
+      "Reads": 129,
+      "Frames": 101
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 220.3480437,
+      "Reads": 129,
+      "Frames": 101
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 224.3362775,
+      "Reads": 130,
+      "Frames": 102
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 228.3391467,
+      "Reads": 134,
+      "Frames": 105
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 232.3380506,
+      "Reads": 138,
+      "Frames": 108
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 236.3415445,
+      "Reads": 138,
+      "Frames": 108
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 240.342636,
+      "Reads": 139,
+      "Frames": 109
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 244.3452757,
+      "Reads": 143,
+      "Frames": 112
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 248.3507869,
+      "Reads": 147,
+      "Frames": 115
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 252.3548912,
+      "Reads": 147,
+      "Frames": 115
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 256.3572494,
+      "Reads": 148,
+      "Frames": 116
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 260.356873,
+      "Reads": 152,
+      "Frames": 119
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 264.3675592,
+      "Reads": 156,
+      "Frames": 122
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 268.3765444,
+      "Reads": 156,
+      "Frames": 122
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 272.3685268,
+      "Reads": 157,
+      "Frames": 123
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 276.3726513,
+      "Reads": 161,
+      "Frames": 126
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 280.3697326,
+      "Reads": 165,
+      "Frames": 129
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 284.3704261,
+      "Reads": 165,
+      "Frames": 129
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 288.3714602,
+      "Reads": 166,
+      "Frames": 130
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 292.3716135,
+      "Reads": 170,
+      "Frames": 133
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 296.3713739,
+      "Reads": 174,
+      "Frames": 136
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 300.379415,
+      "Reads": 174,
+      "Frames": 136
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 304.3753859,
+      "Reads": 175,
+      "Frames": 137
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 308.3704661,
+      "Reads": 179,
+      "Frames": 140
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 312.3681561,
+      "Reads": 183,
+      "Frames": 143
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 316.3734329,
+      "Reads": 183,
+      "Frames": 143
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 320.3775782,
+      "Reads": 184,
+      "Frames": 144
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 324.3742338,
+      "Reads": 188,
+      "Frames": 147
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 328.3742206,
+      "Reads": 192,
+      "Frames": 150
+    },
+    {
+      "Action": "Select",
+      "Page": "Sensors",
+      "Seconds": 332.3774525,
+      "Reads": 192,
+      "Frames": 150
+    },
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 336.3784982,
+      "Reads": 193,
+      "Frames": 151
+    },
+    {
+      "Action": "Select",
+      "Page": "RAM",
+      "Seconds": 340.376095,
+      "Reads": 197,
+      "Frames": 154
+    },
+    {
+      "Action": "Select",
+      "Page": "Dashboard",
+      "Seconds": 344.3741884,
+      "Reads": 201,
+      "Frames": 157
+    },
+    {
+      "Action": "Close",
+      "Page": "Dashboard",
+      "Seconds": 345.0041519,
+      "Reads": 201,
+      "Frames": 157
+    }
+  ],
+  "BaselineDashboardReads": 20,
+  "BaselineDashboardFrames": 16,
+  "BaselineDashboardOpen": true,
+  "DashboardCaptures": [
+    {
+      "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\docs\\evidence\\r4-dashboard\\single-100-navigation-300s\\bar.dashboard.100.png",
+      "Percent": 100,
+      "Width": 860,
+      "Height": 580,
+      "StartedSeconds": 343.1071631,
+      "CompletedSeconds": 343.145285
+    }
+  ],
+  "RequestedDashboardCapturePercent": 100,
+  "ChartWork": 0,
+  "ProcessWork": 0,
+  "DiagnosticPopupInputHeld": false,
+  "BaselinePopupReads": 0,
+  "BaselinePopupFrames": 0,
+  "BaselinePopupOpen": false,
+  "PopupEvents": [],
+  "PopupOpens": 0,
+  "PopupCloses": 0,
+  "PresentationAllocatedBytes": 0,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": null,
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Windows",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.ComponentModel.Primitives",
+    "System.Memory",
+    "System.Private.Uri",
+    "System.Threading.Thread",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "System.Text.Encoding.Extensions",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "System.Runtime.Intrinsics",
+    "System.Collections.Concurrent",
+    "System.ObjectModel",
+    "UIAutomationProvider",
+    "System.IO.FileSystem.DriveInfo",
+    "System.Net.Requests",
+    "System.Net.NetworkInformation",
+    "System.Net.Primitives"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

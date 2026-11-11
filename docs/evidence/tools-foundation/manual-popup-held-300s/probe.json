@@ -1,0 +1,277 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 115,
+  "EverHidden": false,
+  "VisibilityChecks": 177,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 115,
+  "NetworkReads": 115,
+  "LastSnapshot": {
+    "Cpu": 13.795336787564766,
+    "Ram": 88.1927374984717,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "6.9 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 82868,
+    "Upload": 3811,
+    "Loading": false,
+    "CpuLoading": false,
+    "NetworkLoading": false,
+    "Gpu": null,
+    "GpuReason": "GPU monitoring is off.",
+    "GpuLoading": false
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 2,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "ItemOrder": [],
+    "Pause": false,
+    "Theme": 0,
+    "Accent": "#0A84FF",
+    "UseBits": false,
+    "Fahrenheit": false,
+    "PingEnabled": false,
+    "PingTarget": "",
+    "WifiDetailsEnabled": false,
+    "Modules": {},
+    "Tools": {
+      "Order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "Modules": {
+        "Screenshot": {
+          "Enabled": true,
+          "Paused": false,
+          "HotkeyModifiers": 0,
+          "HotkeyKey": 0
+        },
+        "Clipboard": {
+          "Enabled": true,
+          "Paused": false,
+          "HotkeyModifiers": 0,
+          "HotkeyKey": 0
+        },
+        "Git": {
+          "Enabled": true,
+          "Paused": false,
+          "HotkeyModifiers": 0,
+          "HotkeyKey": 0
+        },
+        "EyeCare": {
+          "Enabled": true,
+          "Paused": false,
+          "HotkeyModifiers": 0,
+          "HotkeyKey": 0
+        },
+        "AiLimits": {
+          "Enabled": true,
+          "Paused": false,
+          "HotkeyModifiers": 0,
+          "HotkeyKey": 0
+        }
+      },
+      "Enabled": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "ToolDiagnostics": [
+    {
+      "Tool": "Screenshot",
+      "BackendCreated": true,
+      "Running": false
+    },
+    {
+      "Tool": "Clipboard",
+      "BackendCreated": true,
+      "Running": false
+    },
+    {
+      "Tool": "Git",
+      "BackendCreated": true,
+      "Running": false
+    },
+    {
+      "Tool": "EyeCare",
+      "BackendCreated": true,
+      "Running": false
+    },
+    {
+      "Tool": "AiLimits",
+      "BackendCreated": true,
+      "Running": false
+    }
+  ],
+  "ToolPopupOpens": 1,
+  "ToolPopupCloses": 1,
+  "ToolPopupEvents": [
+    {
+      "Action": "Open",
+      "Tool": "AiLimits",
+      "Seconds": 0.0193646
+    },
+    {
+      "Action": "Close",
+      "Tool": "AiLimits",
+      "Seconds": 345.1609554
+    }
+  ],
+  "DiagnosticToolInputHeld": true,
+  "DiagnosticBarInputHeld": true,
+  "GpuBarRequests": 0,
+  "GpuBarWorkersDrained": true,
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "DashboardPage": null,
+  "DashboardOpens": 0,
+  "DashboardReads": 0,
+  "DashboardFrames": 0,
+  "DashboardWorkersDrained": true,
+  "DashboardPageHistory": [],
+  "DashboardPerPixelOpacity": null,
+  "DiagnosticDashboardInputHeld": false,
+  "DashboardEvents": [],
+  "DashboardCoreDetailRequests": 0,
+  "DashboardProcessDetailRequests": 0,
+  "BaselineDashboardReads": 0,
+  "BaselineDashboardFrames": 0,
+  "BaselineDashboardOpen": false,
+  "DashboardCaptures": [],
+  "RequestedDashboardCapturePercent": null,
+  "ChartWork": 0,
+  "ProcessWork": 0,
+  "DiagnosticPopupInputHeld": false,
+  "BaselinePopupReads": 0,
+  "BaselinePopupFrames": 0,
+  "BaselinePopupOpen": false,
+  "PopupEvents": [],
+  "PopupOpens": 0,
+  "PopupCloses": 0,
+  "PresentationAllocatedBytes": 0,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": null,
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Windows",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Memory",
+    "System.Text.Encoding.Extensions",
+    "System.Text.Encodings.Web",
+    "System.Runtime.Intrinsics",
+    "System.Numerics.Vectors",
+    "System.Private.Uri",
+    "System.Collections.Concurrent",
+    "System.Reflection.Emit.Lightweight",
+    "System.Reflection.Primitives",
+    "System.Reflection.Emit.ILGeneration",
+    "System.ComponentModel.Primitives",
+    "System.Threading.Thread",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.IO.FileSystem.Watcher",
+    "System.ComponentModel.TypeConverter",
+    "System.ObjectModel",
+    "UIAutomationProvider",
+    "System.Net.Requests"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

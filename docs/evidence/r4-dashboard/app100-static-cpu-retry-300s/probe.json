@@ -1,0 +1,205 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 115,
+  "EverHidden": false,
+  "VisibilityChecks": 176,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 115,
+  "NetworkReads": 115,
+  "LastSnapshot": {
+    "Cpu": 26.295336787564768,
+    "Ram": 89.13793862330358,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "7.0 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 43,
+    "Upload": 115
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": false,
+    "Theme": 0,
+    "Accent": "#0A84FF",
+    "UseBits": false,
+    "Fahrenheit": false,
+    "PingEnabled": false,
+    "PingTarget": "",
+    "WifiDetailsEnabled": false,
+    "Modules": {}
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "DashboardPage": "CPU",
+  "DashboardOpens": 1,
+  "DashboardReads": 344,
+  "DashboardFrames": 343,
+  "DashboardWorkersDrained": true,
+  "DashboardPageHistory": [
+    "CPU"
+  ],
+  "DashboardPerPixelOpacity": false,
+  "DiagnosticDashboardInputHeld": true,
+  "DashboardEvents": [
+    {
+      "Action": "Select",
+      "Page": "CPU",
+      "Seconds": 0.0259562,
+      "Reads": 0,
+      "Frames": 0
+    },
+    {
+      "Action": "Open",
+      "Page": "CPU",
+      "Seconds": 0.164126,
+      "Reads": 1,
+      "Frames": 0
+    },
+    {
+      "Action": "Close",
+      "Page": "CPU",
+      "Seconds": 345.0096338,
+      "Reads": 344,
+      "Frames": 343
+    }
+  ],
+  "DashboardCoreDetailRequests": 344,
+  "DashboardProcessDetailRequests": 0,
+  "BaselineDashboardReads": 30,
+  "BaselineDashboardFrames": 29,
+  "BaselineDashboardOpen": true,
+  "DashboardCaptures": [
+    {
+      "Path": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\docs\\evidence\\r4-dashboard\\app100-static-cpu-retry-300s\\bar.dashboard.100.png",
+      "Percent": 100,
+      "Width": 860,
+      "Height": 580,
+      "StartedSeconds": 343.1610828,
+      "CompletedSeconds": 343.2383104
+    }
+  ],
+  "RequestedDashboardCapturePercent": 100,
+  "ChartWork": 0,
+  "ProcessWork": 0,
+  "DiagnosticPopupInputHeld": false,
+  "BaselinePopupReads": 0,
+  "BaselinePopupFrames": 0,
+  "BaselinePopupOpen": false,
+  "PopupEvents": [],
+  "PopupOpens": 0,
+  "PopupCloses": 0,
+  "PresentationAllocatedBytes": 0,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": null,
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Windows",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.ComponentModel.Primitives",
+    "System.Memory",
+    "System.Private.Uri",
+    "System.Threading.Thread",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "System.Text.Encoding.Extensions",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "System.Runtime.Intrinsics",
+    "System.Collections.Concurrent",
+    "System.ObjectModel",
+    "UIAutomationProvider",
+    "System.IO.FileSystem.DriveInfo",
+    "System.Net.Requests"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

@@ -1,0 +1,37 @@
+{
+    "Variants":  [
+                     {
+                         "Variant":  "with",
+                         "AttributionOnly":  true,
+                         "OverallAccepted":  false,
+                         "LifetimePeakBytes":  37736448,
+                         "Within90MB":  true,
+                         "ObservedMaxBytes":  33873920,
+                         "CpuMachinePercent":  0.43475397794093096,
+                         "DurationSeconds":  30.998135,
+                         "Reads":  30,
+                         "ValidCoreReads":  29,
+                         "ProcessRows":  174,
+                         "WpfLoaded":  false,
+                         "NaturalExit":  true
+                     },
+                     {
+                         "Variant":  "without",
+                         "AttributionOnly":  true,
+                         "OverallAccepted":  false,
+                         "LifetimePeakBytes":  34156544,
+                         "Within90MB":  true,
+                         "ObservedMaxBytes":  30380032,
+                         "CpuMachinePercent":  0.28985971127119131,
+                         "DurationSeconds":  30.995597699999998,
+                         "Reads":  30,
+                         "ValidCoreReads":  29,
+                         "ProcessRows":  0,
+                         "WpfLoaded":  false,
+                         "NaturalExit":  true
+                     }
+                 ],
+    "BinaryHashesUnchanged":  true,
+    "AttributionOnly":  true,
+    "OverallAccepted":  false
+}

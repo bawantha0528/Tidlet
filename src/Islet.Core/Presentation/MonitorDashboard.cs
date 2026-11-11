@@ -3,14 +3,15 @@ using Islet.Core.Settings;
 
 namespace Islet.Core.Presentation;
 
-public enum MonitorPage { Overview, Cpu, Memory, Network, Disk, Gpu, Battery, Apps }
+public enum MonitorSurface { Ambient, Module, Application, Strip }
+public enum MonitorPage { Overview, Cpu, Memory, Network, Disk, Gpu, Battery, Apps, Sensors }
 public sealed record DetailRow(string Label, string Value);
 public sealed record MonitorCard(MonitorPage Page, string Title, string Value, string Subtitle,
     double? Percent, string Status, IReadOnlyList<DetailRow> Details,
     IReadOnlyList<double?> History, IReadOnlyList<double?>? SecondaryHistory = null,
     string HistoryLabel = "RECENT SAMPLES", bool Absent = false);
 public sealed record MonitorDashboard(IReadOnlyList<MonitorCard> Cards, MonitorPage Page = MonitorPage.Overview,
-    ThemeMode Theme = ThemeMode.Dark, string Accent = "#3B82F6", ControlCenter? ControlCenter = null, bool CanReturnToNotch = false);
+    ThemeMode Theme = ThemeMode.Dark, string Accent = "#3B82F6", ControlCenter? ControlCenter = null, bool CanReturnToNotch = false, MonitorSurface Surface = MonitorSurface.Ambient, int ScrollOffset = 0, bool BarAutoReveal = false, string DeviceDescription = "Windows PC", string? Notice = null, IslandStyle SelectedStyle = IslandStyle.Island);
 
 public static class MonitorFormat
 {
@@ -48,8 +49,8 @@ public static class DashboardLayout
     }
     public const int PageCommand = 400;
     public const int ThemeCommand = 450;
-    public static readonly string[] PageNames = ["Overview", "CPU", "Memory", "Network", "Disk", "GPU", "Battery", "Apps"];
-    public static DashboardRect Tab(int index, double width) => new(28 + index * ((width - 56) / 8), 69, (width - 56) / 8 - 3, 31);
+    public static readonly string[] PageNames = ["Overview", "CPU", "Memory", "Network", "Disk", "GPU", "Battery", "Apps", "Sensors"];
+    public static DashboardRect Tab(int index, double width) => new(28 + index * ((width - 56) / PageNames.Length), 69, (width - 56) / PageNames.Length - 3, 31);
     public static DashboardRect ThemeButton(double width) => new(width - 92, 20, 64, 28);
     public static DashboardRect Card(int index, int count, double width, double height)
     {
@@ -61,6 +62,9 @@ public static class DashboardLayout
     }
     public static int HitTest(double x, double y, double width, double height, MonitorDashboard dashboard)
     {
+        if (dashboard.Surface == MonitorSurface.Application) return DesktopDashboardLayout.HitTest(x,y,width,height,dashboard);
+        if (dashboard.Surface == MonitorSurface.Module) return ModulePanelLayout.HitTest(x,y,width,height);
+        if (dashboard.Surface == MonitorSurface.Strip) return MonitorStripLayout.HitTest(x,y,width,dashboard);
         if (dashboard.ControlCenter is { } center) return ControlCenterLayout.HitTest(x, y, center);
         if (dashboard.CanReturnToNotch && ControlCenterLayout.ReturnButton(width).Contains(x,y)) return ControlCenterLayout.ReturnToNotch;
         if (ThemeButton(width).Contains(x, y)) return ThemeCommand;
@@ -68,6 +72,22 @@ public static class DashboardLayout
         if (dashboard.Page != MonitorPage.Overview) return 0;
         var cards = dashboard.Cards.Where(c => !c.Absent && c.Page != MonitorPage.Gpu).Take(6).ToArray();
         for (var i = 0; i < cards.Length; i++) if (Card(i, cards.Length, width, height).Contains(x, y)) return PageCommand + (int)cards[i].Page;
+        return 0;
+    }
+    public static int HitTestCollapsed(double x, double y, double width, double height, IslandStyle style)
+    {
+        if (width < 240) return 0;
+        var inset = style == IslandStyle.Notch ? 34.0 : 18.0;
+        if (x >= inset - 8 && x <= inset + 12) return DesktopDashboardLayout.OpenApplication;
+        var curX = inset + 12.0;
+        if (x >= curX - 4 && x <= curX + 76) return PageCommand + (int)MonitorPage.Cpu;
+        curX += 82.0;
+        if (x >= curX - 4 && x <= curX + 80) return PageCommand + (int)MonitorPage.Memory;
+        curX += 84.0;
+        if (x >= curX - 4 && x <= curX + 68) return PageCommand + (int)MonitorPage.Network;
+        curX += 72.0;
+        if (x >= curX - 4 && x <= curX + 68) return PageCommand + (int)MonitorPage.Battery;
+        if (style == IslandStyle.Bar && x >= width - 75) return DesktopDashboardLayout.OpenApplication;
         return 0;
     }
 }

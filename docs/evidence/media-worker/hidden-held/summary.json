@@ -1,0 +1,42 @@
+﻿{
+    "Scenario":  "Hidden",
+    "Result":  "Pass",
+    "Violations":  [
+
+                   ],
+    "DurationSeconds":  300.0089667,
+    "RequiredDurationSeconds":  300,
+    "SampleCount":  301,
+    "SampleIntervalSeconds":  1,
+    "WorkingSetMeanBytes":  33369009.754152823,
+    "WorkingSetMedianBytes":  32587776,
+    "WorkingSetP95Bytes":  37908480,
+    "WorkingSetMaxBytes":  37908480,
+    "WorkingSetMaxMB":  37.90848,
+    "WorkingSetMaxMiB":  36.15234375,
+    "LifetimePeakWorkingSetBytes":  38248448,
+    "CpuSeconds":  0.015625,
+    "CpuCoreEquivalentPercent":  0.0052081776661110713,
+    "CpuMachineNormalizedPercent":  0.00065102220826388391,
+    "LogicalProcessorDenominator":  8,
+    "HiddenBehaviorVerified":  false,
+    "Metadata":  {
+                     "SchemaVersion":  1,
+                     "StartedUtc":  "2026-10-30T04:06:54.2101295Z",
+                     "ProcessId":  13740,
+                     "ProcessStartUtc":  "2026-10-30T04:06:53.7254343Z",
+                     "ExecutableName":  "IsletMonitor.exe",
+                     "ExecutableSHA256":  "3D6CC68DCEE6C478405C37B9B171CA276DA13A27DDA95F3F998D8D446D286E35",
+                     "ProcessArchitecture":  "TODO(verify): set from measured build configuration",
+                     "RuntimeProductVersion":  "8,0,2025,41914 @Commit: 574100b692e71fa3426931adf4c1ba42e4ee5213",
+                     "WindowsVersion":  "Microsoft Windows NT 10.0.26200.0",
+                     "ProcessorAffinityHex":  "FF",
+                     "DenominatorSource":  "Observer Environment.ProcessorCount; verify target quota/group capacity",
+                     "WarmupSeconds":  30,
+                     "ScenarioIsOperatorSupplied":  true,
+                     "IsAcceptanceDuration":  true,
+                     "NumericalLimitsOnly":  true,
+                     "Children":  "Aggregate parent plus identity-checked journaled workers; exited CPU retained; exit peaks conservatively included once."
+                 },
+    "ObserverCpuSeconds":  2.421875
+}

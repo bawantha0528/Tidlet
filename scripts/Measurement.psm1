@@ -1,4 +1,4 @@
-﻿Set-StrictMode -Version Latest
+Set-StrictMode -Version Latest
 
 function Get-MeasurementSummary {
     [CmdletBinding()]
@@ -7,7 +7,7 @@ function Get-MeasurementSummary {
         [Parameter(Mandatory)][ValidateRange(1, 86400)][int] $RequiredDurationSeconds,
         [ValidateRange(1, 4096)][int] $LogicalProcessorCount = 1,
         [ValidateRange(0.01, 3600)][double] $SampleIntervalSeconds = 1,
-        [ValidateSet('ScaffoldIdle','Collapsed','Expanded','Hidden','Fullscreen')]
+        [ValidateSet('ScaffoldIdle','Collapsed','Expanded','Hidden','Fullscreen','Bar','Popup','Application')]
         [string] $Scenario = 'ScaffoldIdle'
     )
 
@@ -54,8 +54,11 @@ function Get-MeasurementSummary {
     $p95Index = [int][math]::Ceiling(0.95 * $workingSets.Count) - 1
     $maximum = [long]$workingSets[-1]
     $violations = [System.Collections.Generic.List[string]]::new()
-    $memoryLimit = switch ($Scenario) { 'Collapsed' { 60000000L }; 'Expanded' { 100000000L }; default { $null } }
+    $memoryLimit = switch ($Scenario) { 'Application' { 100000000L }; 'Bar' { 90000000L }; 'Popup' { 90000000L }; 'Hidden' { 90000000L }; 'Fullscreen' { 90000000L }; 'Collapsed' { 60000000L }; 'Expanded' { 100000000L }; default { $null } }
     if ($null -ne $memoryLimit -and $maximum -gt $memoryLimit) { $violations.Add('WorkingSet') }
+    if ($Scenario -eq 'Bar' -and $machineCpu -ge 1.0) { $violations.Add('BarCpu') }
+    if ($Scenario -eq 'Popup' -and $machineCpu -ge 1.0) { $violations.Add('PopupCpu') }
+    if ($Scenario -eq 'Application' -and $machineCpu -ge 1.0) { $violations.Add('ApplicationCpu') }
     if ($Scenario -eq 'Collapsed' -and $machineCpu -ge 1.0) { $violations.Add('CollapsedCpu') }
     if ($Scenario -in @('Hidden','Fullscreen') -and $coreCpu -gt 0.1) { $violations.Add('SuppressedCpu') }
 
@@ -82,5 +85,13 @@ function Get-MeasurementSummary {
     }
 }
 
-Export-ModuleMember -Function Get-MeasurementSummary
+function Test-SessionMemory {
+    param([Parameter(Mandatory)][long]$CurrentMaximumBytes,[Parameter(Mandatory)][long]$LifetimePeakBytes,[bool]$ApplicationSession=$false,[bool]$ApplicationOpen=$false)
+    if($CurrentMaximumBytes -le 0 -or $LifetimePeakBytes -lt $CurrentMaximumBytes -or ($ApplicationOpen -and -not $ApplicationSession)){throw 'Invalid session memory evidence.'}
+    $currentLimit=if($ApplicationSession -and $ApplicationOpen){100000000L}else{90000000L}
+    $lifetimeLimit=if($ApplicationSession){100000000L}else{90000000L}
+    [pscustomobject]@{Policy='31 October application 100 MB; fresh bar/popup and post-close current 90 MB';CurrentLimitBytes=$currentLimit;LifetimeLimitBytes=$lifetimeLimit;CurrentWithinLimit=($CurrentMaximumBytes -le $currentLimit);LifetimeWithinLimit=($LifetimePeakBytes -le $lifetimeLimit);Accepted=($CurrentMaximumBytes -le $currentLimit -and $LifetimePeakBytes -le $lifetimeLimit)}
+}
+Export-ModuleMember -Function Get-MeasurementSummary,Test-SessionMemory
+
 

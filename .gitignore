@@ -13,3 +13,9 @@ battery-report*
 batteryreport*
 # Evidence is opt-in and reviewed before commit.
 !docs/evidence/
+
+# User-supplied visual references (do not redistribute).
+/docs/reference/
+# Local popup diagnostics can contain names of running applications.
+/docs/evidence/r4-dashboard/warm-start-popup-cpu-300s/probe.json
+/docs/evidence/r4-dashboard/warm-start-popup-cpu-300s/bar.popup.*.png

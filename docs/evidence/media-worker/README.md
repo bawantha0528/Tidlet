@@ -1,0 +1,37 @@
+# Demand-started music worker evidence - 30 October 2026
+
+The user approved the recommended worker proposal by saying "do next step". The worker is implemented, but its combined expanded memory gate failed. Implementation is frozen for user review of docs/MEDIA_BRIDGE_PROPOSAL.md. No dependency, system-setting change, process termination, budget relaxation or Git write was introduced.
+
+## Implementation and verification
+
+The existing executable's --media-worker mode handles only bounded/versioned private-pipe media requests. It has no window/service/admin request. EOF, inactivity and operation deadlines return naturally. The main app starts at most one worker on visible media demand, rejects stale generations and closes input on navigation/collapse/hide/fullscreen/exit. The on-demand focus timer and dark/white views remain. Both media assemblies stay out of the ambient process. JSON uses the .NET 8 built-in generator; SDK package/version/license review stays as previously approved.
+
+Release Rebuild and an x86 build with separate obj/x86/Release intermediates passed with zero warnings/errors. All 101 tests passed on each of x64 and actual x86 test runtimes: 50 Core / 19 Shell / 32 Windows. Paths: TestResults/media-held-isolated-x64 and media-held-isolated-x86. The actual ABI log reports pointer size 4 for x86. Actual private-pipe read-only workers ran from both 32-bit and 64-bit executables; every automated playback command used a mock. Tests cover invalid packets/EOF, deadlines, slow/failing startup, stale visibility/session responses, natural closure, bounded worker overlap/restart and a timed diagnostic hold with normal-input defaults preserved.
+
+The 64-bit native smoke passed seven shell cases/nine style-state combinations and owned fullscreen hide/resume, plus sixteen dashboard pages/themes. Final held-input control-center smoke passed dark, white and full CPU views on both 32-bit and 64-bit apps. Frames are actual native render buffers, not desktop screenshots. The main and workers loaded no WPF; main loaded no media projection/runtime. The measurement harness passed 24 checks; worker accounting fixtures passed eight checks, including component replay and rejection of omitted/edited costs. Hosted CI is updated but unexecuted.
+
+Earlier attempts are retained: two non-held x86 view runs collapsed before the first media sample; an unheld 300-second expanded run also changed into collapsed and was rejected despite its numerical-only summary saying Pass. An earlier 20-second mixed-state diagnostic reached 108 MB. None is accepted as expanded evidence. Cross-bitness testhost bootstrap roots produced 0x80008082; removing only the fixture child's inherited DOTNET_ROOT* overrides fixed direct worker tests. A later shared-obj architecture build caused discovery failures; a Release Rebuild and isolated fixture intermediates restored passing suites. No user/system environment or security settings were edited. A native-evidence test-script interpolation error was corrected separately; failed attempts are not passes.
+
+## Measurement method
+
+Final frozen-binary trials run sequentially for at least 300 measured seconds after 30 seconds warmup, with --hold-diagnostic-input recorded in Options. This diagnostic-only flag requires a bounded exit/report, holds state-changing input and leaves real pointer reads plus metric/render/fullscreen/power behavior active. Normal launches remain interactive. Pure trials still reject changed state/style/suppression. This is idle rendering/sampling evidence, not evidence of user navigation or active music playback. Exit remains available; no process is killed.
+
+samples.csv retains parent and aggregate CPU/working set/private bytes; workers.csv retains identity-checked components; probe.workers.jsonl retains starts/exits and final costs so exited-worker CPU is not lost. Exit peaks first seen inside the interval are included conservatively; peaks from already-exited warmup workers are not charged to later resident memory. Shared pages count in each process's working set. Every app/runtime binary hash is retained. The external observer's CPU cost is reported separately. No forced collection, memory trimming or profiling is used. Normal desktop applications remain active; this is not an isolated lab.
+
+| Scenario | Duration | Peak combined working set | Mean | Machine CPU / core-equivalent | Result |
+|---|---:|---:|---:|---:|---|
+| Held expanded Notch, one worker throughout | 300.975004 s | 112.418816 MB | 104.929158 MB | 0.275147434% / 2.201179473% | FAIL: exceeds 100 MB |
+| Held collapsed after style exercise | 300.993432 s | 56.659968 MB | 52.911450 MB | 0.018169001% / 0.145352009% | Numerical idle limits pass; see qualification below |
+| Held hidden | 300.008967 s | 37.908480 MB | 33.369010 MB | 0.000651022% / 0.005208178% | PASS: no worker/metric/pointer/render activity |
+
+At the expanded peak, the parent used 57.384960 MB and its live worker 55.033856 MB. Native lifecycle checks and component/CSV recomputation passed; only Notch/Expanded was observed. The worker exited with code 0 after the trial and all native timers stopped. Eight logical processors, Windows build 26200, runtime 8.0.20, non-admin token, one physical display at 125% DPI. A conservative lifetime peak can include pre-measurement expansion and is separate from the sampled idle peak.
+
+Collapsed qualification: its worker started but closed before the first SDK read completed (Info null, final media-assembly list empty). Thus that trial proves idle memory after the style exercise and early worker cancellation, not the complete after-using-loaded-media case. Separate read-only IPC fixtures and the eight-second views loaded both SDK assemblies and exited naturally, but a complete integrated 300-second collapsed-after-loaded-media trial remains a gap. This does not erase the expanded failure or justify overall acceptance.
+
+## Limits and next review
+
+The expanded gate is failed by 12.418816 MB. No more implementation changes are made. The proposed next approach is a verified narrow native WinRT/COM provider that avoids both the large managed projection and the second runtime, with fresh ABI/read-only/lifecycle tests and measurements. It is not implemented or claimed to fit.
+
+Live player metadata/transport behavior, real denied policies, old Windows 10 fallback, two physical mixed-DPI displays, exclusive D3D fullscreen, a controlled 8 GB scenario and complete keyboard/accessibility navigation remain unverified. Existing GPU/advanced-sensor/network-filtering/broader M2-M3 gaps remain. Focus is session-only with no alarm. SDK redistribution rights/notices still need release review. No M4-M7 work or commits.
+
+All three raw CSV/component recomputations completed. Hidden CPU advanced by one observed 15.625 ms tick over five minutes; it is approximately zero, not exactly zero. Hidden had zero worker starts, zero metric/pointer/render calls, no media/WPF assemblies and zero native timers after natural exit. All 27 binary-hash comparisons (nine files in each scenario) match the unchanged current Release output; recorded source hashes also match. Both test-result guards accepted all 101 cases, worker math/omission guards passed eight checks, and native evidence mutation guards passed eight checks (two for omitted worker costs). No further implementation followed the expanded budget failure.

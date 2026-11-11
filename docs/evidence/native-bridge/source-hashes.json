@@ -1,0 +1,22 @@
+[
+  {
+    "File": "src/Islet.Windows/Media/NativeMediaSession.cs",
+    "SHA256": "358044177D4BAC0305B477640556103D82C68AE40EACEACC2C7A0CFFF31703D6"
+  },
+  {
+    "File": "src/Islet.Windows/Media/NativeMediaProvider.cs",
+    "SHA256": "FFA030172D5C145B873073AC1763C82387E137BBAA515E5DCFF0EF43B2A69245"
+  },
+  {
+    "File": "src/IsletMonitor/Program.cs",
+    "SHA256": "DC885133DDDE5572F92F25104B3B4CF0885909326DC08ED238E497CA07E939AA"
+  },
+  {
+    "File": "tests/Islet.Windows.Tests/NativeMediaTests.cs",
+    "SHA256": "F45518AE8CE15CD2504EB5FFA61A7298E93019155EA2BEABBF21BA5D1467282B"
+  },
+  {
+    "File": "tests/Islet.Windows.Tests/NativeMediaAbiTests.cs",
+    "SHA256": "725234E8A20A3B861DF1493A4EDE5CA142C888268B5DFD07E28FD67E91426CD5"
+  }
+]

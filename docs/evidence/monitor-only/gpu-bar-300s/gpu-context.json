@@ -1,0 +1,4 @@
+{
+    "GpuEnabled":  true,
+    "Explanation":  "GPU sampler is included in the same measured process; no helper or second application"
+}

@@ -42,6 +42,7 @@ internal sealed unsafe partial class DibRenderer : IDisposable
     }
 
     private Surface? _output, _mask;
+    private int _clipTop, _clipBottom = int.MaxValue;
     private readonly Dictionary<(int, int), nint> _fonts = new();
     public int FrameCount { get; private set; }
     private double _fontScale;
@@ -51,6 +52,7 @@ internal sealed unsafe partial class DibRenderer : IDisposable
         SetPalette(frame);
         var width = frame.Bounds.Width;
         var height = frame.Bounds.Height;
+        _clipTop = 0; _clipBottom = height;
         EnsureSize(width, height);
         if (_fontScale != frame.Scale)
         {
@@ -148,7 +150,7 @@ internal sealed unsafe partial class DibRenderer : IDisposable
         var error = dx + dy;
         while (true)
         {
-            if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height)
+            if (x0 >= 0 && x0 < width && y0 >= _clipTop && y0 < Math.Min(height,_clipBottom))
             {
                 var offset = y0 * _output!.Width + x0;
                 if ((uint)_output.Pixels[offset] >> 24 != 0)
@@ -171,7 +173,11 @@ internal sealed unsafe partial class DibRenderer : IDisposable
     }
 
     private void Text(string text, double x, double y, double right, double bottom,
-        double fontPixels, int weight, int color, int width, int height, bool alignRight = false)
+        double fontPixels, int weight, int color, int width, int height, bool alignRight)
+        => Text(text, x, y, right, bottom, fontPixels, weight, color, width, height, alignRight ? 2 : 0);
+
+    private void Text(string text, double x, double y, double right, double bottom,
+        double fontPixels, int weight, int color, int width, int height, int alignment = 0)
     {
         if (string.IsNullOrEmpty(text) || right <= x || bottom <= y || y >= height || x >= width) return;
         var mask = _mask!;
@@ -184,7 +190,8 @@ internal sealed unsafe partial class DibRenderer : IDisposable
         var key = ((int)Math.Round(fontPixels), weight);
         if (!_fonts.TryGetValue(key, out var font))
         {
-            font = CreateFontW(-key.Item1, 0, 0, 0, weight, 0, 0, 0, 1, 0, 0, 4, 0, "Segoe UI");
+            font = CreateFontW(-key.Item1, 0, 0, 0, weight, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI Variable Text");
+            if (font == 0) font = CreateFontW(-key.Item1, 0, 0, 0, weight, 0, 0, 0, 1, 0, 0, 4, 0, "Segoe UI");
             if (font == 0) throw new InvalidOperationException("Windows could not create the island font.");
             _fonts.Add(key, font);
         }
@@ -195,12 +202,13 @@ internal sealed unsafe partial class DibRenderer : IDisposable
             if (SetTextColor(mask.Dc, 0xFFFFFF) == uint.MaxValue || SetBkColor(mask.Dc, 0) == uint.MaxValue
                 || SetBkMode(mask.Dc, 1) == 0) throw new InvalidOperationException("Windows could not configure text drawing.");
             var rect = new Rect { Left = (int)x, Top = (int)y, Right = (int)right, Bottom = (int)bottom };
-            if (DrawTextW(mask.Dc, text, text.Length, ref rect, 0x20 | 0x4 | 0x800 | 0x8000 | (alignRight ? 2u : 0u)) == 0)
+            uint alignFlag = alignment == 1 ? 1u : alignment == 2 ? 2u : 0u;
+            if (DrawTextW(mask.Dc, text, text.Length, ref rect, 0x20 | 0x4 | 0x800 | 0x8000 | alignFlag) == 0)
                 throw new InvalidOperationException("Windows could not draw island text.");
             if (!GdiFlush()) throw new InvalidOperationException("Windows could not finish island text drawing.");
             var src = mask.Pixels;
             var dst = _output!.Pixels;
-            for (var row = Math.Max(0, (int)y); row < Math.Min(height, (int)Math.Ceiling(bottom)); row++)
+            for (var row = Math.Max(_clipTop, (int)y); row < Math.Min(Math.Min(height,_clipBottom), (int)Math.Ceiling(bottom)); row++)
                 for (var col = Math.Max(0, (int)x); col < Math.Min(width, (int)Math.Ceiling(right)); col++)
                 {
                     var index = row * mask.Width + col;
@@ -216,7 +224,7 @@ internal sealed unsafe partial class DibRenderer : IDisposable
     private void Dot(double cx, double cy, double radius, int color, int width, int height)
     {
         var pixels = _output!.Pixels;
-        for (var y = Math.Max(0, (int)(cy - radius - 1)); y < Math.Min(height, cy + radius + 1); y++)
+        for (var y = Math.Max(_clipTop, (int)(cy - radius - 1)); y < Math.Min(Math.Min(height,_clipBottom), cy + radius + 1); y++)
             for (var x = Math.Max(0, (int)(cx - radius - 1)); x < Math.Min(width, cx + radius + 1); x++)
             {
                 var coverage = Math.Clamp(radius + 0.5 - Math.Sqrt((x + 0.5 - cx) * (x + 0.5 - cx) + (y + 0.5 - cy) * (y + 0.5 - cy)), 0, 1);

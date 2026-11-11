@@ -1,0 +1,9 @@
+{
+    "Scenario":  "AfterClose",
+    "Gate":  "Bar",
+    "Page":  "CPU",
+    "CapBytes":  90000000,
+    "LifetimeCapBytes":  100000000,
+    "CloseSeconds":  15,
+    "CycleSeconds":  null
+}

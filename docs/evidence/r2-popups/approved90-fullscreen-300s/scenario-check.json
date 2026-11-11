@@ -1,0 +1,10 @@
+{
+    "Scenario":  "Owned fullscreen fixture on primary monitor",
+    "LifecycleVerified":  false,
+    "ForegroundChecks":  692,
+    "ForegroundFailures":  304,
+    "NumericalExit":  0,
+    "PhysicalGameVerified":  false,
+    "FixtureCost":  "External test harness, not a Tidlet helper; observer costs separate",
+    "OverallAccepted":  false
+}

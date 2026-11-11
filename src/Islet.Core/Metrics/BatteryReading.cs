@@ -1,4 +1,4 @@
-﻿using Islet.Core.Capabilities;
+using Islet.Core.Capabilities;
 
 namespace Islet.Core.Metrics;
 
@@ -13,7 +13,10 @@ public sealed record BatteryReading(
     TimeSpan? EstimatedRemaining,
     double? ChargeRateMilliwatts,
     double? HealthPercent,
-    string Explanation)
+    string Explanation,
+    int? CycleCount = null,
+    uint? DesignedCapacityMWh = null,
+    uint? FullChargedCapacityMWh = null)
 {
     public static BatteryReading Missing(BatteryReadingState state, string reason) =>
         new(state, null, BatteryChargingStatus.Unknown, null, null, null, reason);
@@ -27,10 +30,14 @@ public sealed record BatteryReading(
         byte percentByte,
         int lifeTimeSeconds,
         double? rateMilliwatts,
-        double? healthPercent)
+        double? healthPercent,
+        int? cycleCount = null,
+        uint? designedCapacityMWh = null,
+        uint? fullChargedCapacityMWh = null)
     {
         // 128 = No system battery
-        if ((flag & 128) != 0 || percentByte == 255 && flag == 255)
+        if(flag==255)return Missing(BatteryReadingState.Unavailable,"Windows battery status is unknown.");
+        if ((flag & 128) != 0)
             return NoBattery();
 
         if (percentByte > 100 && percentByte != 255)
@@ -54,7 +61,7 @@ public sealed record BatteryReading(
         if (remaining.HasValue && status == BatteryChargingStatus.Discharging)
             text += $" — ~{remaining.Value.Hours}h {remaining.Value.Minutes}m remaining";
 
-        return new(BatteryReadingState.Available, percent, status, remaining, rateMilliwatts, healthPercent, text);
+        return new(BatteryReadingState.Available, percent, status, remaining, rateMilliwatts, healthPercent, text, cycleCount, designedCapacityMWh, fullChargedCapacityMWh);
     }
 }
 

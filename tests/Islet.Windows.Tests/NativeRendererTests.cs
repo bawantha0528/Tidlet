@@ -31,4 +31,18 @@ public sealed class NativeRendererTests
         Assert.AreEqual(red, DibRenderer.Over(red, 0xFFFFFF, 0));
         Assert.AreEqual(0, DibRenderer.Premultiply(0xFFFFFF, 0));
     }
+
+    [TestMethod]
+    public void ApprovedLucideIconsAreAvailableAndContainGeometry()
+    {
+        Assert.AreEqual(33, LucideGeometry.Paths.Count);
+        foreach (var pair in LucideGeometry.Paths)
+        {
+            Assert.IsTrue(pair.Value.Length > 0, $"Icon {pair.Key} has no paths");
+            foreach (var points in pair.Value)
+            {
+                Assert.IsTrue(points.Length >= 4, $"Path in icon {pair.Key} has fewer than 4 coordinates");
+            }
+        }
+    }
 }

@@ -1,0 +1,8 @@
+{
+    "Lifecycle":  "Pass",
+    "NumericalExit":  2,
+    "LegacyUiInBuild":  false,
+    "Samples":  115,
+    "Scale":  1.25,
+    "Capture":  "render-buffer.png"
+}

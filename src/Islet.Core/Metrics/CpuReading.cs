@@ -4,7 +4,7 @@ namespace Islet.Core.Metrics;
 
 public enum CpuReadingState { Available, WarmingUp, Unavailable, Invalid }
 
-public sealed record CpuReading(CpuReadingState State, double? Percent, string Explanation)
+public sealed record CpuReading(CpuReadingState State, double? Percent, string Explanation,double? SystemPercent=null,double? UserPercent=null,double? IdlePercent=null)
 {
     public static CpuReading Missing(CpuReadingState state, string reason) => new(state, null, reason);
 }
@@ -43,6 +43,7 @@ public sealed class CpuDelta
         if (total <= 0 || idle > kernel)
             return CpuReading.Missing(CpuReadingState.Invalid, "CPU times have not advanced consistently.");
         var percent = Math.Clamp(100.0 * (total - idle) / total, 0, 100);
-        return new(CpuReadingState.Available, percent, "CPU usage across this PC.");
+        return new(CpuReadingState.Available, percent, "CPU usage across this PC.",100.0*(kernel-idle)/total,100.0*user/total,100.0*idle/total);
     }
 }
+

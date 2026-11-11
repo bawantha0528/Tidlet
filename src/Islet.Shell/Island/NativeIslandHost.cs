@@ -25,7 +25,7 @@ public sealed partial class NativeIslandHost : IDisposable
     private bool _closed, _ready, _suppressed, _lastPrimary, _lastEscape;
     private DesktopSuppression _environment = new(false, false, null);
     private PixelRect _renderBounds;
-    private int _exerciseStep;
+    private int _exerciseStep, _exerciseMediaWaits;
     private readonly HashSet<uint> _observedDpi = new();
     public IReadOnlyCollection<uint> ObservedDpi => _observedDpi;
     public event Action<string>? CaptureFrame;
@@ -44,6 +44,7 @@ public sealed partial class NativeIslandHost : IDisposable
     public bool Suppressed => _suppressed;
     public string? SuppressionReason => UserHidden ? "Hidden by you." : _environment.Reason;
     public int PointerChecks { get; private set; }
+    public int HeldDiagnosticInputs { get; private set; }
     public int AnimationFrames { get; private set; }
     public int SuppressionTransitions { get; private set; }
     public bool ExerciseCompleted { get; private set; }
@@ -61,15 +62,16 @@ public sealed partial class NativeIslandHost : IDisposable
         INetworkProvider? network,
         IBatteryProvider? battery,
         Func<double>? monotonicMilliseconds = null,
-        IDiskProvider? disk = null, IGpuProvider? gpu = null, IProcessProvider? processes = null, SettingsDocument? settings = null, Islet.Core.Activities.IMediaProvider? media = null)
+        IDiskProvider? disk = null, IGpuProvider? gpu = null, IProcessProvider? processes = null, SettingsDocument? settings = null, Islet.Core.Activities.IMediaProvider? media = null, ISettingsStore? settingsStore = null, string deviceDescription = "Windows PC", ISensorProvider? sensors = null)
     {
-        _media = media;
+        _media = media; _preferences = settings ?? new(); _settingsStore = settingsStore; _barAutoReveal = _preferences.BarAutoReveal; _deviceDescription = deviceDescription;
+        _applicationDesktop = desktop as IMonitorWindowDesktop;
         _desktop = desktop;
         _cpu = cpu;
         _ram = ram;
         _network = network;
         _battery = battery;
-        _disk = disk; _gpu = gpu; _processes = processes;
+        _disk = disk; _gpu = gpu; _processes = processes; _sensors = sensors;
         _theme = settings?.Theme == ThemeMode.Light ? ThemeMode.Light : ThemeMode.Dark;
         _accent = settings?.AccentColorHex ?? "#3B82F6";
         var clock = Stopwatch.StartNew();
@@ -81,6 +83,8 @@ public sealed partial class NativeIslandHost : IDisposable
     public void Start(NativeIslandOptions options)
     {
         _options = options;
+        _barAutoReveal |= options.AutoRevealBar; _modulePanel = options.Surface == Islet.Core.Presentation.MonitorSurface.Module;
+        if (_applicationDesktop is not null) _applicationDesktop.ApplicationInput += OnApplicationInput;
         Style = options.Style; State = options.State; UserHidden = options.Hidden;
         _page = options.Page; if (options.Theme.HasValue) _theme = options.Theme.Value;
         _transition = new(DesiredSize());
@@ -108,6 +112,7 @@ public sealed partial class NativeIslandHost : IDisposable
         else
         {
             Reconcile(initial: true);
+            if (options.Surface == Islet.Core.Presentation.MonitorSurface.Application) OpenApplication(options.Page, !options.HoldDiagnosticInput);
             if (options.Exercise) _desktop.SetTimer(IslandTimer.Exercise, 600);
             if (options.ExerciseDashboard) _desktop.SetTimer(IslandTimer.DashboardExercise, 1100);
         }
@@ -133,6 +138,8 @@ public sealed partial class NativeIslandHost : IDisposable
             }
             return;
         }
+        if (_options.HoldDiagnosticInput && input.Kind is IslandInputKind.Toggle or IslandInputKind.LeftClick)
+        { HeldDiagnosticInputs++; return; }
         switch (input.Kind)
         {
             case IslandInputKind.Toggle:
@@ -140,13 +147,17 @@ public sealed partial class NativeIslandHost : IDisposable
                 else SetState(State == IslandState.Expanded ? IslandState.Collapsed : IslandState.Expanded);
                 break;
             case IslandInputKind.LeftClick:
-                if (State == IslandState.Expanded && !_transition.Active)
-                    ExecuteCommand(Islet.Core.Presentation.DashboardLayout.HitTest(input.X / _displayScale, input.Y / _displayScale,
-                        _renderBounds.Width / _displayScale, _renderBounds.Height / _displayScale, CreateDashboard()));
+                if (State == IslandState.Expanded || State == IslandState.Hover)
+                {
+                    var hit=Islet.Core.Presentation.DashboardLayout.HitTest(input.X/_displayScale,input.Y/_displayScale,
+                        _renderBounds.Width/_displayScale,_renderBounds.Height/_displayScale,CreateDashboard());
+                    if(hit!=0)ExecuteCommand(hit);else if(State==IslandState.Hover)SetState(IslandState.Expanded);
+                }
                 else SetState(IslandState.Expanded);
                 break;
             case IslandInputKind.ContextMenu: OpenMenu(); break;
             case IslandInputKind.Command: ExecuteCommand(input.Value); break;
+            case IslandInputKind.Scroll: ScrollModule(input.Value > 0 ? -72 : 72); break;
             case IslandInputKind.DisplayChanged:
             case IslandInputKind.DpiChanged:
                 Reconcile();
@@ -179,9 +190,10 @@ public sealed partial class NativeIslandHost : IDisposable
             _label = label; _explanation = reading.Explanation;
         }
 
-        if (State == IslandState.Expanded) { SampleDashboard(); PollMedia(); }
+        if (State == IslandState.Expanded || _applicationActive || State == IslandState.Hover || Style == IslandStyle.Bar) { SampleDashboard(); PollMedia(); }
         else _secondaryLabel = null;
         if (changed || State != IslandState.Collapsed) Draw();
+        RefreshApplication();
         Observe();
     }
 
@@ -203,7 +215,7 @@ public sealed partial class NativeIslandHost : IDisposable
         SuppressionTransitions++;
         if (suppress)
         {
-            InvalidateMedia();
+            InvalidateMedia(); _edgeBar.Reset(); _applicationDesktop?.CloseApplication();
             _transition.Finish();
             _desktop.SetTimer(IslandTimer.Metric, null);
             _desktop.SetTimer(IslandTimer.Pointer, null);
@@ -227,7 +239,7 @@ public sealed partial class NativeIslandHost : IDisposable
 
     private void ConfigureVisibleTimers()
     {
-        _desktop.SetTimer(IslandTimer.Metric, State == IslandState.Expanded ? 1000 : State == IslandState.Hover ? 2000 : 4000);
+        _desktop.SetTimer(IslandTimer.Metric, EdgeBarArmed && !_edgeBar.Revealed && !_applicationActive ? null : State == IslandState.Expanded || _applicationActive ? 1000 : State == IslandState.Hover ? 2000 : 4000);
         _desktop.SetTimer(IslandTimer.Pointer, 100);
     }
 
@@ -246,7 +258,19 @@ public sealed partial class NativeIslandHost : IDisposable
         var primaryPressed = pointer.PrimaryDown && !_lastPrimary;
         var escapePressed = pointer.EscapeDown && !_lastEscape;
         _lastPrimary = pointer.PrimaryDown; _lastEscape = pointer.EscapeDown;
+        if (_options.HoldDiagnosticInput) { if(primaryPressed || escapePressed) HeldDiagnosticInputs++; return; }
         if ((_options.Exercise && !ExerciseCompleted) || _options.ExerciseDashboard) return; // deterministic diagnostic driver; real pointer reads still occur.
+        if (EdgeBarArmed)
+        {
+            var display = _desktop.ReadDisplay();
+            var atEdge = pointer.X >= display.Bounds.X && pointer.X < display.Bounds.X + display.Bounds.Width
+                && pointer.Y >= display.Bounds.Y && pointer.Y < display.Bounds.Y + Math.Max(2, display.Dpi / 48);
+            var revealed = _edgeBar.Update(_now(),true,_suppressed,atEdge,inside && State != IslandState.Collapsed,State == IslandState.Expanded);
+            if (revealed && State == IslandState.Collapsed) SetState(IslandState.Hover);
+            else if (!revealed && State == IslandState.Hover) SetState(IslandState.Collapsed);
+            if (State == IslandState.Expanded && (escapePressed || (!inside && primaryPressed))) SetState(IslandState.Collapsed);
+            return;
+        }
         if (State == IslandState.Collapsed && inside) SetState(IslandState.Hover);
         else if (State == IslandState.Hover && !inside) SetState(IslandState.Collapsed);
         else if (State == IslandState.Expanded && (escapePressed || (!inside && primaryPressed))) SetState(IslandState.Collapsed);
@@ -255,9 +279,10 @@ public sealed partial class NativeIslandHost : IDisposable
     public void SetState(IslandState state)
     {
         if (_closed || State == state) return;
-        if (State != IslandState.Expanded && state == IslandState.Expanded) ResetDashboard();
+        if (State != IslandState.Expanded && state == IslandState.Expanded && !_applicationActive) ResetDashboard();
         if (state != IslandState.Expanded) InvalidateMedia();
         State = state;
+        if (state == IslandState.Collapsed && EdgeBarArmed) _edgeBar.Reset();
         BeginTransition();
     }
 
@@ -266,7 +291,7 @@ public sealed partial class NativeIslandHost : IDisposable
         if (_closed || Style == style) return;
         InvalidateMedia();
         if (style == IslandStyle.Notch) { _fullDashboard = false; _page = Islet.Core.Presentation.MonitorPage.Overview; }
-        Style = style;
+        Style = style; _edgeBar.Reset(); _modulePanel = false;
         BeginTransition();
     }
 
@@ -322,7 +347,7 @@ public sealed partial class NativeIslandHost : IDisposable
     {
         if (_interactive is null) return;
         var items = new List<IslandMenuItem> {
-            new(100, "Open monitor"), new(101, "Collapse"), new(102, UserHidden ? "Show island" : "Hide island"), new(0, "") };
+            new(480, "Open application"), new(101, "Collapse"), new(102, UserHidden ? "Show island" : "Hide island"), new(0, "") };
         foreach (var style in Enum.GetValues<IslandStyle>()) items.Add(new(200 + (int)style, style.ToString(), style == Style));
         items.Add(new(0, ""));
         var displays = _interactive.ReadDisplays();
@@ -334,6 +359,7 @@ public sealed partial class NativeIslandHost : IDisposable
         for (var page = 0; page < Islet.Core.Presentation.DashboardLayout.PageNames.Length; page++)
             items.Add(new(400 + page, Islet.Core.Presentation.DashboardLayout.PageNames[page], (int)_page == page));
         items.Add(new(450, "Switch light / dark theme"));
+        items.Add(new(460, "Reveal bar at top edge", _barAutoReveal));
         items.Add(new(0, "")); items.Add(new(999, "Exit Tidlet Monitor"));
         var command = _interactive.OpenMenu(items);
         ExecuteCommand(command);
@@ -341,6 +367,8 @@ public sealed partial class NativeIslandHost : IDisposable
 
     private void ExecuteCommand(int command)
     {
+        if (_options.HoldDiagnosticInput && command != 999) { HeldDiagnosticInputs++; return; }
+        if (ExecuteWorkspaceCommand(command)) return;
         if (ExecuteControlCenterCommand(command) || ExecuteDashboardCommand(command)) return;
         switch (command)
         {
@@ -372,6 +400,14 @@ public sealed partial class NativeIslandHost : IDisposable
             CaptureFrame?.Invoke(key);
             Observe();
         }
+        // The post-expansion trial must actually finish a native media read before closing the card.
+        // A single 600 ms animation step can cancel activation before it completes.
+        if (_exerciseStep == 6 && _media is not null && CompactNotch
+            && LastCompletedMediaStatus.State == Islet.Core.Activities.MediaState.Waiting)
+        {
+            if (++_exerciseMediaWaits > 12) throw new InvalidOperationException("Diagnostic media initialization did not complete.");
+            return;
+        }
         var step = _exerciseStep++;
         if (step < 9)
         {
@@ -402,7 +438,8 @@ public sealed partial class NativeIslandHost : IDisposable
     {
         if (_closed) return;
         Observe();
-        InvalidateMedia();
+        if (_applicationActive) CaptureFrame?.Invoke("Application-"+_applicationPage);
+        InvalidateMedia(); _applicationDesktop?.CloseApplication();
         _closed = true;
         _interactive?.ObserveForeground(false);
         foreach (var timer in Enum.GetValues<IslandTimer>()) _desktop.SetTimer(timer, null);
@@ -414,6 +451,7 @@ public sealed partial class NativeIslandHost : IDisposable
     {
         InvalidateMedia();
         _desktop.Input -= OnInput;
+        if (_applicationDesktop is not null) _applicationDesktop.ApplicationInput -= OnApplicationInput;
         _interactive?.ObserveForeground(false);
         foreach (var timer in Enum.GetValues<IslandTimer>()) _desktop.SetTimer(timer, null);
     }

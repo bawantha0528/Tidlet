@@ -93,20 +93,22 @@ internal static class Program
         using var disk = new PdhDiskProvider(new NativeDiskRateQuery());
         var gpu = new SystemGpuProvider(new NativeSystemGpuSource());
         var processes = new SystemProcessProvider();
-        var preferences = reportPath is null && !options.Minimal ? new Islet.Core.Settings.FileSettingsStore().Load() : null;
-        var journalLock = new object();
-        using var media = new Islet.Windows.Media.WorkerMediaProvider(
-            () => new Islet.Windows.Media.MediaWorkerProcessSession(Environment.ProcessPath!),
-            reportPath is null ? null : record => { lock(journalLock) File.AppendAllText(Path.ChangeExtension(reportPath,".workers.jsonl"),JsonSerializer.Serialize(record,Islet.Windows.Media.MediaWorkerJson.Default.MediaWorkerLifetime) + "\n"); });
-        using var host = new NativeIslandHost(desktop, cpu, ram, net, battery, disk: disk, gpu: gpu, processes: processes, settings: preferences, media: media);
+        var sensors = new SystemSensorProvider(options.Exercise || options.ExerciseDashboard ? new SimulatedSystemSensorSource() : new NativeSystemSensorSource());
+        var settingsStore = reportPath is null && !options.Minimal ? new Islet.Core.Settings.FileSettingsStore() : null;
+        var preferences = settingsStore?.Load();
+        if (preferences is not null && !options.StyleSpecified) options = options with { Style = preferences.Style };
+        if (reportPath is not null) File.WriteAllText(Path.ChangeExtension(reportPath,".workers.jsonl"),string.Empty);
+        using var media = new Islet.Windows.Media.NativeMediaProvider();
+        using var host = new NativeIslandHost(desktop, cpu, ram, net, battery, disk: disk, gpu: gpu, processes: processes, settings: preferences, media: media, settingsStore: settingsStore,
+            deviceDescription: "Windows build " + Environment.OSVersion.Version.Build + " · " + Environment.ProcessorCount + " logical processors", sensors: sensors);
         var frames = new HashSet<string>(StringComparer.Ordinal);
         try
         {
-            if ((options.Exercise || options.ExerciseDashboard) && reportPath is not null)
+            if ((options.Exercise || options.ExerciseDashboard || options.Surface == Islet.Core.Presentation.MonitorSurface.Application) && reportPath is not null)
             {
                 var directory = Path.Combine(Path.GetDirectoryName(reportPath)!, "frames");
                 Directory.CreateDirectory(directory);
-                host.CaptureFrame += key => { desktop.SaveBitmap(Path.Combine(directory, key + ".bmp")); frames.Add(key); };
+                                host.CaptureFrame += key => { if (frames.Add(key)) { var file=Path.Combine(directory,key+".bmp"); if(key.StartsWith("Application-",StringComparison.Ordinal))desktop.SaveApplicationBitmap(file);else desktop.SaveBitmap(file); } };
             }
             host.Start(options);
             exitCode = desktop.Run();
@@ -115,6 +117,7 @@ internal static class Program
             failure = desktop.Failure ?? media.JournalFailure;
             if (reportPath is not null && desktop.RenderCount > 0)
                 desktop.SaveBitmap(Path.ChangeExtension(reportPath, ".bmp"));
+            if (reportPath is not null && desktop.ApplicationVisible) desktop.SaveApplicationBitmap(Path.ChangeExtension(reportPath, ".application.bmp"));
         }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or ExternalException
             or DllNotFoundException or EntryPointNotFoundException or IOException or UnauthorizedAccessException or TimeoutException)
@@ -137,9 +140,9 @@ internal static class Program
                     host.State, host.Style, host.UserHidden, host.Suppressed, host.SuppressionReason,
                     LoadedMediaAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)
                         .Where(n => n is "Microsoft.Windows.SDK.NET" or "WinRT.Runtime").ToArray(),
-                    media.WorkerStarts, Workers = media.Workers,
-                    host.MediaCapability, host.MediaReads, host.MediaCommands, host.MediaStatus, host.LastCompletedMediaStatus, host.FocusStatus, host.CompactNotch,
-                    host.DashboardSamples, host.SelectedPage, disk.Requests, host.PointerChecks, host.AnimationFrames, host.SuppressionTransitions, host.HistoryCount,
+                    MediaImplementation = "Native COM MTA", media.ThreadStarts, media.ActiveThreads, media.WorkerStarts, Workers = media.Workers,
+                    host.MediaCapability, host.MediaReads, host.MediaCommands, host.MediaStatus, host.LastCompletedMediaStatus, host.FocusStatus, host.CompactNotch, host.ApplicationActive, host.ModulePanel, host.BarAutoReveal, host.PreferenceWarning, desktop.ApplicationRenders, desktop.ApplicationFailure,
+                    host.DashboardSamples, host.SelectedPage, disk.Requests, host.PointerChecks, host.HeldDiagnosticInputs, host.AnimationFrames, host.SuppressionTransitions, host.HistoryCount,
                     host.ExerciseCompleted, host.DashboardExerciseCompleted, host.StatesObserved, host.ObservedDpi, Frames = frames.Order().ToArray(),
                     host.Recovery, DisplayCount = desktop.ReadDisplays().Count, desktop.NotificationQueries, desktop.NotificationQueryError, desktop.ForegroundSignals,
                     desktop.RenderCount, TimersRemainingAfterExit = desktop.ActiveTimerCount,

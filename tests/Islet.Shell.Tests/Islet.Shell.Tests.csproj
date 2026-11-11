@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF></PropertyGroup>
   <ItemGroup><ProjectReference Include="../../src/Islet.Shell/Islet.Shell.csproj" /></ItemGroup>
+  <ItemGroup><Compile Remove="ScaffoldWindowTests.cs;NativeIslandHostTests.cs;M2HostTests.cs;IslandProbeWindowTests.cs;InteractiveIslandTests.cs;DashboardHostTests.cs" /></ItemGroup>
 </Project>

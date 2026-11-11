@@ -1,0 +1,8 @@
+﻿{
+    "Scenario":  "Collapsed",
+    "Result":  "Incomplete",
+    "Error":  "Target exited during warmup.",
+    "SampleCount":  0,
+    "IsAcceptanceMeasurement":  false,
+    "ObserverCpuSeconds":  0.234375
+}

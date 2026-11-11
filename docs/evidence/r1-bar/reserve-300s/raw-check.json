@@ -1,0 +1,8 @@
+{
+  "RawCsvRecomputed": true,
+  "Result": "Pass",
+  "PeakMB": 63.42656,
+  "CpuPercent": 0.04736728312795993,
+  "WorkingSetLimitBytes": 75000000,
+  "BinaryHashesMatched": 7
+}

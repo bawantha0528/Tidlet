@@ -1,0 +1,11 @@
+{
+  "RawCsvRecomputed": true,
+  "Result": "Fail",
+  "PeakMB": 60.882944,
+  "CpuPercent": 0.04036421708188227,
+  "BinaryHashesMatched": 7,
+  "MeasuredOutput": "src/IsletMonitor/bin/win-x86-probe",
+  "ActualArchitecture": "X86",
+  "ActualPointerSize": 4,
+  "NormalReleaseBinaryEquivalenceClaimed": false
+}

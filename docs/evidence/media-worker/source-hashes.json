@@ -1,0 +1,46 @@
+[
+  {
+    "File": "src/Islet.Core/Activities/MediaContracts.cs",
+    "SHA256": "55126716F961C0BDE3C63B119BE76FD355BED66A3A7BC0EF8EAFAB9C30CFB7D1"
+  },
+  {
+    "File": "src/Islet.Core/Island/InteractiveContracts.cs",
+    "SHA256": "EA845A8C92ACB7CE2EFC9A11268307478D1D175DCA5EE23E1D2581AFB078E972"
+  },
+  {
+    "File": "src/Islet.Shell/Island/NativeIslandHost.cs",
+    "SHA256": "3043C334E271B4C33F05A97CE083EC08ABE37D90B9AF72D4C31042DF46FFC388"
+  },
+  {
+    "File": "src/Islet.Shell/Island/NativeIslandHost.ControlCenter.cs",
+    "SHA256": "1EAAEDECE28AD971F2AB7999441AE2129D2A138CC479B3EACC6390DFA8947476"
+  },
+  {
+    "File": "src/Islet.Shell/Island/IslandLaunchArguments.cs",
+    "SHA256": "BEA213F55783CE388FDF398DF26458251318567416899639197236753AC3A19A"
+  },
+  {
+    "File": "src/Islet.Windows/Media/MediaWorkerProtocol.cs",
+    "SHA256": "D76E4FD970814F404428769BA74DC9A25DC47A810C7CB398D95434FB2852BAAE"
+  },
+  {
+    "File": "src/Islet.Windows/Media/MediaWorkerProcessSession.cs",
+    "SHA256": "83EBE02263DE9AA944F3F58E32D788DB8CACCDAF12EF2521736FB6EEAFC0EE25"
+  },
+  {
+    "File": "src/Islet.Windows/Media/MediaWorkerServer.cs",
+    "SHA256": "6F362BAEAC4E927C3DA9DD27CE3EA99C00E34692533D113332D7874597979F47"
+  },
+  {
+    "File": "src/Islet.Windows/Media/WorkerMediaProvider.cs",
+    "SHA256": "B42805EA4C624A5ABA6C88A1CBC4A30799F4DF63C2F5151BA4E9ABE8D9FC819A"
+  },
+  {
+    "File": "src/Islet.Windows/Media/MediaWorkerJson.cs",
+    "SHA256": "9ABD4AAF75877D9C7C35126874AA61363DB7FA768635A2464A791BDA56C3E98D"
+  },
+  {
+    "File": "src/IsletMonitor/Program.cs",
+    "SHA256": "E70FF39C34D0D4C5AAA6525E23E841AC9C5BFFE2886821E9A09A28116DE8B897"
+  }
+]

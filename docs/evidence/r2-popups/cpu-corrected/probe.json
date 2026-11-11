@@ -1,0 +1,220 @@
+{
+  "Mode": "R1 x86 WPF bar",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 4,
+  "EverHidden": false,
+  "VisibilityChecks": 7,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 4,
+  "NetworkReads": 4,
+  "LastSnapshot": {
+    "Cpu": 10.16839378238342,
+    "Ram": 88.65988507152464,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "6.9 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 2010,
+    "Upload": 1723
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": false
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "ChartWork": 9,
+  "ProcessWork": 10,
+  "PopupOpens": 1,
+  "PopupCloses": 1,
+  "PresentationAllocatedBytes": 2569492,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": {
+    "Cpu": 9.807692307692308,
+    "System": 5.1923076923076925,
+    "User": 4.615384615384615,
+    "Idle": 90.1923076923077,
+    "FrequencyGhz": 3.302,
+    "MaxGhz": 3.302,
+    "Uptime": "12:20:48.7340000",
+    "Memory": {
+      "Total": 8375296000,
+      "Available": 938479616,
+      "Committed": 16525885440,
+      "CommitLimit": 29193908224,
+      "Cache": 817004544,
+      "PageFileUsed": 1212833792,
+      "PageFileTotal": 20818612224,
+      "Valid": true,
+      "UsedPercent": 88.79466927497249,
+      "Pressure": 88.79466927497249,
+      "PressureName": "Warning"
+    },
+    "Cores": [
+      3.895136325059134,
+      5.445214771429152,
+      10.095450110539195,
+      10.095450110539195,
+      14.745685449649237,
+      6.99529321779917,
+      8.545371664169178,
+      13.19560700327922
+    ],
+    "Classes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Processes": [
+      {
+        "Id": 21032,
+        "Name": "IsletMonitor",
+        "CpuPercent": 0.38720754492920934,
+        "WorkingSet": 81801216
+      },
+      {
+        "Id": 20284,
+        "Name": "agy",
+        "CpuPercent": 0.38720754492920934,
+        "WorkingSet": 122699776
+      },
+      {
+        "Id": 20004,
+        "Name": "esrv",
+        "CpuPercent": 0.19360377246460467,
+        "WorkingSet": 11624448
+      },
+      {
+        "Id": 5148,
+        "Name": "Antigravity IDE",
+        "CpuPercent": 0,
+        "WorkingSet": 85393408
+      },
+      {
+        "Id": 824,
+        "Name": "AppActions",
+        "CpuPercent": 0,
+        "WorkingSet": 5472256
+      },
+      {
+        "Id": 10648,
+        "Name": "AppMonitorPlugIn",
+        "CpuPercent": 0,
+        "WorkingSet": 3530752
+      }
+    ],
+    "Explanation": "Protected or exited processes are skipped. Windows reported metrics."
+  },
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Windows",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Threading.Thread",
+    "System.ComponentModel.Primitives",
+    "System.Memory",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Private.Uri",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "System.Text.Encoding.Extensions",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "UIAutomationProvider",
+    "System.Runtime.Intrinsics",
+    "System.Net.Requests"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

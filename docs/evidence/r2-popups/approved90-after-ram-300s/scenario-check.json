@@ -1,0 +1,14 @@
+{
+    "Lifecycle":  "Pass",
+    "NumericalExit":  0,
+    "Scenario":  "AfterRam",
+    "PopupFrames":  13,
+    "PopupReads":  14,
+    "WorkersDrained":  true,
+    "ZeroHeavyWorkWhileClosed":  true,
+    "NoFullscreenInterruption":  true,
+    "LifetimePeakWorkingSetBytes":  82112512,
+    "LifetimeWithinPopupLimit":  true,
+    "BinaryHashesUnchanged":  true,
+    "OverallAccepted":  true
+}

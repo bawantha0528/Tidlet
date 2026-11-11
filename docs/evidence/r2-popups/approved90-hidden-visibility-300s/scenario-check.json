@@ -1,0 +1,13 @@
+{
+    "Scenario":  "Hidden-window CPU with owned fullscreen stimulus",
+    "LifecycleVerified":  true,
+    "HiddenWindowsVerified":  true,
+    "ForegroundChecks":  693,
+    "ForegroundFailures":  0,
+    "StableFixtureForeground":  true,
+    "NumericalExit":  0,
+    "PhysicalGameVerified":  false,
+    "InitialOrOutsideObservationMetricReads":  0,
+    "FixtureCost":  "External test harness, not a Tidlet helper; observer costs separate",
+    "OverallAccepted":  true
+}

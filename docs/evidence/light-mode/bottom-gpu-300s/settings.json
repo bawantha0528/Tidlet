@@ -1,0 +1,11 @@
+{
+    "Version":  1,
+    "Items":  [
+                  "Cpu",
+                  "Gpu",
+                  "Ram",
+                  "Network",
+                  "Battery"
+              ],
+    "Theme":  "Light"
+}

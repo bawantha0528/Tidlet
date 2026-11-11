@@ -1,0 +1,402 @@
+[
+  {
+    "Module": "IsletMonitor.exe",
+    "ImageSpanBytes": 172032
+  },
+  {
+    "Module": "ntdll.dll",
+    "ImageSpanBytes": 2539520
+  },
+  {
+    "Module": "KERNEL32.DLL",
+    "ImageSpanBytes": 831488
+  },
+  {
+    "Module": "KERNELBASE.dll",
+    "ImageSpanBytes": 4231168
+  },
+  {
+    "Module": "USER32.dll",
+    "ImageSpanBytes": 1957888
+  },
+  {
+    "Module": "win32u.dll",
+    "ImageSpanBytes": 159744
+  },
+  {
+    "Module": "GDI32.dll",
+    "ImageSpanBytes": 176128
+  },
+  {
+    "Module": "gdi32full.dll",
+    "ImageSpanBytes": 1216512
+  },
+  {
+    "Module": "msvcp_win.dll",
+    "ImageSpanBytes": 667648
+  },
+  {
+    "Module": "ucrtbase.dll",
+    "ImageSpanBytes": 1359872
+  },
+  {
+    "Module": "SHELL32.dll",
+    "ImageSpanBytes": 8060928
+  },
+  {
+    "Module": "ADVAPI32.dll",
+    "ImageSpanBytes": 765952
+  },
+  {
+    "Module": "msvcrt.dll",
+    "ImageSpanBytes": 692224
+  },
+  {
+    "Module": "sechost.dll",
+    "ImageSpanBytes": 688128
+  },
+  {
+    "Module": "RPCRT4.dll",
+    "ImageSpanBytes": 1146880
+  },
+  {
+    "Module": "IMM32.DLL",
+    "ImageSpanBytes": 200704
+  },
+  {
+    "Module": "hostfxr.dll",
+    "ImageSpanBytes": 389120
+  },
+  {
+    "Module": "hostpolicy.dll",
+    "ImageSpanBytes": 417792
+  },
+  {
+    "Module": "coreclr.dll",
+    "ImageSpanBytes": 5095424
+  },
+  {
+    "Module": "ole32.dll",
+    "ImageSpanBytes": 1675264
+  },
+  {
+    "Module": "combase.dll",
+    "ImageSpanBytes": 3821568
+  },
+  {
+    "Module": "OLEAUT32.dll",
+    "ImageSpanBytes": 888832
+  },
+  {
+    "Module": "bcryptPrimitives.dll",
+    "ImageSpanBytes": 704512
+  },
+  {
+    "Module": "System.Private.CoreLib.dll",
+    "ImageSpanBytes": 13164544
+  },
+  {
+    "Module": "clrjit.dll",
+    "ImageSpanBytes": 1794048
+  },
+  {
+    "Module": "kernel.appcore.dll",
+    "ImageSpanBytes": 110592
+  },
+  {
+    "Module": "IsletMonitor.dll",
+    "ImageSpanBytes": 40960
+  },
+  {
+    "Module": "System.Runtime.dll",
+    "ImageSpanBytes": 57344
+  },
+  {
+    "Module": "uxtheme.dll",
+    "ImageSpanBytes": 696320
+  },
+  {
+    "Module": "icu.dll",
+    "ImageSpanBytes": 2744320
+  },
+  {
+    "Module": "Islet.Shell.dll",
+    "ImageSpanBytes": 40960
+  },
+  {
+    "Module": "PresentationFramework.dll",
+    "ImageSpanBytes": 16117760
+  },
+  {
+    "Module": "PresentationCore.dll",
+    "ImageSpanBytes": 8531968
+  },
+  {
+    "Module": "WindowsBase.dll",
+    "ImageSpanBytes": 2244608
+  },
+  {
+    "Module": "System.ComponentModel.Primitives.dll",
+    "ImageSpanBytes": 69632
+  },
+  {
+    "Module": "System.Xaml.dll",
+    "ImageSpanBytes": 1413120
+  },
+  {
+    "Module": "System.Collections.dll",
+    "ImageSpanBytes": 249856
+  },
+  {
+    "Module": "Islet.Windows.dll",
+    "ImageSpanBytes": 57344
+  },
+  {
+    "Module": "Islet.Core.dll",
+    "ImageSpanBytes": 163840
+  },
+  {
+    "Module": "DirectWriteForwarder.dll",
+    "ImageSpanBytes": 491520
+  },
+  {
+    "Module": "System.Runtime.Extensions.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Module": "System.Runtime.InteropServices.dll",
+    "ImageSpanBytes": 86016
+  },
+  {
+    "Module": "System.Diagnostics.Debug.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Module": "System.Runtime.CompilerServices.VisualC.dll",
+    "ImageSpanBytes": 20480
+  },
+  {
+    "Module": "System.Threading.dll",
+    "ImageSpanBytes": 73728
+  },
+  {
+    "Module": "Microsoft.Win32.Primitives.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Module": "dwrite.dll",
+    "ImageSpanBytes": 2535424
+  },
+  {
+    "Module": "System.Collections.NonGeneric.dll",
+    "ImageSpanBytes": 94208
+  },
+  {
+    "Module": "System.Linq.dll",
+    "ImageSpanBytes": 532480
+  },
+  {
+    "Module": "System.Text.Json.dll",
+    "ImageSpanBytes": 1490944
+  },
+  {
+    "Module": "wpfgfx_cor3.dll",
+    "ImageSpanBytes": 1974272
+  },
+  {
+    "Module": "D3DCompiler_47_cor3.dll",
+    "ImageSpanBytes": 4947968
+  },
+  {
+    "Module": "System.IO.Packaging.dll",
+    "ImageSpanBytes": 282624
+  },
+  {
+    "Module": "System.Private.Uri.dll",
+    "ImageSpanBytes": 249856
+  },
+  {
+    "Module": "BCrypt.dll",
+    "ImageSpanBytes": 172032
+  },
+  {
+    "Module": "Microsoft.Win32.Registry.dll",
+    "ImageSpanBytes": 110592
+  },
+  {
+    "Module": "System.Collections.Specialized.dll",
+    "ImageSpanBytes": 94208
+  },
+  {
+    "Module": "System.Memory.dll",
+    "ImageSpanBytes": 147456
+  },
+  {
+    "Module": "System.Threading.Thread.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Module": "PresentationNative_cor3.dll",
+    "ImageSpanBytes": 1241088
+  },
+  {
+    "Module": "System.Configuration.ConfigurationManager.dll",
+    "ImageSpanBytes": 1064960
+  },
+  {
+    "Module": "System.Xml.ReaderWriter.dll",
+    "ImageSpanBytes": 40960
+  },
+  {
+    "Module": "System.Private.Xml.dll",
+    "ImageSpanBytes": 7987200
+  },
+  {
+    "Module": "System.Net.WebClient.dll",
+    "ImageSpanBytes": 159744
+  },
+  {
+    "Module": "System.Text.Encoding.Extensions.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Module": "System.ComponentModel.dll",
+    "ImageSpanBytes": 20480
+  },
+  {
+    "Module": "System.ComponentModel.TypeConverter.dll",
+    "ImageSpanBytes": 737280
+  },
+  {
+    "Module": "System.ObjectModel.dll",
+    "ImageSpanBytes": 69632
+  },
+  {
+    "Module": "System.Diagnostics.TraceSource.dll",
+    "ImageSpanBytes": 135168
+  },
+  {
+    "Module": "UIAutomationTypes.dll",
+    "ImageSpanBytes": 303104
+  },
+  {
+    "Module": "MSCTF.dll",
+    "ImageSpanBytes": 1421312
+  },
+  {
+    "Module": "DWMAPI.dll",
+    "ImageSpanBytes": 188416
+  },
+  {
+    "Module": "d3d9.dll",
+    "ImageSpanBytes": 1777664
+  },
+  {
+    "Module": "VERSION.dll",
+    "ImageSpanBytes": 45056
+  },
+  {
+    "Module": "dxcore.dll",
+    "ImageSpanBytes": 303104
+  },
+  {
+    "Module": "CRYPT32.dll",
+    "ImageSpanBytes": 1564672
+  },
+  {
+    "Module": "igdumdim64.dll",
+    "ImageSpanBytes": 2748416
+  },
+  {
+    "Module": "igd9dxva64.dll",
+    "ImageSpanBytes": 16539648
+  },
+  {
+    "Module": "SETUPAPI.dll",
+    "ImageSpanBytes": 4747264
+  },
+  {
+    "Module": "cfgmgr32.dll",
+    "ImageSpanBytes": 335872
+  },
+  {
+    "Module": "media_bin_64.dll",
+    "ImageSpanBytes": 23199744
+  },
+  {
+    "Module": "igdgmm64.dll",
+    "ImageSpanBytes": 4505600
+  },
+  {
+    "Module": "directxdatabasehelper.dll",
+    "ImageSpanBytes": 389120
+  },
+  {
+    "Module": "System.Diagnostics.Process.dll",
+    "ImageSpanBytes": 327680
+  },
+  {
+    "Module": "shcore.dll",
+    "ImageSpanBytes": 1015808
+  },
+  {
+    "Module": "PresentationFramework.Aero2.dll",
+    "ImageSpanBytes": 438272
+  },
+  {
+    "Module": "System.Windows.Extensions.dll",
+    "ImageSpanBytes": 106496
+  },
+  {
+    "Module": "System.Collections.Concurrent.dll",
+    "ImageSpanBytes": 266240
+  },
+  {
+    "Module": "System.Threading.ThreadPool.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Module": "wtsapi32.dll",
+    "ImageSpanBytes": 172032
+  },
+  {
+    "Module": "SspiCli.dll",
+    "ImageSpanBytes": 303104
+  },
+  {
+    "Module": "WINSTA.dll",
+    "ImageSpanBytes": 417792
+  },
+  {
+    "Module": "powrprof.dll",
+    "ImageSpanBytes": 385024
+  },
+  {
+    "Module": "UMPDC.dll",
+    "ImageSpanBytes": 86016
+  },
+  {
+    "Module": "clbcatq.dll",
+    "ImageSpanBytes": 716800
+  },
+  {
+    "Module": "dataexchange.dll",
+    "ImageSpanBytes": 372736
+  },
+  {
+    "Module": "twinapi.appcore.dll",
+    "ImageSpanBytes": 2424832
+  },
+  {
+    "Module": "Windows.Storage.dll",
+    "ImageSpanBytes": 9175040
+  },
+  {
+    "Module": "TextShaping.dll",
+    "ImageSpanBytes": 1044480
+  },
+  {
+    "Module": "System.Net.Requests.dll",
+    "ImageSpanBytes": 335872
+  }
+]

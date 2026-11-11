@@ -1,0 +1,263 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 115,
+  "EverHidden": false,
+  "VisibilityChecks": 183,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 115,
+  "NetworkReads": 115,
+  "LastSnapshot": {
+    "Cpu": 9.738562091503267,
+    "Ram": 88.45800220075805,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "6.9 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 1557,
+    "Upload": 45481
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": false
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "ChartWork": 343,
+  "ProcessWork": 344,
+  "DiagnosticPopupInputHeld": true,
+  "BaselinePopupReads": 30,
+  "BaselinePopupFrames": 29,
+  "BaselinePopupOpen": true,
+  "PopupEvents": [
+    {
+      "Action": "Open",
+      "Module": "Cpu",
+      "Seconds": 0.0018199
+    },
+    {
+      "Action": "Close",
+      "Module": "Cpu",
+      "Seconds": 344.9942307
+    }
+  ],
+  "PopupOpens": 1,
+  "PopupCloses": 1,
+  "PresentationAllocatedBytes": 70434840,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": {
+    "Cpu": 13.529411764705882,
+    "System": 6.862745098039215,
+    "User": 6.666666666666667,
+    "Idle": 86.47058823529412,
+    "FrequencyGhz": 3.302,
+    "MaxGhz": 3.302,
+    "Uptime": "12:52:52.5000000",
+    "Memory": null,
+    "Cores": [
+      20.08008489488281,
+      13.811856259187339,
+      13.811856259187339,
+      9.110684782415746,
+      10.677741941339614,
+      13.811856259187339,
+      15.378913418111207,
+      12.244799100263482
+    ],
+    "Classes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Processes": [
+      {
+        "Id": 20284,
+        "Name": "agy",
+        "CpuPercent": 0.3926806833774811,
+        "WorkingSet": 123047936
+      },
+      {
+        "Id": 12024,
+        "Name": "IsletMonitor",
+        "CpuPercent": 0.19634034168874054,
+        "WorkingSet": 77869056
+      },
+      {
+        "Id": 5148,
+        "Name": "Antigravity IDE",
+        "CpuPercent": 0,
+        "WorkingSet": 42876928
+      },
+      {
+        "Id": 824,
+        "Name": "AppActions",
+        "CpuPercent": 0,
+        "WorkingSet": 7303168
+      },
+      {
+        "Id": 10648,
+        "Name": "AppMonitorPlugIn",
+        "CpuPercent": 0,
+        "WorkingSet": 9814016
+      },
+      {
+        "Id": 12340,
+        "Name": "ApplicationFrameHost",
+        "CpuPercent": 0,
+        "WorkingSet": 4308992
+      }
+    ],
+    "Explanation": "Protected or exited processes are skipped. Windows reported metrics.",
+    "Capabilities": {
+      "cpu": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "temperature": {
+        "Availability": 2,
+        "ReasonCode": "temperature.helper",
+        "Explanation": "Temperature needs the optional hardware helper; none is running."
+      },
+      "frequency": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "hybrid": {
+        "Availability": 1,
+        "ReasonCode": "hybrid.unavailable",
+        "Explanation": "No verified mixed efficiency-class mapping; logical CPU bars are used."
+      },
+      "processes": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "cores": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      }
+    }
+  },
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Windows",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Threading.Thread",
+    "System.ComponentModel.Primitives",
+    "System.Memory",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Private.Uri",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "System.Text.Encoding.Extensions",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "System.Text.Encodings.Web",
+    "System.Runtime.Intrinsics",
+    "System.Numerics.Vectors",
+    "System.Collections.Concurrent",
+    "System.Reflection.Emit.Lightweight",
+    "System.Reflection.Primitives",
+    "System.Reflection.Emit.ILGeneration",
+    "System.Net.Requests",
+    "System.ObjectModel",
+    "UIAutomationProvider"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

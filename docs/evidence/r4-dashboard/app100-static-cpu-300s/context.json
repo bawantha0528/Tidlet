@@ -1,0 +1,13 @@
+{
+    "Page":  "CPU",
+    "WorkingSetLimitBytes":  100000000,
+    "LifetimeLimitBytes":  100000000,
+    "ApplicationSession":  true,
+    "CpuLimitPercent":  1,
+    "DurationSeconds":  300,
+    "WarmupSeconds":  30,
+    "Accounting":  "Entire bar and Dashboard process; no auxiliary host",
+    "Interaction":  "Fixed requested page",
+    "CaptureKind":  "WPF render exports, not physical screenshots",
+    "CapturePercent":  100
+}

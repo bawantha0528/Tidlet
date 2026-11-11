@@ -1,0 +1,16 @@
+{
+    "Page":  "GPU",
+    "NumericalExit":  0,
+    "LifecyclePass":  true,
+    "ExpectedActivity":  true,
+    "DashboardReads":  344,
+    "DashboardFrames":  344,
+    "LifetimePeakWorkingSetBytes":  90726400,
+    "LifetimeWithinLimit":  true,
+    "BinaryHashesUnchanged":  true,
+    "CaptureVerified":  true,
+    "CapturePercent":  100,
+    "AttributionOnly":  false,
+    "OverallAccepted":  true,
+    "PhysicalInteractionVerified":  false
+}

@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net8.0-windows10.0.17763.0</TargetFramework><WindowsSdkPackageVersion>10.0.17763.56</WindowsSdkPackageVersion><SupportedOSPlatformVersion>10.0.10240.0</SupportedOSPlatformVersion></PropertyGroup>
+  <PropertyGroup><AllowUnsafeBlocks>true</AllowUnsafeBlocks><TargetFramework>net8.0-windows10.0.17763.0</TargetFramework><WindowsSdkPackageVersion>10.0.17763.56</WindowsSdkPackageVersion><SupportedOSPlatformVersion>10.0.10240.0</SupportedOSPlatformVersion></PropertyGroup>
   <ItemGroup><ProjectReference Include="../../src/Islet.Windows/Islet.Windows.csproj" /></ItemGroup>
+  <ItemGroup><Compile Remove="IslandProbeTests.cs;NativeRendererTests.cs;NativeResourceTests.cs;MediaWorkerTests.cs;MediaProviderTests.cs;NativeMediaTests.cs;NativeMediaAbiTests.cs" /></ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Islet.Core.Metrics;
 
 namespace Islet.Core.Tests;
@@ -156,5 +156,24 @@ public sealed class MetricMathTests
 
         var (allowedApp, _) = ProcessTerminationPolicy.ValidateTarget(2050, 100, "notepad.exe");
         Assert.IsTrue(allowedApp);
+    }
+
+    [TestMethod]
+    public void SensorReading_EvaluateAndNeedsHelper_TruthfullyPreservesState()
+    {
+        var sample = SensorReading.Evaluate(48.5, 44.0, 1850, FanControlMode.AutoFirmware, false);
+        Assert.AreEqual(SensorReadingState.Available, sample.State);
+        Assert.AreEqual(48.5, sample.PackageTemperatureC);
+        Assert.AreEqual(1850, sample.FanRpm);
+        Assert.AreEqual(FanControlMode.AutoFirmware, sample.FanProfile);
+        Assert.IsFalse(sample.IsThrottling);
+        StringAssert.Contains(sample.Explanation, "Thermal: 48°C");
+        StringAssert.Contains(sample.Explanation, "1850 RPM");
+
+        var needsHelper = SensorReading.NeedsHelper("ACPI thermal zones require M4 hardware helper.");
+        Assert.AreEqual(SensorReadingState.NeedsHelper, needsHelper.State);
+        Assert.IsNull(needsHelper.PackageTemperatureC);
+        Assert.IsNull(needsHelper.FanRpm);
+        StringAssert.Contains(needsHelper.Explanation, "M4");
     }
 }

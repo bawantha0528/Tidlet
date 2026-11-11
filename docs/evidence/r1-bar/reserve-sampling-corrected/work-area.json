@@ -1,0 +1,32 @@
+{
+    "Before":  {
+                   "Left":  0,
+                   "Top":  0,
+                   "Right":  1920,
+                   "Bottom":  1020
+               },
+    "During":  {
+                   "Left":  0,
+                   "Top":  30,
+                   "Right":  1920,
+                   "Bottom":  1020
+               },
+    "After":  {
+                  "Left":  0,
+                  "Top":  0,
+                  "Right":  1920,
+                  "Bottom":  1020
+              },
+    "MaximizedFrame":  {
+                           "Left":  0,
+                           "Top":  30,
+                           "Right":  1920,
+                           "Bottom":  1020
+                       },
+    "WorkAreaRestored":  true,
+    "Reserved":  true,
+    "MaximizedDoesNotOverlap":  true,
+    "ActualMode":  1,
+    "NaturalExit":  true,
+    "CrashRecoveryVerified":  false
+}

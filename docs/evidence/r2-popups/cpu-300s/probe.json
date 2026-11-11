@@ -1,0 +1,323 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 116,
+  "EverHidden": false,
+  "VisibilityChecks": 185,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 116,
+  "NetworkReads": 116,
+  "LastSnapshot": {
+    "Cpu": 4.527813712807244,
+    "Ram": 85.79303093287687,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "6.7 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 1745,
+    "Upload": 1578
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": false
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "ChartWork": 96,
+  "ProcessWork": 103,
+  "BaselinePopupReads": 30,
+  "BaselinePopupFrames": 26,
+  "BaselinePopupOpen": true,
+  "PopupEvents": [
+    {
+      "Action": "Open",
+      "Module": "Cpu",
+      "Seconds": 0.0016289
+    },
+    {
+      "Action": "Close",
+      "Module": "Cpu",
+      "Seconds": 17.7246403
+    },
+    {
+      "Action": "Open",
+      "Module": "Cpu",
+      "Seconds": 18.6539774
+    },
+    {
+      "Action": "Close",
+      "Module": "Cpu",
+      "Seconds": 19.1395117
+    },
+    {
+      "Action": "Open",
+      "Module": "Cpu",
+      "Seconds": 19.9099975
+    },
+    {
+      "Action": "Close",
+      "Module": "Cpu",
+      "Seconds": 22.5118393
+    },
+    {
+      "Action": "Open",
+      "Module": "Ram",
+      "Seconds": 22.5484358
+    },
+    {
+      "Action": "Close",
+      "Module": "Ram",
+      "Seconds": 74.7562189
+    },
+    {
+      "Action": "Open",
+      "Module": "Cpu",
+      "Seconds": 78.2757366
+    },
+    {
+      "Action": "Close",
+      "Module": "Cpu",
+      "Seconds": 81.4779195
+    },
+    {
+      "Action": "Open",
+      "Module": "Cpu",
+      "Seconds": 97.1389714
+    },
+    {
+      "Action": "Close",
+      "Module": "Cpu",
+      "Seconds": 107.5551228
+    },
+    {
+      "Action": "Open",
+      "Module": "Cpu",
+      "Seconds": 115.7833526
+    },
+    {
+      "Action": "Close",
+      "Module": "Cpu",
+      "Seconds": 128.033372
+    }
+  ],
+  "PopupOpens": 7,
+  "PopupCloses": 7,
+  "PresentationAllocatedBytes": 18360044,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": {
+    "Cpu": 12.476007677543187,
+    "System": 6.90978886756238,
+    "User": 5.566218809980806,
+    "Idle": 87.52399232245682,
+    "FrequencyGhz": 3.302,
+    "MaxGhz": 3.302,
+    "Uptime": "12:39:37.0930000",
+    "Memory": null,
+    "Cores": [
+      18.128967748275482,
+      13.494758375536353,
+      16.584231290695772,
+      10.405285460376945,
+      5.771076087637816,
+      5.771076087637816,
+      8.860549002797235,
+      16.584231290695772
+    ],
+    "Classes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Processes": [
+      {
+        "Id": 3620,
+        "Name": "IsletMonitor",
+        "CpuPercent": 0.5796114467863398,
+        "WorkingSet": 84135936
+      },
+      {
+        "Id": 10616,
+        "Name": "explorer",
+        "CpuPercent": 0.3864076311908932,
+        "WorkingSet": 113668096
+      },
+      {
+        "Id": 17928,
+        "Name": "powershell",
+        "CpuPercent": 0.3864076311908932,
+        "WorkingSet": 76595200
+      },
+      {
+        "Id": 8968,
+        "Name": "ShellHost",
+        "CpuPercent": 0.1932038155954466,
+        "WorkingSet": 7790592
+      },
+      {
+        "Id": 21016,
+        "Name": "codex",
+        "CpuPercent": 0.1932038155954466,
+        "WorkingSet": 12144640
+      },
+      {
+        "Id": 3164,
+        "Name": "nearby_share",
+        "CpuPercent": 0.1932038155954466,
+        "WorkingSet": 8945664
+      }
+    ],
+    "Explanation": "Protected or exited processes are skipped. Windows reported metrics.",
+    "Capabilities": {
+      "cpu": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "temperature": {
+        "Availability": 2,
+        "ReasonCode": "temperature.helper",
+        "Explanation": "Temperature needs the optional hardware helper; none is running."
+      },
+      "frequency": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "hybrid": {
+        "Availability": 1,
+        "ReasonCode": "hybrid.unavailable",
+        "Explanation": "No verified mixed efficiency-class mapping; logical CPU bars are used."
+      },
+      "processes": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "cores": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      }
+    }
+  },
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Windows",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Threading.Thread",
+    "System.ComponentModel.Primitives",
+    "System.Memory",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Private.Uri",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "System.Text.Encoding.Extensions",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "System.Text.Encodings.Web",
+    "System.Runtime.Intrinsics",
+    "System.Numerics.Vectors",
+    "System.Collections.Concurrent",
+    "System.Reflection.Emit.Lightweight",
+    "System.Reflection.Primitives",
+    "System.Reflection.Emit.ILGeneration",
+    "System.Net.Requests",
+    "System.ObjectModel",
+    "UIAutomationProvider",
+    "System.ComponentModel"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

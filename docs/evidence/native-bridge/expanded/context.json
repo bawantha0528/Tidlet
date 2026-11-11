@@ -1,0 +1,14 @@
+﻿{
+    "StartedUtc":  "2026-10-30T04:59:39.0830824+00:00",
+    "Scenario":  "Expanded",
+    "Style":  "Notch",
+    "IsAdministrator":  false,
+    "LogicalProcessors":  8,
+    "ProcessId":  2672,
+    "WarmupSeconds":  30,
+    "MeasuredSeconds":  300,
+    "NaturalExitAfterSeconds":  345,
+    "Scope":  "Native Tidlet plus journaled media workers; real metric providers; diagnostic input hold, actual pointer/fullscreen checks; no WPF",
+    "Fixture":  null,
+    "NativeVisibilityMeaning":  "WS_VISIBLE observed; occlusion and exhaustive input/focus audit remain separate"
+}

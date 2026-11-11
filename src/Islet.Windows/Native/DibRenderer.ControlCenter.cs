@@ -8,15 +8,15 @@ internal sealed unsafe partial class DibRenderer
 {
     private void DrawControlCenter(MonitorDashboard dashboard, ControlCenter center)
     {
-        Label("◈", 28, 16, 24, 17, _accent, 600);
+        Icon("layout-dashboard", 28, 18, 19, _accent);
         Label("TIDLET", 57, 18, 115, 10, _muted, 600);
         Label("YOUR SPACE TO FOCUS", 188, 18, 210, 9, _muted);
         CenterButton(ControlCenterLayout.Theme, dashboard.Theme == ThemeMode.Light ? "Dark  ◐" : "Light  ◑", 10);
-        CenterButton(ControlCenterLayout.Monitor, "Monitor  ↗", 10);
+        CenterButton(ControlCenterLayout.Monitor, "Application", 9);
         var box = ControlCenterLayout.Media;
         Block(box, _border, 16); Block(new(box.X+1,box.Y+1,box.Width-2,box.Height-2), _panel, 15);
         Block(new(40,72,46,46), _border, 12);
-        Label("♫", 52, 76, 30, 25, _muted, height: 35);
+        Icon("audio-lines", 51, 83, 24, _muted);
         Label(center.Media.Title, 98, 72, 148, 13, weight:600);
         Label(center.Media.Subtitle, 98, 96, 148, 10, _muted);
         Label(center.Media.State == MediaState.Available ? (center.Media.Playing ? "NOW PLAYING" : "PAUSED") : "SYSTEM MEDIA", 42, 142, 200, 8, _muted, 600);
@@ -31,7 +31,7 @@ internal sealed unsafe partial class DibRenderer
         MediaButton(ControlCenterLayout.PlaybackButton, center.Media.Playing ? "Ⅱ" : "▶", center.Media.Allows(MediaCommand.TogglePlayback) && !center.Busy, true);
         MediaButton(ControlCenterLayout.NextButton, "▶", center.Media.Allows(MediaCommand.Next) && !center.Busy);
         Block(ControlCenterLayout.Focus,_panel,14);
-        Label("◷", 287, 65, 25, 19, _accent);
+        Icon("timer", 287, 68, 19, _accent);
         Label("Focus timer", 316, 61, 125, 12, weight:600);
         var instruction = center.Focus.State switch { FocusState.Running => "Click to pause", FocusState.Paused => "Click to resume", FocusState.Complete => "Done · click to restart", _ => "Click to start · 25 minutes" };
         Label(instruction,316,81,160,9,_muted);
@@ -45,10 +45,10 @@ internal sealed unsafe partial class DibRenderer
         var network = dashboard.Cards.FirstOrDefault(c=>c.Page == MonitorPage.Network);
         var rates = network?.Details;
         Label(rates is { Count: >= 2 } ? "↓ " + rates[0].Value + "   ↑ " + rates[1].Value : network?.Value ?? "Unavailable",367,202,215,10);
-        CenterButton(ControlCenterLayout.Shortcut(0),"◫  Disk",11);
-        CenterButton(ControlCenterLayout.Shortcut(1),"▤  Apps",11);
+        CenterButton(ControlCenterLayout.Shortcut(0),"     Disk",11); Icon("hard-drive",287,264,17,_muted);
+        CenterButton(ControlCenterLayout.Shortcut(1),"     Apps",11); Icon("app-window",397,264,17,_muted);
         var battery = dashboard.Cards.FirstOrDefault(c=>c.Page == MonitorPage.Battery);
-        CenterButton(ControlCenterLayout.Shortcut(2),battery is { Absent:false } ? "▰  " + battery.Value : "▰  Power",11);
+        CenterButton(ControlCenterLayout.Shortcut(2),battery is { Absent:false } ? "     " + battery.Value : "     Power",11); Icon("battery",507,264,17,_muted);
     }
     private void CenterButton(DashboardRect box,string text,double size)
     { Block(box,_panel,12); Label(text,box.X+12,box.Y+(box.Height-22)/2,box.Width-20,size,weight:500); }

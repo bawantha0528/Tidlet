@@ -1,0 +1,13 @@
+{
+    "Page":  "Dashboard",
+    "NumericalExit":  0,
+    "LifecyclePass":  true,
+    "ExpectedActivity":  true,
+    "DashboardReads":  0,
+    "DashboardFrames":  0,
+    "LifetimePeakWorkingSetBytes":  76832768,
+    "LifetimeWithinLimit":  true,
+    "BinaryHashesUnchanged":  true,
+    "OverallAccepted":  true,
+    "PhysicalInteractionVerified":  false
+}

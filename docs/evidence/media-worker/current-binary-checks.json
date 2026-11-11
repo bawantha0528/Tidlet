@@ -1,0 +1,137 @@
+[
+  {
+    "Scenario": "expanded-held",
+    "File": "IsletMonitor.exe",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "IsletMonitor.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "Islet.Core.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "Islet.Shell.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "Islet.Windows.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "IsletMonitor.deps.json",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "IsletMonitor.runtimeconfig.json",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "Microsoft.Windows.SDK.NET.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "expanded-held",
+    "File": "WinRT.Runtime.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "IsletMonitor.exe",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "IsletMonitor.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "Islet.Core.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "Islet.Shell.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "Islet.Windows.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "IsletMonitor.deps.json",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "IsletMonitor.runtimeconfig.json",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "Microsoft.Windows.SDK.NET.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "post-expansion-held",
+    "File": "WinRT.Runtime.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "IsletMonitor.exe",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "IsletMonitor.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "Islet.Core.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "Islet.Shell.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "Islet.Windows.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "IsletMonitor.deps.json",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "IsletMonitor.runtimeconfig.json",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "Microsoft.Windows.SDK.NET.dll",
+    "Matches": true
+  },
+  {
+    "Scenario": "hidden-held",
+    "File": "WinRT.Runtime.dll",
+    "Matches": true
+  }
+]

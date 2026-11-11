@@ -1,0 +1,10 @@
+{
+  "RawSummaryMatches": true,
+  "Rows": 301,
+  "Result": "Pass",
+  "DurationSeconds": 300.0010444,
+  "WorkingSetMaxBytes": 79896576,
+  "LifetimePeakWorkingSetBytes": 82391040,
+  "CpuMachineNormalizedPercent": 0.4029933887123494,
+  "OverallAccepted": true
+}

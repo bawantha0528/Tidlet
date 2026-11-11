@@ -1,6 +1,6 @@
 # Media memory gate: proposal for user review
 
-Status: proposal only; no worker or renderer change has been implemented. The user approved the SDK dependency and music/focus scope, but the collapsed resource gate is now under review. Existing binary/source are left available for inspection, with no commits.
+Historical proposal, approved by the user and implemented on 30 October 2026. The measured worker exceeds the aggregate expanded memory budget; current evidence is in docs/evidence/media-worker/README.md and the next review proposal is docs/MEDIA_BRIDGE_PROPOSAL.md. No native bridge or additional renderer change has been implemented. The user approved the SDK dependency and music/focus scope, but the collapsed resource gate is now under review. Existing binary/source are left available for inspection, with no commits.
 
 ## Observed issue
 

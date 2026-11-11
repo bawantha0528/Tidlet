@@ -4,7 +4,7 @@ namespace Islet.Core.Island;
 
 public enum IslandState { Collapsed, Hover, Expanded }
 public enum IslandTimer { Metric = 1, Exit = 2, Pointer = 3, Animation = 4, Reconcile = 5, Exercise = 6, DashboardExercise = 7 }
-public enum IslandInputKind { Timer, LeftClick, ContextMenu, Toggle, Close, DisplayChanged, DpiChanged, PowerChanged, Command }
+public enum IslandInputKind { Timer, LeftClick, ContextMenu, Toggle, Close, DisplayChanged, DpiChanged, PowerChanged, Command, Scroll }
 public readonly record struct IslandInput(IslandInputKind Kind, int Value = 0, int X = 0, int Y = 0);
 public readonly record struct PixelRect(int X, int Y, int Width, int Height);
 public sealed record IslandDisplay(string Id, PixelRect Bounds, PixelRect WorkArea, uint Dpi);

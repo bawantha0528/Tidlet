@@ -1,0 +1,350 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 115,
+  "EverHidden": false,
+  "VisibilityChecks": 175,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Bounds": {
+        "Left": 0,
+        "Top": 0,
+        "Right": 1920,
+        "Bottom": 1080,
+        "Width": 1920,
+        "Height": 1080
+      },
+      "Work": {
+        "Left": 0,
+        "Top": 0,
+        "Right": 1920,
+        "Bottom": 1020,
+        "Width": 1920,
+        "Height": 1020
+      },
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 1282,
+          "Top": 972,
+          "Right": 1910,
+          "Bottom": 1015,
+          "Width": 628,
+          "Height": 43
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MeasuredPopupBounds": {
+    "Left": 1385,
+    "Top": 141,
+    "Right": 1785,
+    "Bottom": 966,
+    "Width": 400,
+    "Height": 825
+  },
+  "MetricReads": 115,
+  "NetworkReads": 120,
+  "LastSnapshot": {
+    "Cpu": 10.378590078328982,
+    "Ram": 85.94586135224355,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "6.7 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 13852,
+    "Upload": 68732,
+    "Loading": false,
+    "CpuLoading": false,
+    "NetworkLoading": false,
+    "Gpu": 1.2805155592029052,
+    "GpuReason": "Highest reported adapter usage. Intel(R) Iris(R) Xe Graphics: 1%; NVIDIA GeForce GTX 1650: 0%. Open GPU details for separate adapters.",
+    "GpuLoading": false
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 1,
+    "RevealAtTop": false,
+    "Alignment": 2,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      4,
+      1,
+      2,
+      3
+    ],
+    "ItemOrder": [],
+    "Pause": false,
+    "Theme": 1,
+    "Accent": "#0A84FF",
+    "UseBits": false,
+    "Fahrenheit": false,
+    "PingEnabled": false,
+    "PingTarget": "",
+    "WifiDetailsEnabled": false,
+    "Modules": {}
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "GpuBarRequests": 115,
+  "GpuBarWorkersDrained": true,
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "DashboardPage": null,
+  "DashboardOpens": 0,
+  "DashboardReads": 0,
+  "DashboardFrames": 0,
+  "DashboardWorkersDrained": true,
+  "DashboardPageHistory": [],
+  "DashboardPerPixelOpacity": null,
+  "DiagnosticDashboardInputHeld": false,
+  "DashboardEvents": [],
+  "DashboardCoreDetailRequests": 0,
+  "DashboardProcessDetailRequests": 0,
+  "BaselineDashboardReads": 0,
+  "BaselineDashboardFrames": 0,
+  "BaselineDashboardOpen": false,
+  "DashboardCaptures": [],
+  "RequestedDashboardCapturePercent": null,
+  "ChartWork": 275,
+  "ProcessWork": 275,
+  "DiagnosticPopupInputHeld": false,
+  "BaselinePopupReads": 0,
+  "BaselinePopupFrames": 0,
+  "BaselinePopupOpen": false,
+  "PopupEvents": [
+    {
+      "Action": "Open",
+      "Module": "Network",
+      "Seconds": 70.7593235
+    },
+    {
+      "Action": "Close",
+      "Module": "Network",
+      "Seconds": 75.406861
+    },
+    {
+      "Action": "Open",
+      "Module": "Gpu",
+      "Seconds": 75.457845
+    },
+    {
+      "Action": "Close",
+      "Module": "Gpu",
+      "Seconds": 342.120817
+    },
+    {
+      "Action": "Open",
+      "Module": "Ram",
+      "Seconds": 342.1682703
+    },
+    {
+      "Action": "Close",
+      "Module": "Ram",
+      "Seconds": 345.0092311
+    }
+  ],
+  "PopupOpens": 3,
+  "PopupCloses": 3,
+  "PresentationAllocatedBytes": 18709032,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": {
+    "Cpu": null,
+    "System": null,
+    "User": null,
+    "Idle": null,
+    "FrequencyGhz": null,
+    "MaxGhz": null,
+    "Uptime": "3.02:38:03.6870000",
+    "Memory": {
+      "Total": 8375296000,
+      "Available": 1201102848,
+      "Committed": 13375352832,
+      "CommitLimit": 19320111104,
+      "Cache": 987828224,
+      "PageFileUsed": 896573440,
+      "PageFileTotal": 10944815104,
+      "Valid": true,
+      "CommitValid": true,
+      "UsedPercent": 85.65898031544198,
+      "Pressure": 85.65898031544198,
+      "PressureName": "Warning"
+    },
+    "Cores": [
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN"
+    ],
+    "Classes": [],
+    "Processes": [
+      {
+        "Id": 9948,
+        "Name": "explorer",
+        "CpuPercent": 0,
+        "WorkingSet": 134098944
+      },
+      {
+        "Id": 616,
+        "Name": "powershell",
+        "CpuPercent": 0.19476027671141247,
+        "WorkingSet": 85966848
+      },
+      {
+        "Id": 13760,
+        "Name": "IsletMonitor",
+        "CpuPercent": 0.19476027671141247,
+        "WorkingSet": 85159936
+      },
+      {
+        "Id": 4532,
+        "Name": "WhatsApp.Root",
+        "CpuPercent": 0,
+        "WorkingSet": 79908864
+      },
+      {
+        "Id": 16856,
+        "Name": "WindowsTerminal",
+        "CpuPercent": 0,
+        "WorkingSet": 71864320
+      },
+      {
+        "Id": 6076,
+        "Name": "SearchHost",
+        "CpuPercent": 0,
+        "WorkingSet": 63741952
+      }
+    ],
+    "Explanation": "Protected or exited processes are skipped. Windows reported metrics.",
+    "Capabilities": {
+      "cpu": {
+        "Availability": 1,
+        "ReasonCode": "cpu.closed",
+        "Explanation": "CPU popup is closed."
+      },
+      "temperature": {
+        "Availability": 2,
+        "ReasonCode": "temperature.helper",
+        "Explanation": "Temperature needs the optional hardware helper; none is running."
+      },
+      "processes": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "cores": {
+        "Availability": 1,
+        "ReasonCode": "cores.inactive",
+        "Explanation": "Core details are outside the visible section."
+      },
+      "ram": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      }
+    },
+    "Network": null,
+    "Battery": null,
+    "Disk": null,
+    "Gpu": null,
+    "WarmingUp": false
+  },
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Windows",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Memory",
+    "System.Text.Encoding.Extensions",
+    "System.Text.Encodings.Web",
+    "System.Runtime.Intrinsics",
+    "System.Numerics.Vectors",
+    "System.Private.Uri",
+    "System.Collections.Concurrent",
+    "System.Reflection.Emit.Lightweight",
+    "System.Reflection.Primitives",
+    "System.Reflection.Emit.ILGeneration",
+    "System.ComponentModel.Primitives",
+    "System.Threading.Thread",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "PresentationFramework",
+    "System.Net.NetworkInformation",
+    "System.IO.FileSystem.DriveInfo",
+    "System.Net.Primitives",
+    "System.Net.Requests",
+    "UIAutomationProvider",
+    "System.ComponentModel.TypeConverter",
+    "System.ObjectModel"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

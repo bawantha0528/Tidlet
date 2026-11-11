@@ -37,6 +37,14 @@ function Assert-WorkerAggregateEvidence([string]$Root,[object]$Probe,[string]$Sc
         if(-not $record.ExitedUtc -or $null -eq $record.CpuSeconds -or -not $record.PeakWorkingSetBytes -or
             $record.ExitCode -ne 0 -or $null -eq $record.FinalWpfAssemblies -or $record.FinalWpfAssemblies.Count -ne 0){throw 'Worker exit/cost/module evidence incomplete.'}
     }
+    $nativeBridge=$Probe.PSObject.Properties['MediaImplementation'] -and $Probe.MediaImplementation -eq 'Native COM MTA'
+    if($nativeBridge) {
+        if($records.Count -ne 0 -or $Probe.WorkerStarts -ne 0 -or $Probe.ActiveThreads -ne 0){throw 'Native media retained a worker/thread.'}
+        if(($Scenario -eq 'Expanded' -and $Probe.Style -eq 1) -or $Scenario -eq 'PostExpansion') {
+            if($Probe.ThreadStarts -lt 1 -or $Probe.MediaReads -lt 1 -or $Probe.LastCompletedMediaStatus.State -eq 0){throw 'Native media was not initialized before measurement.'}
+        }
+        if($Scenario -in @('Hidden','Fullscreen') -and $Probe.ThreadStarts -ne 0){throw 'Suppressed native media started a thread.'}
+    }
     $workerPath=Join-Path $Root 'workers.csv';$rows=@()
     if((Test-Path $workerPath) -and (Get-Item $workerPath).Length){$rows=@(Import-Csv -LiteralPath $workerPath)}
     $groups=@{}
@@ -62,7 +70,7 @@ function Assert-WorkerAggregateEvidence([string]$Root,[object]$Probe,[string]$Sc
             [long]$sample.ParentPrivateBytes+$cost.PrivateBytes -ne [long]$sample.PrivateBytes -or
             $cost.ActiveWorkers -ne [int]$sample.ActiveWorkers){throw 'Parent/worker CSV does not reproduce aggregate costs.'}
         if($Scenario -in @('Collapsed','PostExpansion','Hidden','Fullscreen') -and $cost.ActiveWorkers -ne 0){throw 'Invisible media kept a worker alive.'}
-        if($Scenario -eq 'Expanded' -and $Probe.Style -eq 1 -and $Probe.MediaCapability.Availability -eq 0 -and $cost.ActiveWorkers -ne 1){throw 'Expanded Notch omitted the media worker.'}
+        if(-not $nativeBridge -and $Scenario -eq 'Expanded' -and $Probe.Style -eq 1 -and $Probe.MediaCapability.Availability -eq 0 -and $cost.ActiveWorkers -ne 1){throw 'Expanded Notch omitted the media worker.'}
     }
     if(@($groups.Keys|Where-Object{$_ -lt 0 -or $_ -ge $samples.Count}).Count){throw 'Orphan worker component rows.'}
     return $true

@@ -1,14 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType><StartupObject>IsletMonitor.Program</StartupObject>
+    <OutputType>WinExe</OutputType><StartupObject>IsletMonitor.BarProgram</StartupObject>
     <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework><WindowsSdkPackageVersion>10.0.17763.56</WindowsSdkPackageVersion><SupportedOSPlatformVersion>10.0.10240.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF><AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath><OutputPath>bin/$(Configuration)/net8.0-windows/</OutputPath>
     <AssemblyName>IsletMonitor</AssemblyName>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath><RuntimeIdentifier>win-x86</RuntimeIdentifier><PlatformTarget>x86</PlatformTarget><SelfContained>false</SelfContained><EnableRuntimePackDownload>false</EnableRuntimePackDownload>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Tidlet.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Islet.Core/Islet.Core.csproj" />
     <ProjectReference Include="../Islet.Shell/Islet.Shell.csproj" />
     <ProjectReference Include="../Islet.Windows/Islet.Windows.csproj" />
   </ItemGroup>
+  <ItemGroup><Compile Remove="Program.cs;App.xaml.cs" /><ApplicationDefinition Remove="App.xaml" /><Page Remove="App.xaml" /></ItemGroup>
 </Project>
+
+

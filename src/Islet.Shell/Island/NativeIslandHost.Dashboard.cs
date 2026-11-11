@@ -11,14 +11,16 @@ public sealed partial class NativeIslandHost
     private readonly IDiskProvider? _disk;
     private readonly IGpuProvider? _gpu;
     private readonly IProcessProvider? _processes;
+    private readonly ISensorProvider? _sensors;
     private readonly Dictionary<MonitorPage, CapabilityProbeResult> _support = new();
     private readonly Dictionary<MonitorPage, List<double?>> _moduleHistory = new();
-    private readonly List<double?> _uploadHistory = new(60), _writeHistory = new(60);
+    private readonly List<double?> _uploadHistory = new(60), _writeHistory = new(60), _fanHistory = new(60);
     private RamReading? _ramReading;
     private NetworkReading? _networkReading;
     private BatteryReading? _batteryReading;
     private DiskReading? _diskReading;
     private GpuReading? _gpuReading;
+    private SensorReading? _sensorReading;
     private IReadOnlyList<ProcessMetric> _processReadings = Array.Empty<ProcessMetric>();
     private string? _processError;
     private double _lastProcessRefresh = double.NegativeInfinity, _displayScale = 1;
@@ -46,6 +48,7 @@ public sealed partial class NativeIslandHost
         Probe(MonitorPage.Disk, _disk is null ? null : _disk.Probe);
         Probe(MonitorPage.Gpu, _gpu is null ? null : _gpu.Probe);
         Probe(MonitorPage.Apps, _processes is null ? null : _processes.Probe);
+        Probe(MonitorPage.Sensors, _sensors is null ? null : _sensors.Probe);
     }
 
     private static bool ValidRam(RamReading? ram) => ram is { State: RamReadingState.Available }
@@ -55,9 +58,9 @@ public sealed partial class NativeIslandHost
     private string Reason(MonitorPage page) => _support.GetValueOrDefault(page)?.Explanation ?? "Waiting for the next reading.";
     private void ResetDashboard()
     {
-        _ram?.Reset(); _network?.Reset(); _battery?.Reset(); _disk?.Reset(); _gpu?.Reset(); _processes?.Reset();
-        _moduleHistory.Clear(); _uploadHistory.Clear(); _writeHistory.Clear();
-        _ramReading = null; _networkReading = null; _batteryReading = null; _diskReading = null; _gpuReading = null;
+        _ram?.Reset(); _network?.Reset(); _battery?.Reset(); _disk?.Reset(); _gpu?.Reset(); _processes?.Reset(); _sensors?.Reset();
+        _moduleHistory.Clear(); _uploadHistory.Clear(); _writeHistory.Clear(); _fanHistory.Clear();
+        _ramReading = null; _networkReading = null; _batteryReading = null; _diskReading = null; _gpuReading = null; _sensorReading = null;
         _processReadings = Array.Empty<ProcessMetric>(); _processError = null;
         _lastProcessRefresh = double.NegativeInfinity;
     }
@@ -78,9 +81,10 @@ public sealed partial class NativeIslandHost
         if (Supported(MonitorPage.Memory)) _ramReading = SafeRead(_ram!.Sample, e => RamReading.Missing(RamReadingState.Unavailable, e));
         if (Supported(MonitorPage.Network)) _networkReading = SafeRead(_network!.Sample, e => NetworkReading.Missing(NetworkReadingState.Unavailable, e));
         if (Supported(MonitorPage.Battery)) _batteryReading = SafeRead(_battery!.Sample, e => BatteryReading.Missing(BatteryReadingState.Unavailable, e));
-        if (!CompactNotch && Supported(MonitorPage.Disk)) _diskReading = SafeRead(_disk!.Sample, e => DiskReading.Missing(DiskReadingState.Unavailable, e));
-        if (!CompactNotch && Supported(MonitorPage.Gpu)) _gpuReading = SafeRead(_gpu!.Sample, e => GpuReading.Missing(GpuReadingState.Unavailable, e));
-        if (!CompactNotch && Supported(MonitorPage.Apps) && _now() - _lastProcessRefresh >= 4000)
+        if ((State == IslandState.Expanded && !CompactNotch || _applicationActive) && Supported(MonitorPage.Disk)) _diskReading = SafeRead(_disk!.Sample, e => DiskReading.Missing(DiskReadingState.Unavailable, e));
+        if ((State == IslandState.Expanded && !CompactNotch || _applicationActive) && Supported(MonitorPage.Gpu)) _gpuReading = SafeRead(_gpu!.Sample, e => GpuReading.Missing(GpuReadingState.Unavailable, e));
+        if ((State == IslandState.Expanded && !CompactNotch || _applicationActive) && Supported(MonitorPage.Sensors)) _sensorReading = SafeRead(_sensors!.Sample, e => SensorReading.Missing(SensorReadingState.Unavailable, e));
+        if ((State == IslandState.Expanded && !CompactNotch || _applicationActive) && Supported(MonitorPage.Apps) && _now() - _lastProcessRefresh >= 4000)
         {
             _lastProcessRefresh = _now(); _processError = null;
             _processReadings = SafeRead(() => _processes!.SampleTop(6).Take(6).ToArray(), e => { _processError = e; return Array.Empty<ProcessMetric>(); });
@@ -92,6 +96,8 @@ public sealed partial class NativeIslandHost
         Append(_writeHistory, _diskReading is { State: DiskReadingState.Available } d2 ? d2.WriteBytesPerSec : null);
         Record(MonitorPage.Gpu, _gpuReading is { State: GpuReadingState.Available } && MonitorFormat.ValidPercent(_gpuReading.UtilizationPercent) ? _gpuReading.UtilizationPercent : null);
         Record(MonitorPage.Battery, _batteryReading is { State: BatteryReadingState.Available } && MonitorFormat.ValidPercent(_batteryReading.Percent) ? _batteryReading.Percent : null);
+        Record(MonitorPage.Sensors, _sensorReading is { State: SensorReadingState.Available } s ? s.PackageTemperatureC : null);
+        Append(_fanHistory, _sensorReading is { State: SensorReadingState.Available } s2 ? s2.FanRpm : null);
         var parts = new List<string>();
         if (_ramReading is { State: RamReadingState.Available } r && MonitorFormat.ValidPercent(r.UsedPercent)) parts.Add($"RAM: {r.UsedPercent:F0}%");
         if (_networkReading is { State: NetworkReadingState.Available } net) parts.Add($"Net: ↓ {NetworkReading.FormatRate(net.BytesReceivedPerSec)}");
@@ -109,7 +115,7 @@ public sealed partial class NativeIslandHost
         var ram = _ramReading;
         var ramOk = ValidRam(ram);
         cards.Add(new(MonitorPage.Memory, "Memory", ramOk ? MonitorFormat.Percent(ram!.UsedPercent) : "Unavailable", "Physical memory in use", ramOk ? ram!.UsedPercent : null,
-            ram?.Explanation ?? Reason(MonitorPage.Memory), ramOk ? [new("Used", MonitorFormat.Bytes(ram!.UsedBytes)), new("Available", MonitorFormat.Bytes(ram.AvailableBytes)), new("Installed", MonitorFormat.Bytes(ram.TotalBytes))] : [], History(MonitorPage.Memory)));
+            ram?.Explanation ?? Reason(MonitorPage.Memory), ramOk ? [new("Used", MonitorFormat.Bytes(ram!.UsedBytes)), new("Available", MonitorFormat.Bytes(ram.AvailableBytes)), new("Total physical", MonitorFormat.Bytes(ram.TotalBytes))] : [], History(MonitorPage.Memory)));
         var net = _networkReading;
         var netOk = net?.State == NetworkReadingState.Available;
         cards.Add(new(MonitorPage.Network, "Network", netOk ? MonitorFormat.Rate(net!.BytesReceivedPerSec) : net is null || net.State == NetworkReadingState.WarmingUp ? "Measuring" : "Unavailable", "Download / upload", null,
@@ -125,29 +131,72 @@ public sealed partial class NativeIslandHost
         var battery = _batteryReading;
         var batteryOk = battery?.State == BatteryReadingState.Available && MonitorFormat.ValidPercent(battery.Percent);
         var absent = _support.GetValueOrDefault(MonitorPage.Battery)?.ReasonCode == "battery.none";
+        var bDetails = new List<DetailRow>();
+        if (batteryOk)
+        {
+            bDetails.Add(new("State", battery!.ChargingStatus.ToString()));
+            bDetails.Add(new("Health", MonitorFormat.ValidPercent(battery.HealthPercent) ? $"{battery.HealthPercent:F1}%" : "Not reported"));
+            if (battery.CycleCount.HasValue && battery.CycleCount.Value > 0)
+                bDetails.Add(new("Cycle count", $"{battery.CycleCount.Value}"));
+            if (battery.FullChargedCapacityMWh.HasValue && battery.FullChargedCapacityMWh.Value > 0)
+                bDetails.Add(new("Full capacity", $"{battery.FullChargedCapacityMWh.Value / 1000.0:F1} Wh ({battery.FullChargedCapacityMWh} mWh)"));
+            if (battery.DesignedCapacityMWh.HasValue && battery.DesignedCapacityMWh.Value > 0)
+                bDetails.Add(new("Design capacity", $"{battery.DesignedCapacityMWh.Value / 1000.0:F1} Wh ({battery.DesignedCapacityMWh} mWh)"));
+            bDetails.Add(new("Remaining", battery.EstimatedRemaining is { } t ? $"{(int)t.TotalHours}h {t.Minutes}m" : "Not reported"));
+            if (battery.ChargeRateMilliwatts.HasValue)
+                bDetails.Add(new("Charge rate", MonitorFormat.OptionalNumber(battery.ChargeRateMilliwatts / 1000, "W")));
+        }
         cards.Add(new(MonitorPage.Battery, "Battery", batteryOk ? MonitorFormat.Percent(battery!.Percent) : "Unavailable", batteryOk ? battery!.ChargingStatus.ToString() : "Power status", batteryOk ? battery!.Percent : null,
-            battery?.Explanation ?? Reason(MonitorPage.Battery), batteryOk ? [new("State", battery!.ChargingStatus.ToString()),
-                new("Remaining", battery.EstimatedRemaining is { } t ? $"{(int)t.TotalHours}h {t.Minutes}m" : "Not reported"),
-                new("Health", MonitorFormat.ValidPercent(battery.HealthPercent) ? MonitorFormat.Percent(battery.HealthPercent) : "Not reported"),
-                new("Charge rate", MonitorFormat.OptionalNumber(battery.ChargeRateMilliwatts / 1000, "W"))] : [], History(MonitorPage.Battery), Absent: absent));
+            battery?.Explanation ?? Reason(MonitorPage.Battery), bDetails, History(MonitorPage.Battery), Absent: absent));
         cards.Add(new(MonitorPage.Apps, "Top apps", _processReadings.Count > 0 ? "Memory footprint" : "Waiting", "Largest accessible processes", null,
             _processError ?? "Sorted by working set. Protected or exited processes may be omitted.",
             _processReadings.Select(p => new DetailRow(p.Name, MonitorFormat.Bytes(p.WorkingSetBytes))).ToArray(), []));
-        return new(cards, _page, _theme, _accent, CreateControlCenter(), Style == IslandStyle.Notch && !CompactNotch);
+        var sensors = _sensorReading;
+        var sensorsOk = sensors?.State == SensorReadingState.Available;
+        var sDetails = new List<DetailRow>();
+        if (sensorsOk)
+        {
+            sDetails.Add(new("CPU Package", sensors!.PackageTemperatureC.HasValue ? $"{sensors.PackageTemperatureC.Value:F0}°C" : "Not reported"));
+            sDetails.Add(new("ACPI Thermal Zone", sensors.ZoneTemperatureC.HasValue ? $"{sensors.ZoneTemperatureC.Value:F0}°C" : "Not reported"));
+            sDetails.Add(new("Fan 1 Speed", sensors.FanRpm.HasValue ? $"{sensors.FanRpm.Value} RPM" : "Managed by BIOS"));
+            sDetails.Add(new("Fan Profile", sensors.FanProfile.ToString()));
+            sDetails.Add(new("Fan Control Mode", "Read-only (Firmware)"));
+            sDetails.Add(new("Thermal Throttling", sensors.IsThrottling ? "Active (Throttled)" : "No throttling"));
+        }
+        else
+        {
+            sDetails.Add(new("CPU Package", "Needs Helper (M4)"));
+            sDetails.Add(new("Thermal Zone", "Access Denied (0x80041003)"));
+            sDetails.Add(new("Fan Speed", "Managed by BIOS"));
+            sDetails.Add(new("Fan Control Mode", "Read-only (Firmware)"));
+            sDetails.Add(new("Hardware Driver", "Optional in M4"));
+        }
+        cards.Add(new(MonitorPage.Sensors, "Sensors & Cooling", sensorsOk && sensors!.PackageTemperatureC.HasValue ? $"{sensors.PackageTemperatureC.Value:F0}°C" : "Needs Helper", "Temperature & Fan Speed", sensorsOk ? sensors!.PackageTemperatureC : null,
+            sensors?.Explanation ?? Reason(MonitorPage.Sensors), sDetails, History(MonitorPage.Sensors), _fanHistory, "TEMPERATURE / FAN SPEED"));
+        return new(cards, _page, _theme, _accent, CreateControlCenter(), Style == IslandStyle.Notch && !CompactNotch,
+            _modulePanel && State == IslandState.Expanded ? MonitorSurface.Module : State == IslandState.Hover || Style == IslandStyle.Bar && State == IslandState.Collapsed ? MonitorSurface.Strip : MonitorSurface.Ambient,
+            _moduleScroll, _barAutoReveal, _deviceDescription, _preferenceWarning, Style);
     }
     private bool ExecuteDashboardCommand(int command)
     {
-        if (command is >= 400 and <= 407)
+        if (command is >= 400 and <= 408)
         {
             InvalidateMedia();
-            _fullDashboard = true;
+            _fullDashboard = true; _modulePanel = true; _moduleScroll = 0;
             _page = (MonitorPage)(command - 400);
             if (UserHidden) SetHidden(false);
             if (State != IslandState.Expanded) SetState(IslandState.Expanded); else BeginTransition();
             return true;
         }
+        if (command is >= 520 and <= 524)
+        {
+            var mode = (FanControlMode)(command - 520);
+            _sensors?.TrySetFanProfile(mode, out _);
+            SampleDashboard(); Draw(); RefreshApplication();
+            return true;
+        }
         if (command == DashboardLayout.ThemeCommand)
-        { _theme = _theme == ThemeMode.Light ? ThemeMode.Dark : ThemeMode.Light; Draw(); return true; }
+        { _theme = _theme == ThemeMode.Light ? ThemeMode.Dark : ThemeMode.Light; Draw(); RefreshApplication(); return true; }
         return false;
     }
     private int _dashboardExerciseStep;

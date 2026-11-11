@@ -1,0 +1,14 @@
+{
+    "Lifecycle":  "Pass",
+    "NumericalExit":  0,
+    "Scenario":  "Cpu",
+    "PopupFrames":  345,
+    "PopupReads":  345,
+    "WorkersDrained":  true,
+    "ZeroHeavyWorkWhileClosed":  null,
+    "NoFullscreenInterruption":  true,
+    "LifetimePeakWorkingSetBytes":  91725824,
+    "LifetimeWithinPopupLimit":  false,
+    "BinaryHashesUnchanged":  true,
+    "OverallAccepted":  false
+}

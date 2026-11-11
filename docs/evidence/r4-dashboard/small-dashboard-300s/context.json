@@ -1,0 +1,10 @@
+{
+    "Page":  "Dashboard",
+    "WorkingSetLimitBytes":  90000000,
+    "CpuLimitPercent":  1,
+    "DurationSeconds":  300,
+    "WarmupSeconds":  30,
+    "Accounting":  "Entire bar and Dashboard process; no auxiliary host",
+    "Interaction":  "Fixed requested page; navigation not automated",
+    "CaptureKind":  "100/150 percent WPF render exports, not physical screenshots"
+}

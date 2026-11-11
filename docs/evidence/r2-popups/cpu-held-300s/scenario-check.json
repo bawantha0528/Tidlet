@@ -1,0 +1,10 @@
+{
+    "Lifecycle":  "Pass",
+    "NumericalExit":  0,
+    "Scenario":  "Cpu",
+    "PopupFrames":  343,
+    "PopupReads":  344,
+    "WorkersDrained":  true,
+    "ZeroHeavyWorkWhileClosed":  null,
+    "NoFullscreenInterruption":  true
+}

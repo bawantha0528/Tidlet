@@ -1,0 +1,9 @@
+{
+    "InteractiveFixture":  true,
+    "ApplicationPage":  "CPU",
+    "ExitAfterSeconds":  420,
+    "ForegroundAcquiredBeforeObservation":  true,
+    "CompleteTailAccounted":  true,
+    "WorkingSetMaximumBytes":  86548480,
+    "LifetimePeakBytes":  90091520
+}

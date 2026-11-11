@@ -1,0 +1,8 @@
+{
+    "Scenario":  "Navigation",
+    "Gate":  "Popup",
+    "Page":  "CPU",
+    "CapBytes":  90000000,
+    "CloseSeconds":  null,
+    "CycleSeconds":  4
+}

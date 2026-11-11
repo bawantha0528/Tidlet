@@ -1,0 +1,11 @@
+{
+  "RawCsvRecomputed": true,
+  "NumericalWindowResult": "Pass",
+  "WindowPeakMB": 88.498176,
+  "LifetimePeakMB": 91.062272,
+  "CpuPercent": 0.3593553745249311,
+  "BinaryHashesMatched": 7,
+  "LifetimeWithin90Mb": false,
+  "OverallAccepted": false,
+  "Reason": "Startup lifetime peak exceeds unchanged 90 MB popup cap; no startup exemption assumed"
+}

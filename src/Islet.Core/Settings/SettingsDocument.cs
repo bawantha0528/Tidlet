@@ -34,6 +34,7 @@ public sealed record SettingsDocument
     public double CornerRadius { get; init; } = 18.0;
     public int TransitionDurationMs { get; init; } = 250;
     public bool ReducedMotion { get; init; } = false;
+    public bool BarAutoReveal { get; init; } = false;
     public string CollapsedMetric { get; init; } = "cpu";
     public ExpansionTrigger ExpansionTrigger { get; init; } = ExpansionTrigger.Click;
     public List<string> VisibleWidgets { get; init; } = new() { "cpu", "ram", "network", "battery" };
@@ -67,6 +68,7 @@ public sealed record SettingsDocument
             && Math.Abs(Opacity - other.Opacity) < 0.0001
             && Math.Abs(CornerRadius - other.CornerRadius) < 0.0001
             && TransitionDurationMs == other.TransitionDurationMs
+            && BarAutoReveal == other.BarAutoReveal
             && ReducedMotion == other.ReducedMotion
             && string.Equals(CollapsedMetric, other.CollapsedMetric, StringComparison.OrdinalIgnoreCase)
             && ExpansionTrigger == other.ExpansionTrigger

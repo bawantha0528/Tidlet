@@ -24,8 +24,8 @@ public sealed partial class NativeIslandHost
     public MediaReading LastCompletedMediaStatus { get; private set; } = MediaReading.Waiting;
     public MediaReading MediaStatus => _mediaReading;
     public FocusSnapshot FocusStatus => _focus.Read(_now());
-    public bool CompactNotch => Style == IslandStyle.Notch && !_fullDashboard && _page == MonitorPage.Overview && !_options.ExerciseDashboard;
-    private IslandSize DesiredSize() => State == IslandState.Expanded && CompactNotch ? new(620,320) : IslandSize.For(Style,State);
+    public bool CompactNotch => Style == IslandStyle.Notch && !_modulePanel && !_fullDashboard && _page == MonitorPage.Overview && !_options.ExerciseDashboard;
+    private IslandSize DesiredSize() => State == IslandState.Expanded && _modulePanel ? new(340,650) : State == IslandState.Hover ? new(480,52) : State == IslandState.Expanded && CompactNotch ? new(620,320) : IslandSize.For(Style,State);
     private bool MediaVisible => CompactNotch && State == IslandState.Expanded && !_suppressed;
     private ControlCenter? CreateControlCenter() => CompactNotch ? new(_mediaReading, FocusStatus,
         _mediaRead is { IsCompleted: false } || _mediaCommand is { IsCompleted: false }, _mediaFeedback) : null;

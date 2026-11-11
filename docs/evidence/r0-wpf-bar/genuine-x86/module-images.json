@@ -1,0 +1,492 @@
+[
+  {
+    "Name": "IsletMonitor.exe",
+    "File": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\win-x86-probe\\IsletMonitor.exe",
+    "ImageSpanBytes": 139264
+  },
+  {
+    "Name": "ntdll.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\ntdll.dll",
+    "ImageSpanBytes": 1851392
+  },
+  {
+    "Name": "KERNEL32.DLL",
+    "File": "C:\\WINDOWS\\System32\\KERNEL32.DLL",
+    "ImageSpanBytes": 983040
+  },
+  {
+    "Name": "KERNELBASE.dll",
+    "File": "C:\\WINDOWS\\System32\\KERNELBASE.dll",
+    "ImageSpanBytes": 3006464
+  },
+  {
+    "Name": "USER32.dll",
+    "File": "C:\\WINDOWS\\System32\\USER32.dll",
+    "ImageSpanBytes": 2043904
+  },
+  {
+    "Name": "win32u.dll",
+    "File": "C:\\WINDOWS\\System32\\win32u.dll",
+    "ImageSpanBytes": 114688
+  },
+  {
+    "Name": "GDI32.dll",
+    "File": "C:\\WINDOWS\\System32\\GDI32.dll",
+    "ImageSpanBytes": 139264
+  },
+  {
+    "Name": "gdi32full.dll",
+    "File": "C:\\WINDOWS\\System32\\gdi32full.dll",
+    "ImageSpanBytes": 958464
+  },
+  {
+    "Name": "msvcp_win.dll",
+    "File": "C:\\WINDOWS\\System32\\msvcp_win.dll",
+    "ImageSpanBytes": 544768
+  },
+  {
+    "Name": "ucrtbase.dll",
+    "File": "C:\\WINDOWS\\System32\\ucrtbase.dll",
+    "ImageSpanBytes": 1114112
+  },
+  {
+    "Name": "SHELL32.dll",
+    "File": "C:\\WINDOWS\\System32\\SHELL32.dll",
+    "ImageSpanBytes": 6766592
+  },
+  {
+    "Name": "ADVAPI32.dll",
+    "File": "C:\\WINDOWS\\System32\\ADVAPI32.dll",
+    "ImageSpanBytes": 544768
+  },
+  {
+    "Name": "msvcrt.dll",
+    "File": "C:\\WINDOWS\\System32\\msvcrt.dll",
+    "ImageSpanBytes": 815104
+  },
+  {
+    "Name": "sechost.dll",
+    "File": "C:\\WINDOWS\\System32\\sechost.dll",
+    "ImageSpanBytes": 544768
+  },
+  {
+    "Name": "RPCRT4.dll",
+    "File": "C:\\WINDOWS\\System32\\RPCRT4.dll",
+    "ImageSpanBytes": 770048
+  },
+  {
+    "Name": "IMM32.DLL",
+    "File": "C:\\WINDOWS\\System32\\IMM32.DLL",
+    "ImageSpanBytes": 151552
+  },
+  {
+    "Name": "hostfxr.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\host\\fxr\\10.0.5\\hostfxr.dll",
+    "ImageSpanBytes": 315392
+  },
+  {
+    "Name": "hostpolicy.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\hostpolicy.dll",
+    "ImageSpanBytes": 339968
+  },
+  {
+    "Name": "coreclr.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\coreclr.dll",
+    "ImageSpanBytes": 4128768
+  },
+  {
+    "Name": "ole32.dll",
+    "File": "C:\\WINDOWS\\System32\\ole32.dll",
+    "ImageSpanBytes": 1396736
+  },
+  {
+    "Name": "combase.dll",
+    "File": "C:\\WINDOWS\\System32\\combase.dll",
+    "ImageSpanBytes": 2719744
+  },
+  {
+    "Name": "OLEAUT32.dll",
+    "File": "C:\\WINDOWS\\System32\\OLEAUT32.dll",
+    "ImageSpanBytes": 655360
+  },
+  {
+    "Name": "bcryptPrimitives.dll",
+    "File": "C:\\WINDOWS\\System32\\bcryptPrimitives.dll",
+    "ImageSpanBytes": 499712
+  },
+  {
+    "Name": "System.Private.CoreLib.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Private.CoreLib.dll",
+    "ImageSpanBytes": 12521472
+  },
+  {
+    "Name": "clrjit.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\clrjit.dll",
+    "ImageSpanBytes": 1540096
+  },
+  {
+    "Name": "kernel.appcore.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\kernel.appcore.dll",
+    "ImageSpanBytes": 86016
+  },
+  {
+    "Name": "IsletMonitor.dll",
+    "File": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\win-x86-probe\\IsletMonitor.dll",
+    "ImageSpanBytes": 49152
+  },
+  {
+    "Name": "System.Runtime.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Runtime.dll",
+    "ImageSpanBytes": 57344
+  },
+  {
+    "Name": "uxtheme.dll",
+    "File": "C:\\WINDOWS\\system32\\uxtheme.dll",
+    "ImageSpanBytes": 528384
+  },
+  {
+    "Name": "icu.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\icu.dll",
+    "ImageSpanBytes": 2179072
+  },
+  {
+    "Name": "Islet.Shell.dll",
+    "File": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\win-x86-probe\\Islet.Shell.dll",
+    "ImageSpanBytes": 49152
+  },
+  {
+    "Name": "Islet.Windows.dll",
+    "File": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\win-x86-probe\\Islet.Windows.dll",
+    "ImageSpanBytes": 57344
+  },
+  {
+    "Name": "Islet.Core.dll",
+    "File": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\bin\\win-x86-probe\\Islet.Core.dll",
+    "ImageSpanBytes": 163840
+  },
+  {
+    "Name": "PresentationCore.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\PresentationCore.dll",
+    "ImageSpanBytes": 8065024
+  },
+  {
+    "Name": "WindowsBase.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\WindowsBase.dll",
+    "ImageSpanBytes": 2068480
+  },
+  {
+    "Name": "DirectWriteForwarder.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\DirectWriteForwarder.dll",
+    "ImageSpanBytes": 454656
+  },
+  {
+    "Name": "System.Runtime.Extensions.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Runtime.Extensions.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Name": "System.Runtime.InteropServices.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Runtime.InteropServices.dll",
+    "ImageSpanBytes": 77824
+  },
+  {
+    "Name": "System.Diagnostics.Debug.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Diagnostics.Debug.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Name": "System.Runtime.CompilerServices.VisualC.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Runtime.CompilerServices.VisualC.dll",
+    "ImageSpanBytes": 20480
+  },
+  {
+    "Name": "System.Threading.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Threading.dll",
+    "ImageSpanBytes": 69632
+  },
+  {
+    "Name": "Microsoft.Win32.Primitives.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\Microsoft.Win32.Primitives.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Name": "dwrite.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\dwrite.dll",
+    "ImageSpanBytes": 2195456
+  },
+  {
+    "Name": "System.Collections.NonGeneric.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Collections.NonGeneric.dll",
+    "ImageSpanBytes": 81920
+  },
+  {
+    "Name": "System.Collections.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Collections.dll",
+    "ImageSpanBytes": 229376
+  },
+  {
+    "Name": "System.ComponentModel.Primitives.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.ComponentModel.Primitives.dll",
+    "ImageSpanBytes": 65536
+  },
+  {
+    "Name": "wpfgfx_cor3.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\wpfgfx_cor3.dll",
+    "ImageSpanBytes": 1818624
+  },
+  {
+    "Name": "D3DCompiler_47_cor3.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\D3DCompiler_47_cor3.dll",
+    "ImageSpanBytes": 4169728
+  },
+  {
+    "Name": "System.Linq.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Linq.dll",
+    "ImageSpanBytes": 479232
+  },
+  {
+    "Name": "System.Threading.Thread.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Threading.Thread.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Name": "PresentationNative_cor3.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\PresentationNative_cor3.dll",
+    "ImageSpanBytes": 946176
+  },
+  {
+    "Name": "System.Configuration.ConfigurationManager.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\System.Configuration.ConfigurationManager.dll",
+    "ImageSpanBytes": 954368
+  },
+  {
+    "Name": "System.Collections.Specialized.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Collections.Specialized.dll",
+    "ImageSpanBytes": 81920
+  },
+  {
+    "Name": "System.Private.Uri.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Private.Uri.dll",
+    "ImageSpanBytes": 237568
+  },
+  {
+    "Name": "System.Xml.ReaderWriter.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Xml.ReaderWriter.dll",
+    "ImageSpanBytes": 40960
+  },
+  {
+    "Name": "System.Private.Xml.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Private.Xml.dll",
+    "ImageSpanBytes": 7413760
+  },
+  {
+    "Name": "System.Net.WebClient.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Net.WebClient.dll",
+    "ImageSpanBytes": 139264
+  },
+  {
+    "Name": "System.Memory.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Memory.dll",
+    "ImageSpanBytes": 135168
+  },
+  {
+    "Name": "BCrypt.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\BCrypt.dll",
+    "ImageSpanBytes": 114688
+  },
+  {
+    "Name": "System.Text.Encoding.Extensions.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Text.Encoding.Extensions.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Name": "Microsoft.Win32.Registry.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\Microsoft.Win32.Registry.dll",
+    "ImageSpanBytes": 94208
+  },
+  {
+    "Name": "System.Diagnostics.TraceSource.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Diagnostics.TraceSource.dll",
+    "ImageSpanBytes": 118784
+  },
+  {
+    "Name": "UIAutomationTypes.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\UIAutomationTypes.dll",
+    "ImageSpanBytes": 290816
+  },
+  {
+    "Name": "MSCTF.dll",
+    "File": "C:\\WINDOWS\\System32\\MSCTF.dll",
+    "ImageSpanBytes": 1146880
+  },
+  {
+    "Name": "wtsapi32.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\wtsapi32.dll",
+    "ImageSpanBytes": 135168
+  },
+  {
+    "Name": "CRYPT32.dll",
+    "File": "C:\\WINDOWS\\System32\\CRYPT32.dll",
+    "ImageSpanBytes": 1110016
+  },
+  {
+    "Name": "SspiCli.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\SspiCli.dll",
+    "ImageSpanBytes": 180224
+  },
+  {
+    "Name": "WINSTA.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\WINSTA.dll",
+    "ImageSpanBytes": 327680
+  },
+  {
+    "Name": "powrprof.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\powrprof.dll",
+    "ImageSpanBytes": 348160
+  },
+  {
+    "Name": "UMPDC.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\UMPDC.dll",
+    "ImageSpanBytes": 61440
+  },
+  {
+    "Name": "shcore.dll",
+    "File": "C:\\WINDOWS\\System32\\shcore.dll",
+    "ImageSpanBytes": 868352
+  },
+  {
+    "Name": "System.Diagnostics.Process.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Diagnostics.Process.dll",
+    "ImageSpanBytes": 286720
+  },
+  {
+    "Name": "DWMAPI.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\DWMAPI.dll",
+    "ImageSpanBytes": 151552
+  },
+  {
+    "Name": "d3d9.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\d3d9.dll",
+    "ImageSpanBytes": 1544192
+  },
+  {
+    "Name": "VERSION.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\VERSION.dll",
+    "ImageSpanBytes": 32768
+  },
+  {
+    "Name": "dxcore.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\dxcore.dll",
+    "ImageSpanBytes": 241664
+  },
+  {
+    "Name": "igdumdim32.dll",
+    "File": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\iigd_dch.inf_amd64_046f5bd4083e9122\\igdumdim32.dll",
+    "ImageSpanBytes": 2875392
+  },
+  {
+    "Name": "igd9dxva32.dll",
+    "File": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\iigd_dch.inf_amd64_046f5bd4083e9122\\igd9dxva32.dll",
+    "ImageSpanBytes": 15437824
+  },
+  {
+    "Name": "SETUPAPI.dll",
+    "File": "C:\\WINDOWS\\System32\\SETUPAPI.dll",
+    "ImageSpanBytes": 4526080
+  },
+  {
+    "Name": "cfgmgr32.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\cfgmgr32.dll",
+    "ImageSpanBytes": 258048
+  },
+  {
+    "Name": "media_bin_32.dll",
+    "File": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\iigd_dch.inf_amd64_046f5bd4083e9122\\media_bin_32.dll",
+    "ImageSpanBytes": 20504576
+  },
+  {
+    "Name": "igdgmm32.dll",
+    "File": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\iigd_dch.inf_amd64_046f5bd4083e9122\\igdgmm32.dll",
+    "ImageSpanBytes": 3371008
+  },
+  {
+    "Name": "directxdatabasehelper.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\directxdatabasehelper.dll",
+    "ImageSpanBytes": 319488
+  },
+  {
+    "Name": "clbcatq.dll",
+    "File": "C:\\WINDOWS\\System32\\clbcatq.dll",
+    "ImageSpanBytes": 561152
+  },
+  {
+    "Name": "dataexchange.dll",
+    "File": "C:\\WINDOWS\\system32\\dataexchange.dll",
+    "ImageSpanBytes": 311296
+  },
+  {
+    "Name": "twinapi.appcore.dll",
+    "File": "C:\\WINDOWS\\system32\\twinapi.appcore.dll",
+    "ImageSpanBytes": 2035712
+  },
+  {
+    "Name": "System.IO.Packaging.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\System.IO.Packaging.dll",
+    "ImageSpanBytes": 258048
+  },
+  {
+    "Name": "System.Xaml.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\System.Xaml.dll",
+    "ImageSpanBytes": 1286144
+  },
+  {
+    "Name": "TextShaping.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\TextShaping.dll",
+    "ImageSpanBytes": 974848
+  },
+  {
+    "Name": "UIAutomationProvider.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.14\\UIAutomationProvider.dll",
+    "ImageSpanBytes": 49152
+  },
+  {
+    "Name": "UIAutomationCore.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\UIAutomationCore.dll",
+    "ImageSpanBytes": 3473408
+  },
+  {
+    "Name": "System.Net.Requests.dll",
+    "File": "C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.14\\System.Net.Requests.dll",
+    "ImageSpanBytes": 311296
+  },
+  {
+    "Name": "ntdll.dll",
+    "File": "C:\\WINDOWS\\SYSTEM32\\ntdll.dll",
+    "ImageSpanBytes": 2539520
+  },
+  {
+    "Name": "wow64.dll",
+    "File": "C:\\WINDOWS\\System32\\wow64.dll",
+    "ImageSpanBytes": 348160
+  },
+  {
+    "Name": "wow64base.dll",
+    "File": "C:\\WINDOWS\\System32\\wow64base.dll",
+    "ImageSpanBytes": 45056
+  },
+  {
+    "Name": "wow64win.dll",
+    "File": "C:\\WINDOWS\\System32\\wow64win.dll",
+    "ImageSpanBytes": 569344
+  },
+  {
+    "Name": "wow64con.dll",
+    "File": "C:\\WINDOWS\\System32\\wow64con.dll",
+    "ImageSpanBytes": 102400
+  },
+  {
+    "Name": "wow64cpu.dll",
+    "File": "C:\\WINDOWS\\System32\\wow64cpu.dll",
+    "ImageSpanBytes": 40960
+  }
+]

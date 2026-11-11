@@ -1,0 +1,42 @@
+[
+  {
+    "Directory": "TestResults/media-held-isolated-x64",
+    "Suites": [
+      {
+        "File": "bawan_LAPTOP-4I00HMRR_2026-10-30_09_22_00.trx",
+        "SHA256": "B218B4569719E2CE72384FEC06454ECEF08E47839516B896981C4B593B02E5F1",
+        "Counters": "<Counters total=\"50\" executed=\"50\" passed=\"50\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" xmlns=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\" />"
+      },
+      {
+        "File": "bawan_LAPTOP-4I00HMRR_2026-10-30_09_22_01.trx",
+        "SHA256": "F2EE5261C272BC3FB985F0A6CECDB2CB56C01121B9674D140B776E7C0F7F6275",
+        "Counters": "<Counters total=\"19\" executed=\"19\" passed=\"19\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" xmlns=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\" />"
+      },
+      {
+        "File": "bawan_LAPTOP-4I00HMRR_2026-10-30_09_22_01[1].trx",
+        "SHA256": null,
+        "Counters": "<Counters total=\"32\" executed=\"32\" passed=\"32\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" xmlns=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\" />"
+      }
+    ]
+  },
+  {
+    "Directory": "TestResults/media-held-isolated-x86",
+    "Suites": [
+      {
+        "File": "bawan_LAPTOP-4I00HMRR_2026-10-30_09_22_05.trx",
+        "SHA256": "F804287271E52C03DEFDDA4A3648F159E75D9988085CD7B94C3EB189B59BF88D",
+        "Counters": "<Counters total=\"50\" executed=\"50\" passed=\"50\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" xmlns=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\" />"
+      },
+      {
+        "File": "bawan_LAPTOP-4I00HMRR_2026-10-30_09_22_05[1].trx",
+        "SHA256": null,
+        "Counters": "<Counters total=\"32\" executed=\"32\" passed=\"32\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" xmlns=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\" />"
+      },
+      {
+        "File": "bawan_LAPTOP-4I00HMRR_2026-10-30_09_22_05[2].trx",
+        "SHA256": null,
+        "Counters": "<Counters total=\"19\" executed=\"19\" passed=\"19\" failed=\"0\" error=\"0\" timeout=\"0\" aborted=\"0\" inconclusive=\"0\" passedButRunAborted=\"0\" notRunnable=\"0\" notExecuted=\"0\" disconnected=\"0\" warning=\"0\" completed=\"0\" inProgress=\"0\" pending=\"0\" xmlns=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\" />"
+      }
+    ]
+  }
+]

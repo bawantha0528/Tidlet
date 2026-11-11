@@ -1,0 +1,17 @@
+{
+    "Scenario":  "Bar",
+    "Milestone":  "R0 feasibility only",
+    "Transparent":  false,
+    "WarmupSeconds":  30,
+    "DurationSeconds":  300,
+    "WorkingSetLimitBytes":  50000000,
+    "CpuLimitPercent":  1,
+    "LogicalProcessors":  8,
+    "IsAdministrator":  false,
+    "OtherTidletProcesses":  [
+
+                             ],
+    "StartedUtc":  "2026-10-30T08:34:11.5262989+00:00",
+    "CaptureKind":  "WPF render target, not a desktop screenshot",
+    "AppBarWorkAreaChanges":  false
+}

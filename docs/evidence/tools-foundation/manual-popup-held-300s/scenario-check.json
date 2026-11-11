@@ -1,0 +1,10 @@
+{
+    "Lifecycle":  true,
+    "NumericalExit":  0,
+    "LifetimePeakWorkingSetBytes":  78417920,
+    "CurrentMaximumBytes":  78409728,
+    "MemoryAccepted":  true,
+    "BinaryHashesUnchanged":  true,
+    "OverallAccepted":  true,
+    "ImplementationStage":  "Foundation/Manual only; other feature gates remain pending"
+}

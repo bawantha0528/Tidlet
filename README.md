@@ -1,95 +1,126 @@
-# Tidlet Monitor
+<p align="center">
+  <img src="docs/screenshots/tidlet-icon.png" width="96" height="96" alt="Tidlet blue waveform icon">
+</p>
 
-A local, MIT-licensed Windows system monitor with a compact island, notch or bar and a clear, detailed dashboard. Built with C#/.NET 8 and a native Win32 layered renderer, following the approved renderer exception after the original transparent WPF experiment exceeded its memory budget.
+<h1 align="center">Tidlet Monitor</h1>
 
+<p align="center">Live PC readings in a compact Windows strip, with click-open details and a full Dashboard.</p>
 
-The new Notch UI builds with 92 tests passing on x64 and actual x86 runtimes. **The memory gate failed after opening music:** 68.84 MB collapsed versus the 60 MB limit; average CPU was 0.086%. Expanded Notch passed at 71.05 MB / 0.261% CPU. Each complete trial measured at least 300 seconds on eight logical processors. Implementation is stopped for review of the [media memory proposal](docs/MEDIA_MEMORY_PROPOSAL.md); see [raw evidence](docs/evidence/notch-control-center/README.md). Previous dashboard measurements remain historical. The user performs all commits manually.
+<p align="center">Windows 10 / 11 · .NET 8 · WPF · MIT</p>
 
-## The dashboard
+<p align="center"><a href="#quick-start">Quick start</a> · <a href="#what-you-can-monitor">Modules</a> · <a href="#using-tidlet">Controls</a> · <a href="#validation-and-performance">Validation</a> · <a href="#development">Development</a></p>
 
-Open the island to see processor, memory, network, disk, battery and top-app cards. Select a card or a module tab for its history chart and detail rows, alongside a combined summary. Switch between reference-inspired near-black and white themes with blue/red accents using the top-right button. The information layout is inspired by [Stats](https://github.com/exelban/stats); Tidlet uses its own Windows implementation and branding, with no copied source or artwork.
+![Tidlet's charcoal Dashboard showing the device model and hardware inventory](docs/screenshots/dashboard.png)
 
-- CPU: whole-system utilization, idle headroom, up to 60 recent readings.
-- Memory: physical RAM used/available/total and utilization history.
-- Network: download/upload byte rates and a paired chart from the existing Windows provider.
-- Disk: genuine read/write byte rates across physical disks, collected through Windows PDH in one background request at a time.
-- Battery: charge level, charging state and estimated remaining time when Windows supplies it. A machine without a battery hides its overview card; its module still explains why.
-- Apps: largest accessible process working sets, refreshed at most every four seconds while expanded. No process actions are added by this redesign.
-- GPU: explicitly unavailable until a genuine per-adapter counter provider is connected. No generic adapter or fake utilization is shown.
+<p align="center">
+  <img src="docs/screenshots/hover-strip.png" alt="Charcoal strip with CPU ring, GPU history, RAM meter, traffic, and battery">
+</p>
 
-Missing, warming-up and failed readings have explanations; no missing sensor is replaced with zero. Temperatures, fan speeds, clock speed, memory subcategories and battery health/rate are not invented. Expanded-only providers stop sampling when collapsed or hidden. Histories are bounded and reset on resume.
+Tidlet runs in the notification area. Keep an eye on usage from the strip, click a reading for a popup, or open the Dashboard for wider charts and hardware details. The same layout is available in **Dark** and **Light**.
 
-**Known provider gap:** the existing network implementation aggregates active BCL interfaces; required physical-adapter filtering through GetIfTable2 is unfinished, so virtual/VPN interfaces may duplicate traffic. This UI change does not establish full M2/M3 acceptance. Current settings schemas/persistence tests also do not prove a complete settings window or every customization option.
+## Quick start
 
-## Notch control center
+Tidlet is under active development. Use the local preview or build the source. The checked-in project currently produces an x86, framework-dependent Windows app.
 
-Expanded Notch has a compact 620x320 DIP home: system music title/player controls, a 25-minute focus timer, live CPU/RAM bars and download/upload rates. Dark mode uses near-black surfaces throughout; white mode and blue/red accents remain available. The Monitor button opens the full overview; CPU/RAM/network and Disk/Apps/Power open their detailed pages. The full Notch header returns home.
+**Requirements**
 
-Click the focus row to start, pause or resume; the reset arrow restores 25 minutes. Completion appears in the panel. It continues by elapsed time while hidden, without a background ticking loop, and resets when the app exits. No sound or notification is generated. Music controls are disabled when no player exists or the player does not support an action. Only participating Windows media apps can supply track data; there is no built-in music player.
+- Windows 10 or 11 with support for x86 desktop apps. Native preview verification is currently on Windows 11.
+- The **x86 .NET 8 Desktop Runtime**, even on an x64 PC. Choose **Desktop Runtime → Windows → x86**. [Microsoft .NET 8 downloads](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+- The SDK pinned in [global.json](global.json) for source builds.
+
+### Run a local preview
+
+Exit any running Tidlet from the tray menu, then run the audited preview if it has been built locally:
 
 ```powershell
-cd "C:\Users\bawan\OneDrive\Documents\Tidlet"
-& ".\src\IsletMonitor\bin\Release\net8.0-windows\IsletMonitor.exe" --style Notch --state Expanded --theme Dark
+.\src\IsletMonitor\bin\ui-audit\IsletMonitor.exe
 ```
-## Run
 
-Prerequisites: Windows 10/11, SDK **8.0.414** pinned by global.json, matching .NET 8 Windows Desktop runtime, and PowerShell 7 for developer scripts. The app needs no administrator rights or driver. The user-approved Microsoft.Windows.SDK.NET.Ref 10.0.17763.56 targeting pack supplies native Windows media interop; it is pinned for .NET 8. Music controls require Windows 10 1809 or later and a participating player; older Windows 10 receives an explanation. See DECISIONS.md for the SDK license and runtime inventory.
+Look near the clock, including under the **^** hidden-icons arrow. Right-click Tidlet and choose **Open Dashboard**. Keep the executable and its companion files together.
+
+### Build from source
+
+Run from the repository root in PowerShell:
 
 ```powershell
-$env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
-$env:TESTINGPLATFORM_TELEMETRY_OPTOUT = '1'
 dotnet restore TidletMonitor.sln --locked-mode
-dotnet build -c Release
-dotnet run --project src/IsletMonitor -c Release --no-build
+dotnet build TidletMonitor.sln -c Release --no-restore -p:OutputPath=bin/ui-audit/
+.\src\IsletMonitor\bin\ui-audit\IsletMonitor.exe
 ```
 
-Hover over the collapsed island, then click to open it. Escape or an outside click collapses it. **Ctrl+Alt+I** toggles the dashboard; the tray menu remains available if the shortcut is occupied. Right-click for module selection, Island/Notch/Bar, display selection, theme, hide/show or exit. Dashboard tabs and cards are clickable; native menus provide the keyboard route.
+## What you can monitor
 
-Fullscreen/presentation, session lock, display-off and suspend suppress the island. Explicitly hiding it stops metric/pointer/animation/foreground work. The complete expanded canvas scales to fit small/high-DPI screens. Two physical monitors at different DPI still require hardware validation.
+| Module | Readings |
+| --- | --- |
+| **CPU** | Utilization, history, logical processors, frequency when reported, and top processes. |
+| **GPU** | Optional live strip reading, per-adapter utilization and dedicated capacity where supported. |
+| **RAM** | Physical usage, memory pressure, commit and page-file readings, and top processes. |
+| **Disk** | Physical read/write activity and fixed-volume capacity. |
+| **Network** | Traffic rates and session totals from eligible physical adapters. Red is upload and blue is download. |
+| **Battery** | Charge, power source, and reported health and capacity. The Dashboard also provides Windows power-mode controls where available. |
+| **Sensors** | Capability status for advanced readings that require an optional helper. |
 
-Existing saved theme/accent preferences are read on normal launches. The dashboard theme button is session-only and does not overwrite settings. Broader settings/profile/alert UI acceptance remains separate.
+Readings depend on the hardware and the Windows providers available. Missing values are explained, and cached session readings are marked while they refresh.
 
-For a direct dashboard launch:
+![Light CPU page with a utilization ring, usage history, and logical processor readings](docs/screenshots/cpu-light.png)
+
+## Using Tidlet
+
+| Task | Where to find it |
+| --- | --- |
+| Open a detail popup | Click a strip reading. Scroll for more, then press **Esc** or click outside to dismiss. |
+| Move the strip | Right-click the tray icon or use **Settings → Position**. Choose top, bottom, or **Top · reveal on hover**. |
+| Choose a placement mode | Use **Overlay** to float above the desktop or **Reserve** to request space from Windows. |
+| Switch themes | Click **Settings → Theme** to cycle the options. **Dark** and **Light** apply to the strip, popups, and Dashboard. **System** currently uses the dark fallback. |
+| Choose or reorder readings | Toggle a module from its page or Settings. Use **Move earlier** to reorder it. Re-enabled items return to their saved position. |
+| Change Windows power mode | In **Dashboard → Battery**, choose a mode for the displayed power source. **Windows settings** opens the system page when needed. |
+| Pause or quit | Use the tray menu. Settings remain accessible while paused. |
+| Export or restore preferences | Use **Settings → Export settings** or **Import settings**. Changes save automatically. |
+
+### Troubleshooting
+
+**Tidlet opened without a window.** Open the Dashboard from the tray. A fullscreen app, an empty strip layout, or the hover-reveal setting can hide the strip.
+
+**The previous UI is still visible.** Exit the running instance before opening the new build. Tidlet allows one normal instance at a time.
+
+**A reading is missing.** Battery hardware, GPU counters, and sensor access vary by device. Rate-based readings can also take a second sample to appear.
+
+**Reporting a problem.** Include the Tidlet build, Windows version, display scale, affected module, and steps to reproduce. **Settings → Compatibility report** saves a local JSON file you can review before sharing.
+
+## Privacy
+
+Tidlet processes readings locally. It has no accounts, analytics, cloud sync, automatic update checks, or public-IP lookup. Preferences, exports and compatibility reports live under `%APPDATA%\IsletMonitor`. Recent readings are cached in memory for the current session. Routine monitoring runs with standard user permissions.
+
+## Validation and performance
+
+Performance figures apply to the listed builds and scenarios. RAM is peak whole-process working set in decimal MB. CPU is average machine-normalized usage over the observation.
+
+| Build and scenario | Peak RAM | Avg. CPU | Result |
+| --- | ---: | ---: | --- |
+| Monitor-only Release, GPU bar | 76.80 MB | 0.042% | Passed. [Evidence](docs/MONITOR_ONLY_CLEANUP.md) |
+| Charcoal bottom strip, live GPU | 78.15 MB | 0.055% | Passed with popups closed. [Evidence](docs/CHARCOAL_MONITOR_STRIP.md) |
+| Earlier Dashboard navigation | 91.39 MB | 0.120% | Passed the application budget. [Evidence](docs/R4_APP100_VALIDATION.md) |
+| Light strip with popups opened during observation | 94.71 MB | 0.208% | Exceeded the cap and invalid for bar-only acceptance. [Evidence](docs/LIGHT_MODE.md) |
+
+The current limits are **90 MB** for fresh bar or popup sessions, **100 MB** lifetime for Dashboard sessions, **90 MB** current working set after Dashboard close, and **under 1%** average machine CPU over five minutes. The current preview passed 143 tests in each architecture configuration and 40 x86 render checks across both themes. Fresh five-minute acceptance is pending. Repository images are application render exports. Physical mixed-DPI, broader Windows 10 coverage, and real fullscreen-game testing remain open. [Current UI audit](docs/UI_AUDIT.md)
+
+## Development
+
+| Folder | Responsibility |
+| --- | --- |
+| `src/Islet.Core` | Portable settings, capabilities, and metric calculations. |
+| `src/Islet.Shell` | WPF strip, popup and Dashboard presentation. |
+| `src/Islet.Windows` | Windows interop, hardware providers, and action boundaries. |
+| `src/IsletMonitor` | Application startup and composition. |
+| `tests` and `scripts` | Unit tests, read-only render probes, and performance harnesses. |
 
 ```powershell
-src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe --state Expanded
-src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe --page Memory --theme Light
+dotnet test TidletMonitor.sln -c Release --no-build --no-restore -p:OutputPath=bin/ui-audit/
+powershell -NoProfile -File scripts/smoke-ui.ps1 -Executable src/IsletMonitor/bin/ui-audit/IsletMonitor.exe
 ```
 
-## Verify and measure
+See [engineering rules](AGENTS.md), [progress](PROGRESS.md), [decisions](DECISIONS.md), and [performance methodology](docs/PERFORMANCE.md).
 
-```powershell
-dotnet test -c Release --logger trx --results-directory TestResults
-pwsh -NoProfile -File scripts/verify-test-results.ps1
-pwsh -NoProfile -File scripts/test-measurement.ps1
-pwsh -NoProfile -File scripts/smoke-shell.ps1 -IncludeFullscreenFixture
-pwsh -NoProfile -File scripts/smoke-dashboard.ps1
-pwsh -NoProfile -File scripts/smoke-control-center.ps1
-pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Collapsed -Style Island -OutputDirectory artifacts/measurements/my-collapsed-trial
-pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Expanded -Style Island -OutputDirectory artifacts/measurements/my-expanded-trial
-pwsh -NoProfile -File scripts/measure-native-shell.ps1 -Scenario Hidden -OutputDirectory artifacts/measurements/my-hidden-trial
-```
+## License and credits
 
-Each measurement needs a fresh directory, 30 seconds of warmup and at least 300 measured seconds. Do not overlap visible trials or interact with the benchmark. The verifier rejects state/style changes, tampered summaries, incomplete observations, loaded WPF assemblies and leaked timers. It never changes system settings, forces garbage collection, trims memory or terminates a process. Test windows exit naturally. The fullscreen fixture is a borderless test window; exclusive games remain untested.
-
-Dashboard smoke captures 16 actual rendered frames (eight pages, two themes) in ignored artifacts, using real data and no personal settings. Frames are the app's own rendered buffer, not a desktop screenshot. Missing-hardware and invalid-value tests use fixtures. Tests of process actions use mock executors.
-
-Budgets remain **60 MB collapsed / 100 MB expanded**, collapsed average CPU **<1% over five minutes**, and approximately zero hidden/fullscreen CPU. See [PROGRESS.md](PROGRESS.md) and [performance definitions](docs/PERFORMANCE.md) for actual results; historic renderer measurements do not validate a newer binary.
-
-## Architecture and scope
-
-- Islet.Core: portable readings/validation, capabilities, presentation models/layout, settings/theme/profile/alert contracts; no Windows/WPF APIs.
-- Islet.Shell: native presentation and lifecycle controller; isolated legacy WPF experiments.
-- Islet.Windows: native drawing and Windows metrics, tray, display, power, fullscreen and hotkey adapters.
-- IsletMonitor: composition and entry point.
-- tests / scripts / docs: verification, performance evidence and engineering decisions.
-
-The historical WPF experiments remain behind --scaffold and --island-probe. The minimal --native-probe comparison host differs from the full dashboard and requires a timed exit plus explicit report path. Hosted CI is configured; a passing remote run is not claimed without evidence.
-
-No accounts, telemetry, cloud sync, messaging, phone-home updates, background service or driver. Readings stay local; diagnostics write only to an explicitly requested report path. Normal launches may read/recover existing local settings. No helper, compatibility export, fixers, creature or release packaging is introduced (M4-M7 remain deferred).
-
-.NET 8 support ends **10 November 2026**. The requested target is retained; no machine installation or framework upgrade was performed. See [Microsoft's support policy](https://dotnet.microsoft.com/en-us/platform/support/policy).
-
-Read [AGENTS.md](AGENTS.md), [the original plan](docs/IMPLEMENTATION_PLAN.md), [UI plan](docs/UI_REDESIGN_PLAN.md), [decisions](DECISIONS.md) and [API register](docs/API_REGISTER.md). The user owns all staging and commits; this work does not perform Git writes.
-
-Licensed under [MIT](LICENSE).
+[MIT License](LICENSE). UI inspired by Stats (exelban/stats, MIT). [Stats repository](https://github.com/exelban/stats)

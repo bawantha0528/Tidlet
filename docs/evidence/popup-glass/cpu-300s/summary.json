@@ -1,0 +1,8 @@
+﻿{
+    "Scenario":  "Popup",
+    "Result":  "Incomplete",
+    "Error":  "Target exited before the measurement completed.",
+    "SampleCount":  249,
+    "IsAcceptanceMeasurement":  false,
+    "ObserverCpuSeconds":  3.3125
+}

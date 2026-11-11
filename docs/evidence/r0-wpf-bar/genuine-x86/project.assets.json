@@ -1,0 +1,210 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0-windows10.0.17763": {
+      "Islet.Core/0.1.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Islet.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Islet.Core.dll": {}
+        }
+      },
+      "Islet.Shell/0.1.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Islet.Core": "0.1.0"
+        },
+        "compile": {
+          "bin/placeholder/Islet.Shell.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Islet.Shell.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
+      },
+      "Islet.Windows/0.1.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Islet.Core": "0.1.0"
+        },
+        "compile": {
+          "bin/placeholder/Islet.Windows.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Islet.Windows.dll": {}
+        }
+      }
+    },
+    "net8.0-windows10.0.17763/win-x86": {
+      "Islet.Core/0.1.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Islet.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Islet.Core.dll": {}
+        }
+      },
+      "Islet.Shell/0.1.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Islet.Core": "0.1.0"
+        },
+        "compile": {
+          "bin/placeholder/Islet.Shell.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Islet.Shell.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
+      },
+      "Islet.Windows/0.1.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Islet.Core": "0.1.0"
+        },
+        "compile": {
+          "bin/placeholder/Islet.Windows.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Islet.Windows.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Islet.Core/0.1.0": {
+      "type": "project",
+      "path": "../Islet.Core/Islet.Core.csproj",
+      "msbuildProject": "../Islet.Core/Islet.Core.csproj"
+    },
+    "Islet.Shell/0.1.0": {
+      "type": "project",
+      "path": "../Islet.Shell/Islet.Shell.csproj",
+      "msbuildProject": "../Islet.Shell/Islet.Shell.csproj"
+    },
+    "Islet.Windows/0.1.0": {
+      "type": "project",
+      "path": "../Islet.Windows/Islet.Windows.csproj",
+      "msbuildProject": "../Islet.Windows/Islet.Windows.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0-windows10.0.17763": [
+      "Islet.Core >= 0.1.0",
+      "Islet.Shell >= 0.1.0",
+      "Islet.Windows >= 0.1.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\artifacts\\packages": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "0.1.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\IsletMonitor.csproj",
+      "projectName": "IsletMonitor",
+      "projectPath": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\IsletMonitor.csproj",
+      "packagesPath": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\artifacts\\packages",
+      "outputPath": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\IsletMonitor\\obj\\win-x86-probe\\",
+      "projectStyle": "PackageReference",
+      "centralPackageVersionsManagementEnabled": true,
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\NuGet.Config",
+        "C:\\Users\\bawan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0-windows10.0.17763.0"
+      ],
+      "sources": {
+        "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\artifacts\\offline-empty-feed": {}
+      },
+      "frameworks": {
+        "net8.0-windows10.0.17763": {
+          "targetAlias": "net8.0-windows10.0.17763.0",
+          "projectReferences": {
+            "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\Islet.Core\\Islet.Core.csproj": {
+              "projectPath": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\Islet.Core\\Islet.Core.csproj"
+            },
+            "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\Islet.Shell\\Islet.Shell.csproj": {
+              "projectPath": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\Islet.Shell\\Islet.Shell.csproj"
+            },
+            "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\Islet.Windows\\Islet.Windows.csproj": {
+              "projectPath": "C:\\Users\\bawan\\OneDrive\\Documents\\Tidlet\\src\\Islet.Windows\\Islet.Windows.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "allWarningsAsErrors": true,
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreLockProperties": {
+        "restorePackagesWithLockFile": "true",
+        "nuGetLockFilePath": "obj/win-x86-probe/packages.lock.json"
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "false",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0-windows10.0.17763": {
+        "targetAlias": "net8.0-windows10.0.17763.0",
+        "centralPackageVersions": {
+          "Microsoft.NET.Test.Sdk": "18.11.0",
+          "MSTest.TestAdapter": "4.5.2",
+          "MSTest.TestFramework": "4.5.2"
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          },
+          "Microsoft.Windows.SDK.NET.Ref": {
+            "privateAssets": "all"
+          },
+          "Microsoft.WindowsDesktop.App.WPF": {
+            "privateAssets": "none"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
+      }
+    },
+    "runtimes": {
+      "win-x86": {
+        "#import": []
+      }
+    }
+  }
+}

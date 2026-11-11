@@ -52,4 +52,20 @@ public sealed class DashboardLayoutTests
             Assert.IsTrue(860 * scale <= test.W + 0.01 && 560 * scale <= test.H + 0.01);
             Assert.IsTrue(860 * 560 * scale * scale <= 3_900_001);
         }
-    }}
+    }
+    [TestMethod]
+    public void HitTestCollapsedResolvesEachMetricAndAppButtons()
+    {
+        var width = 380.0;
+        var height = 40.0;
+        var style = Core.Settings.IslandStyle.Island;
+        var inset = 18.0;
+
+        Assert.AreEqual(DesktopDashboardLayout.OpenApplication, DashboardLayout.HitTestCollapsed(inset, 20, width, height, style));
+        Assert.AreEqual(401, DashboardLayout.HitTestCollapsed(inset + 40, 20, width, height, style));
+        Assert.AreEqual(402, DashboardLayout.HitTestCollapsed(inset + 120, 20, width, height, style));
+        Assert.AreEqual(403, DashboardLayout.HitTestCollapsed(inset + 200, 20, width, height, style));
+        Assert.AreEqual(406, DashboardLayout.HitTestCollapsed(inset + 270, 20, width, height, style));
+        Assert.AreEqual(DesktopDashboardLayout.OpenApplication, DashboardLayout.HitTestCollapsed(width - 40, 20, width, height, Core.Settings.IslandStyle.Bar));
+    }
+}

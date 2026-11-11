@@ -1,0 +1,7 @@
+# Native Windows taskbar placement
+
+User clarification: put the monitor in the default taskbar itself, rather than a separate strip. The tested bottom strip is an independent window and does not meet that interpretation.
+
+Microsoft lists custom application areas of the Windows 11 taskbar as removed in its [Windows 11 specifications](https://www.microsoft.com/en-us/windows/windows-11-specifications#feature-deprecations). Windows 10 Desk Bands are a legacy option, not a supported path across Tidlet's Windows 10/11 target; see [Microsoft's Desk Band and Widgets comparison](https://www.microsoft.com/content/dam/microsoft/mscle/documents/presentations/Microsoft_DMA_Compliance_Report_Windows_Section_2_Annex.pdf), section II.G. Keep Explorer and the default taskbar intact.
+
+Proposed supported alternative: extend Tidlet's existing system-tray icon to show one selectable live reading (CPU or RAM initially), with hover text for the other readings and a click opening a glass monitor popup anchored at the icon. Windows controls icon placement and overflow. Use existing samples and update cadence, native [notification area APIs](https://learn.microsoft.com/en-us/windows/win32/shell/notification-area), and no extra bar window in this mode. This is a smaller design than a full multi-metric strip. Validate icon lifecycle, DPI, Explorer recovery, popup placement and the unchanged budget before release. No implementation or settings change was made; the prior 90 MB resource stop remains in effect pending direction.

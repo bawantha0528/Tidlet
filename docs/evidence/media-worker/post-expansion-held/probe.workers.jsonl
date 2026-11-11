@@ -1,0 +1,2 @@
+{"ProcessId":9256,"StartedUtc":"2026-10-30T04:01:12.3368851+00:00","ExitedUtc":null,"CpuSeconds":null,"PeakWorkingSetBytes":null,"ExitCode":null,"Info":null,"FinalMediaAssemblies":null,"FinalWpfAssemblies":null,"StartTimeUtcTicks":639289296723368851}
+{"ProcessId":9256,"StartedUtc":"2026-10-30T04:01:12.3368851+00:00","ExitedUtc":"2026-10-30T04:01:12.4726116+00:00","CpuSeconds":0.15625,"PeakWorkingSetBytes":30834688,"ExitCode":0,"Info":null,"FinalMediaAssemblies":[],"FinalWpfAssemblies":[],"StartTimeUtcTicks":639289296723368851}

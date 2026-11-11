@@ -1,0 +1,255 @@
+{
+  "Mode": "Tidlet x86 WPF bar and CPU/RAM popups",
+  "ProcessArchitecture": "X86",
+  "PointerSize": 4,
+  "FirstFrame": true,
+  "Samples": 115,
+  "EverHidden": false,
+  "VisibilityChecks": 175,
+  "HiddenMetricReads": 0,
+  "TimersStopped": true,
+  "WindowCount": 1,
+  "AllTrayRemoved": true,
+  "Observations": [
+    {
+      "Id": "\\\\.\\DISPLAY1",
+      "Scale": 1.25,
+      "Hidden": false,
+      "FirstFrame": true,
+      "Placement": {
+        "Pixels": {
+          "Left": 0,
+          "Top": 0,
+          "Right": 1920,
+          "Bottom": 30,
+          "Width": 1920,
+          "Height": 30
+        },
+        "Scale": 1.25,
+        "ActualMode": 0,
+        "Notice": null
+      },
+      "TrayPresent": true
+    }
+  ],
+  "MetricReads": 115,
+  "NetworkReads": 115,
+  "LastSnapshot": {
+    "Cpu": 14.193130265716137,
+    "Ram": 90.0054285364959,
+    "Battery": 100,
+    "CpuReason": "CPU usage across this PC.",
+    "RamReason": "7.0 GiB used of 7.8 GiB physical RAM.",
+    "NetworkReason": "Physical Ethernet/Wi-Fi adapters only.",
+    "BatteryReason": "100% (Full)",
+    "Download": 125,
+    "Upload": 444
+  },
+  "Settings": {
+    "Version": 1,
+    "Mode": 0,
+    "Edge": 0,
+    "Alignment": 1,
+    "Monitors": 0,
+    "SelectedMonitor": null,
+    "Opacity": 0.8,
+    "IntervalSeconds": 3,
+    "Items": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Pause": false
+  },
+  "SettingsNotice": null,
+  "Recovery": "No stale reservation journal.",
+  "CpuCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "RamCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "BatteryCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "NetworkCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "ProcessRenderPreference": "SoftwareOnly",
+  "ActualRenderPipelineVerified": false,
+  "ChartWork": 13,
+  "ProcessWork": 14,
+  "DiagnosticPopupInputHeld": true,
+  "BaselinePopupReads": 14,
+  "BaselinePopupFrames": 13,
+  "BaselinePopupOpen": false,
+  "PopupEvents": [
+    {
+      "Action": "Open",
+      "Module": "Ram",
+      "Seconds": 0.002236
+    },
+    {
+      "Action": "Close",
+      "Module": "Ram",
+      "Seconds": 15.0495506
+    }
+  ],
+  "PopupOpens": 1,
+  "PopupCloses": 1,
+  "PresentationAllocatedBytes": 2764456,
+  "OutstandingPopupWorkers": 0,
+  "PopupWorkersDrained": true,
+  "PopupSample": {
+    "Cpu": null,
+    "System": null,
+    "User": null,
+    "Idle": null,
+    "FrequencyGhz": null,
+    "MaxGhz": null,
+    "Uptime": "17:29:02.2340000",
+    "Memory": {
+      "Total": 8375296000,
+      "Available": 907214848,
+      "Committed": 18775109632,
+      "CommitLimit": 29193908224,
+      "Cache": 378404864,
+      "PageFileUsed": 1543446528,
+      "PageFileTotal": 20818612224,
+      "Valid": true,
+      "CommitValid": true,
+      "UsedPercent": 89.16796674410075,
+      "Pressure": 89.16796674410075,
+      "PressureName": "Warning"
+    },
+    "Cores": [
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN",
+      "NaN"
+    ],
+    "Classes": [],
+    "Processes": [
+      {
+        "Id": 24216,
+        "Name": "powershell",
+        "CpuPercent": 0.19650259833656558,
+        "WorkingSet": 82743296
+      },
+      {
+        "Id": 10848,
+        "Name": "IsletMonitor",
+        "CpuPercent": 0,
+        "WorkingSet": 81879040
+      },
+      {
+        "Id": 23132,
+        "Name": "pwsh",
+        "CpuPercent": 0,
+        "WorkingSet": 77746176
+      },
+      {
+        "Id": 10616,
+        "Name": "explorer",
+        "CpuPercent": 0,
+        "WorkingSet": 53514240
+      },
+      {
+        "Id": 6828,
+        "Name": "Antigravity IDE",
+        "CpuPercent": 0,
+        "WorkingSet": 29270016
+      },
+      {
+        "Id": 15092,
+        "Name": "language_server_windows_x64",
+        "CpuPercent": 0,
+        "WorkingSet": 25432064
+      }
+    ],
+    "Explanation": "Protected or exited processes are skipped. Windows reported metrics.",
+    "Capabilities": {
+      "cpu": {
+        "Availability": 1,
+        "ReasonCode": "cpu.closed",
+        "Explanation": "CPU popup is closed."
+      },
+      "temperature": {
+        "Availability": 2,
+        "ReasonCode": "temperature.helper",
+        "Explanation": "Temperature needs the optional hardware helper; none is running."
+      },
+      "processes": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      },
+      "cores": {
+        "Availability": 1,
+        "ReasonCode": "cores.unavailable",
+        "Explanation": "Per-core counters are unavailable for this configuration."
+      },
+      "ram": {
+        "Availability": 0,
+        "ReasonCode": null,
+        "Explanation": null
+      }
+    }
+  },
+  "LoadedAssemblies": [
+    "System.Private.CoreLib",
+    "IsletMonitor",
+    "System.Runtime",
+    "Islet.Shell",
+    "System.Linq",
+    "Islet.Windows",
+    "Islet.Core",
+    "PresentationCore",
+    "WindowsBase",
+    "DirectWriteForwarder",
+    "System.Runtime.Extensions",
+    "System.Runtime.InteropServices",
+    "System.Diagnostics.Debug",
+    "System.Runtime.CompilerServices.VisualC",
+    "System.Threading",
+    "Microsoft.Win32.Primitives",
+    "System.Collections.NonGeneric",
+    "System.Collections",
+    "System.Text.Json",
+    "System.Threading.Thread",
+    "System.ComponentModel.Primitives",
+    "System.Memory",
+    "System.Configuration.ConfigurationManager",
+    "System.Collections.Specialized",
+    "System.Private.Uri",
+    "System.Xml.ReaderWriter",
+    "System.Private.Xml",
+    "System.Net.WebClient",
+    "System.Text.Encoding.Extensions",
+    "Microsoft.Win32.Registry",
+    "System.Diagnostics.TraceSource",
+    "UIAutomationTypes",
+    "System.Diagnostics.Process",
+    "System.IO.Packaging",
+    "System.Xaml",
+    "System.ComponentModel.TypeConverter",
+    "System.Net.Requests",
+    "System.ObjectModel",
+    "UIAutomationProvider"
+  ],
+  "NaturalExit": true,
+  "ExitCode": 0
+}

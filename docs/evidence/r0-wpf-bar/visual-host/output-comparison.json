@@ -1,0 +1,26 @@
+[
+  {
+    "File": "src/IsletMonitor/bin/visual-host/IsletMonitor.dll",
+    "SHA256": "A7BB4B1768357B87D3DFC8FC0F3024CECE0A6A75A66A78F9FDF0457FED1E2E20"
+  },
+  {
+    "File": "src/IsletMonitor/bin/visual-host/Islet.Shell.dll",
+    "SHA256": "B2CAEE161F42D4E02E977EC6605EFC3C5A52B16EA4B5131F3579C0C514996FF3"
+  },
+  {
+    "File": "src/IsletMonitor/bin/visual-host/Islet.Windows.dll",
+    "SHA256": "6A55BD1FB296AF90A4CFCD0C4668D331A095DF4C5632FBF3FF88F45E8EF204E4"
+  },
+  {
+    "File": "src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.dll",
+    "SHA256": "EBDEEB37C5BC6A79D7CE396D24F4BE8DB6679B15A15881E612384AB70E51BF9A"
+  },
+  {
+    "File": "src/IsletMonitor/bin/Release/net8.0-windows/Islet.Shell.dll",
+    "SHA256": "EF089EFD3C62E2310082FF73530F2D16C6958782B2069DA011C57387EAE91CEA"
+  },
+  {
+    "File": "src/IsletMonitor/bin/Release/net8.0-windows/Islet.Windows.dll",
+    "SHA256": "B78120128A4A1B13004AF280CDE429116C701B14C582D77BAC4CB23881AEBDF8"
+  }
+]

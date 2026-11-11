@@ -5,7 +5,7 @@ using static Islet.Windows.Native.NativeMethods;
 
 namespace Islet.Windows.Native;
 
-public sealed partial class NativeIslandDesktop : IInteractiveIslandDesktop
+public sealed partial class NativeIslandDesktop : IInteractiveIslandDesktop, IMonitorWindowDesktop
 {
     private readonly WindowProc _procedure;
     private readonly DibRenderer _renderer = new();
@@ -98,6 +98,7 @@ public sealed partial class NativeIslandDesktop : IInteractiveIslandDesktop
 
     public void Close()
     {
+        DisposeApplication();
         foreach (var timer in _timers.ToArray()) SetTimer(timer, null);
         if (_window != 0 && !DestroyWindow(_window)) throw Error("Close island window");
         _window = 0;
@@ -148,6 +149,7 @@ public sealed partial class NativeIslandDesktop : IInteractiveIslandDesktop
     {
         if (_disposed) return;
         _disposed = true;
+        DisposeApplication();
         CleanupRecovery();
         if (_window != 0)
         {

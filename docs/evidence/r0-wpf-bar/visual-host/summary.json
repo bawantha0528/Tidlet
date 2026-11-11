@@ -1,0 +1,42 @@
+﻿{
+    "Scenario":  "Bar",
+    "Result":  "Fail",
+    "Violations":  [
+                       "WorkingSet"
+                   ],
+    "DurationSeconds":  300.002634,
+    "RequiredDurationSeconds":  300,
+    "SampleCount":  301,
+    "SampleIntervalSeconds":  1,
+    "WorkingSetMeanBytes":  69769984.850498334,
+    "WorkingSetMedianBytes":  68640768,
+    "WorkingSetP95Bytes":  73580544,
+    "WorkingSetMaxBytes":  76337152,
+    "WorkingSetMaxMB":  76.337152,
+    "WorkingSetMaxMiB":  72.80078125,
+    "LifetimePeakWorkingSetBytes":  76337152,
+    "CpuSeconds":  0.640625,
+    "CpuCoreEquivalentPercent":  0.21353979178729476,
+    "CpuMachineNormalizedPercent":  0.026692473973411845,
+    "LogicalProcessorDenominator":  8,
+    "HiddenBehaviorVerified":  false,
+    "Metadata":  {
+                     "SchemaVersion":  1,
+                     "StartedUtc":  "2026-10-30T08:57:53.1325519Z",
+                     "ProcessId":  15128,
+                     "ProcessStartUtc":  "2026-10-30T08:57:52.7027354Z",
+                     "ExecutableName":  "IsletMonitor.exe",
+                     "ExecutableSHA256":  "3D6CC68DCEE6C478405C37B9B171CA276DA13A27DDA95F3F998D8D446D286E35",
+                     "ProcessArchitecture":  "TODO(verify): set from measured build configuration",
+                     "RuntimeProductVersion":  "8,0,2025,41914 @Commit: 574100b692e71fa3426931adf4c1ba42e4ee5213",
+                     "WindowsVersion":  "Microsoft Windows NT 10.0.26200.0",
+                     "ProcessorAffinityHex":  "FF",
+                     "DenominatorSource":  "Observer Environment.ProcessorCount; verify target quota/group capacity",
+                     "WarmupSeconds":  30,
+                     "ScenarioIsOperatorSupplied":  true,
+                     "IsAcceptanceDuration":  true,
+                     "NumericalLimitsOnly":  true,
+                     "Children":  "No child journal supplied; helpers require aggregate accounting."
+                 },
+    "ObserverCpuSeconds":  2.46875
+}

@@ -1,0 +1,5 @@
+# Network speed position — 31 October 2026
+
+User clarification: keep the two dots stationary; move only upload/download values closer to them and leave more breathing room before Battery, similar to CPU/RAM spacing. Retain existing network item width, dots at x=3 and row positions, upload red and download blue, battery/right alignment and metric behavior. Move the speed column's right edge from112 to84 DIP (28 DIP left). Give idle dots dim matching hues so red/upload and blue/download remain recognizable. Build the app and inspect a short live bar preview only, without full tests/performance reruns per explicit request. No dependency, settings, Git or Windows setting action.
+
+Completed: app-only Release build in bin/bar-speed-spacing succeeded with zero warnings/errors. Six-second live bar preview exited naturally with timers stopped and tray removed. Inspected artifacts/bar-speed-spacing-preview/bar.png: dot positions unchanged, values shifted left, extra gap before green Battery. No full suites/performance reruns or fresh resource claims. Earlier traffic-dot-moving revision remains reverted.

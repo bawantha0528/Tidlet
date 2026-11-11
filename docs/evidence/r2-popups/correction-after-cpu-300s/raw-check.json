@@ -1,0 +1,9 @@
+{
+  "RawSummaryMatches": true,
+  "Result": "Fail",
+  "WorkingSetMaxBytes": 77950976,
+  "LifetimePeakWorkingSetBytes": 78491648,
+  "CpuMachineNormalizedPercent": 0.029849240420849375,
+  "OverallAccepted": false,
+  "Reason": "Post-popup bar exceeds unchanged 75 MB cap"
+}

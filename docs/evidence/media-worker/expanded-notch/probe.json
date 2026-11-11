@@ -1,0 +1,151 @@
+{
+  "SchemaVersion": 3,
+  "Host": "Tidlet Monitor native shell",
+  "CompletedUtc": "2026-10-30T03:47:53.7972529+00:00",
+  "Options": {
+    "Minimal": false,
+    "ExitAfterSeconds": 345,
+    "Style": 1,
+    "State": 2,
+    "Hidden": false,
+    "Page": 0,
+    "Theme": null,
+    "ExerciseDashboard": false,
+    "Exercise": false
+  },
+  "ProcessArchitecture": "X64",
+  "LoadedWpfAssemblies": [],
+  "Capability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "LastObservation": {
+    "Visible": true,
+    "Layered": true,
+    "NoActivate": true,
+    "ToolWindow": true,
+    "ClickThrough": true,
+    "ForegroundIsIsland": false,
+    "Dpi": 120,
+    "Bounds": {
+      "X": 810,
+      "Y": 0,
+      "Width": 300,
+      "Height": 52
+    },
+    "ActiveTimers": 4,
+    "RenderCount": 110
+  },
+  "SampleAttempts": 96,
+  "AvailableSamples": 95,
+  "VisibilityChecks": 98,
+  "InvisibleChecks": 0,
+  "ForegroundEverIsland": false,
+  "LastLabel": "CPU  9%",
+  "State": 0,
+  "Style": 1,
+  "UserHidden": false,
+  "Suppressed": false,
+  "SuppressionReason": null,
+  "LoadedMediaAssemblies": [],
+  "WorkerStarts": 1,
+  "Workers": [
+    {
+      "ProcessId": 17092,
+      "StartedUtc": "2026-10-30T03:42:09.8877744+00:00",
+      "ExitedUtc": "2026-10-30T03:42:23.3739392+00:00",
+      "CpuSeconds": 0.34375,
+      "PeakWorkingSetBytes": 51707904,
+      "ExitCode": 0,
+      "Info": {
+        "ProcessId": 17092,
+        "Reads": 6,
+        "Commands": 0,
+        "MediaAssemblies": [
+          "Microsoft.Windows.SDK.NET",
+          "WinRT.Runtime"
+        ],
+        "WpfAssemblies": []
+      },
+      "FinalMediaAssemblies": [
+        "Microsoft.Windows.SDK.NET",
+        "WinRT.Runtime"
+      ],
+      "FinalWpfAssemblies": [],
+      "StartTimeUtcTicks": 639289285298877744
+    }
+  ],
+  "MediaCapability": {
+    "Availability": 0,
+    "ReasonCode": null,
+    "Explanation": null
+  },
+  "MediaReads": 6,
+  "MediaCommands": 0,
+  "MediaStatus": {
+    "State": 0,
+    "Title": "Looking for a player",
+    "Subtitle": "Windows media sessions",
+    "SessionToken": null,
+    "Playing": false,
+    "CanToggle": false,
+    "CanPrevious": false,
+    "CanNext": false,
+    "Position": null,
+    "Duration": null
+  },
+  "LastCompletedMediaStatus": {
+    "State": 1,
+    "Title": "Not playing",
+    "Subtitle": "Play something in a media app",
+    "SessionToken": null,
+    "Playing": false,
+    "CanToggle": false,
+    "CanPrevious": false,
+    "CanNext": false,
+    "Position": null,
+    "Duration": null
+  },
+  "FocusStatus": {
+    "State": 0,
+    "Remaining": "00:25:00",
+    "Duration": "00:25:00",
+    "Display": "25:00"
+  },
+  "CompactNotch": true,
+  "DashboardSamples": 14,
+  "SelectedPage": 0,
+  "Requests": 0,
+  "PointerChecks": 3150,
+  "AnimationFrames": 10,
+  "SuppressionTransitions": 1,
+  "HistoryCount": 60,
+  "ExerciseCompleted": false,
+  "DashboardExerciseCompleted": false,
+  "StatesObserved": {
+    "Notch/Expanded": 15,
+    "Notch/Collapsed": 83
+  },
+  "ObservedDpi": [
+    120
+  ],
+  "Frames": [],
+  "Recovery": {
+    "TrayAvailable": true,
+    "HotkeyAvailable": true,
+    "ReducedMotion": false,
+    "HighContrast": false,
+    "Warnings": []
+  },
+  "DisplayCount": 1,
+  "NotificationQueries": 348,
+  "NotificationQueryError": null,
+  "ForegroundSignals": 2,
+  "RenderCount": 110,
+  "TimersRemainingAfterExit": 0,
+  "PollingStoppedOnExit": true,
+  "Failure": null,
+  "NaturalExit": true,
+  "ExitCode": 0
+}

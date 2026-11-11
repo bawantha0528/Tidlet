@@ -1,0 +1,16 @@
+{
+    "Page":  "Battery",
+    "NumericalExit":  0,
+    "LifecyclePass":  true,
+    "ExpectedActivity":  true,
+    "DashboardReads":  345,
+    "DashboardFrames":  344,
+    "LifetimePeakWorkingSetBytes":  78786560,
+    "LifetimeWithinLimit":  true,
+    "BinaryHashesUnchanged":  true,
+    "CaptureVerified":  true,
+    "CapturePercent":  100,
+    "AttributionOnly":  false,
+    "OverallAccepted":  true,
+    "PhysicalInteractionVerified":  false
+}

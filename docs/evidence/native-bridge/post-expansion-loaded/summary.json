@@ -1,0 +1,42 @@
+﻿{
+    "Scenario":  "Collapsed",
+    "Result":  "Pass",
+    "Violations":  [
+
+                   ],
+    "DurationSeconds":  300.9943934,
+    "RequiredDurationSeconds":  300,
+    "SampleCount":  302,
+    "SampleIntervalSeconds":  1,
+    "WorkingSetMeanBytes":  46678382.1986755,
+    "WorkingSetMedianBytes":  45547520,
+    "WorkingSetP95Bytes":  55701504,
+    "WorkingSetMaxBytes":  55873536,
+    "WorkingSetMaxMB":  55.873536,
+    "WorkingSetMaxMiB":  53.28515625,
+    "LifetimePeakWorkingSetBytes":  67080192,
+    "CpuSeconds":  0.40625,
+    "CpuCoreEquivalentPercent":  0.13496929142468209,
+    "CpuMachineNormalizedPercent":  0.016871161428085261,
+    "LogicalProcessorDenominator":  8,
+    "HiddenBehaviorVerified":  false,
+    "Metadata":  {
+                     "SchemaVersion":  1,
+                     "StartedUtc":  "2026-10-30T05:06:51.7625697Z",
+                     "ProcessId":  20904,
+                     "ProcessStartUtc":  "2026-10-30T05:06:51.2759712Z",
+                     "ExecutableName":  "IsletMonitor.exe",
+                     "ExecutableSHA256":  "3D6CC68DCEE6C478405C37B9B171CA276DA13A27DDA95F3F998D8D446D286E35",
+                     "ProcessArchitecture":  "TODO(verify): set from measured build configuration",
+                     "RuntimeProductVersion":  "8,0,2025,41914 @Commit: 574100b692e71fa3426931adf4c1ba42e4ee5213",
+                     "WindowsVersion":  "Microsoft Windows NT 10.0.26200.0",
+                     "ProcessorAffinityHex":  "FF",
+                     "DenominatorSource":  "Observer Environment.ProcessorCount; verify target quota/group capacity",
+                     "WarmupSeconds":  30,
+                     "ScenarioIsOperatorSupplied":  true,
+                     "IsAcceptanceDuration":  true,
+                     "NumericalLimitsOnly":  true,
+                     "Children":  "Aggregate parent plus identity-checked journaled workers; exited CPU retained; exit peaks conservatively included once."
+                 },
+    "ObserverCpuSeconds":  2.9375
+}

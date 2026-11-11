@@ -1,0 +1,8 @@
+{
+    "Policy":  "31 October application 100 MB; fresh bar/popup and post-close current 90 MB",
+    "CurrentLimitBytes":  90000000,
+    "LifetimeLimitBytes":  100000000,
+    "CurrentWithinLimit":  true,
+    "LifetimeWithinLimit":  true,
+    "Accepted":  true
+}

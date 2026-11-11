@@ -1,0 +1,9 @@
+{
+  "RawCsvRecomputed": true,
+  "Result": "Fail",
+  "PeakMB": 76.337152,
+  "CpuPercent": 0.026692473973411845,
+  "BinaryHashesMatched": 7,
+  "MeasuredOutput": "src/IsletMonitor/bin/visual-host",
+  "NormalReleaseBinaryEquivalenceClaimed": false
+}

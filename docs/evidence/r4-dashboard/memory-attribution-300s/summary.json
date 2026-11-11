@@ -1,0 +1,43 @@
+﻿{
+    "Scenario":  "Popup",
+    "Result":  "Fail",
+    "Violations":  [
+                       "WorkingSet"
+                   ],
+    "DurationSeconds":  301.0010888,
+    "RequiredDurationSeconds":  300,
+    "SampleCount":  302,
+    "SampleIntervalSeconds":  1,
+    "WorkingSetMeanBytes":  86755436.503311262,
+    "WorkingSetMedianBytes":  86620160,
+    "WorkingSetP95Bytes":  88985600,
+    "WorkingSetMaxBytes":  91099136,
+    "WorkingSetMaxMB":  91.099136,
+    "WorkingSetMaxMiB":  86.87890625,
+    "LifetimePeakWorkingSetBytes":  95952896,
+    "CpuSeconds":  6.078125,
+    "CpuCoreEquivalentPercent":  2.0193033268522846,
+    "CpuMachineNormalizedPercent":  0.25241291585653558,
+    "LogicalProcessorDenominator":  8,
+    "HiddenBehaviorVerified":  false,
+    "Metadata":  {
+                     "SchemaVersion":  1,
+                     "StartedUtc":  "2026-10-31T02:12:31.7089874Z",
+                     "ProcessId":  9872,
+                     "ProcessStartUtc":  "2026-10-31T02:12:31.2487848Z",
+                     "ExecutableName":  "IsletMonitor.exe",
+                     "ExecutableSHA256":  "D135BD2D5FF54F02D7FF63DA4B6CDF2D6CCD1BC4167E709B3795F5D771A3AAF4",
+                     "ProcessArchitecture":  "TODO(verify): set from measured build configuration",
+                     "RuntimeProductVersion":  null,
+                     "WindowsVersion":  "Microsoft Windows NT 10.0.26200.0",
+                     "ProcessorAffinityHex":  "FF",
+                     "DenominatorSource":  "Observer Environment.ProcessorCount; verify target quota/group capacity",
+                     "WarmupSeconds":  30,
+                     "ScenarioIsOperatorSupplied":  true,
+                     "IsAcceptanceDuration":  true,
+                     "NumericalLimitsOnly":  true,
+                     "VerifyHiddenWindows":  false,
+                     "Children":  "No child journal supplied; helpers require aggregate accounting."
+                 },
+    "ObserverCpuSeconds":  3.875
+}

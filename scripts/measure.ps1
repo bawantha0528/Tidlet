@@ -10,14 +10,15 @@ verified; Pass covers numerical limits only. Hidden behavior needs separate evid
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][ValidateRange(1, 2147483647)][int] $ProcessId,
-    [ValidateSet('ScaffoldIdle','Collapsed','Expanded','Hidden','Fullscreen')]
+    [ValidateSet('ScaffoldIdle','Collapsed','Expanded','Hidden','Fullscreen','Bar','Popup','Application')]
     [string] $Scenario = 'ScaffoldIdle',
     [ValidateRange(1, 86400)][int] $DurationSeconds = 300,
     [ValidateRange(0, 600)][int] $WarmupSeconds = 30,
     [ValidateRange(0, 4096)][int] $LogicalProcessorCount = 0,
     [string] $OutputDirectory = '',
     [string] $ChildJournal = '',
-    [switch] $AllowShortRun
+    [switch] $AllowShortRun,
+    [switch] $VerifyHiddenWindows
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -40,6 +41,20 @@ $observer = [System.Diagnostics.Process]::GetCurrentProcess()
 $observerCpuStart = $observer.TotalProcessorTime.TotalSeconds
 $summary = $null
 $exitCode = 1
+if($VerifyHiddenWindows){
+ if($Scenario -notin @('Hidden','Fullscreen')){throw 'Window suppression proof requires Hidden/Fullscreen scenario.'}
+ Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class TidletWindowObservation {
+ delegate bool Callback(IntPtr window,IntPtr param);
+ [DllImport("user32.dll")]static extern bool EnumWindows(Callback callback,IntPtr param);
+ [DllImport("user32.dll")]static extern uint GetWindowThreadProcessId(IntPtr window,out uint process);
+ [DllImport("user32.dll")]static extern bool IsWindowVisible(IntPtr window);
+ public static int[] Read(uint process){int owned=0,visible=0;Callback callback=(w,p)=>{uint id;GetWindowThreadProcessId(w,out id);if(id==process){owned++;if(IsWindowVisible(w))visible++;}return true;};if(!EnumWindows(callback,IntPtr.Zero))throw new InvalidOperationException("Window enumeration failed");return new[]{owned,visible};}
+}
+'@
+}
 
 try {
     $target = [System.Diagnostics.Process]::GetProcessById($ProcessId)
@@ -66,7 +81,8 @@ try {
         WarmupSeconds = $WarmupSeconds
         ScenarioIsOperatorSupplied = $true
         IsAcceptanceDuration = $DurationSeconds -ge 300
-        NumericalLimitsOnly = $true
+        NumericalLimitsOnly = (-not $VerifyHiddenWindows)
+        VerifyHiddenWindows = [bool]$VerifyHiddenWindows
         Children = if ($ChildJournal) { 'Aggregate parent plus identity-checked journaled workers; exited CPU retained; exit peaks conservatively included once.' } else { 'No child journal supplied; helpers require aggregate accounting.' }
     }
     $warmupClock = [Diagnostics.Stopwatch]::StartNew()
@@ -125,6 +141,7 @@ try {
                 StartTimeUtcTicks=$component.StartTimeUtcTicks;Active=$component.Active;CpuSeconds=$component.CpuSeconds;WorkingSetBytes=$component.WorkingSetBytes;PrivateBytes=$component.PrivateBytes;
                 PeakWorkingSetBytes=$component.PeakWorkingSetBytes;IncludeExitPeak=$component.IncludeExitPeak})
         }
+        $windowState=if($VerifyHiddenWindows){[TidletWindowObservation]::Read([uint32]$ProcessId)}else{@(-1,-1)}
         $samples.Add([pscustomobject][ordered]@{
             SampleIndex = $samples.Count
             ElapsedSeconds = $clock.Elapsed.TotalSeconds
@@ -141,11 +158,17 @@ try {
             ActiveWorkers = $cost.ActiveWorkers
             HandleCount = $target.HandleCount
             ThreadCount = $target.Threads.Count
+            OwnedWindows = $windowState[0]
+            VisibleWindows = $windowState[1]
         })
         $nextDue += 1.0
     } while (($samples[-1].ElapsedSeconds - $samples[0].ElapsedSeconds) -lt $DurationSeconds)
 
     $summary = Get-MeasurementSummary -Samples $samples.ToArray() -RequiredDurationSeconds $DurationSeconds -LogicalProcessorCount $denominator -Scenario $Scenario
+    if($VerifyHiddenWindows){
+        $summary.HiddenBehaviorVerified=@($samples|Where-Object{$_.OwnedWindows -lt 1 -or $_.VisibleWindows -ne 0}).Count -eq 0
+        if(-not $summary.HiddenBehaviorVerified){$summary.Violations+= 'WindowSuppression';$summary.Result='Fail'}
+    }
     if ($DurationSeconds -lt 300) {
         $summary.Result = 'DiagnosticOnly'
     }

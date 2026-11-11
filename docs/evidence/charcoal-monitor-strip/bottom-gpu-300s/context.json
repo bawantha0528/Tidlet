@@ -1,0 +1,15 @@
+{
+    "Scenario":  "Bar",
+    "Milestone":  "R1",
+    "WorkingSetLimitBytes":  90000000,
+    "CpuLimitPercent":  1,
+    "WarmupSeconds":  30,
+    "DurationSeconds":  300,
+    "Reserve":  false,
+    "Bottom":  true,
+    "ExpectedArchitecture":  "X86",
+    "OtherTidletProcesses":  [
+
+                             ],
+    "CaptureKind":  "WPF render target, not desktop screenshot"
+}

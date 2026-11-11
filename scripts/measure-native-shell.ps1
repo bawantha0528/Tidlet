@@ -14,7 +14,7 @@ if ((Get-ChildItem -LiteralPath $root -Force | Measure-Object).Count) { throw 'U
 if (-not $ExecutablePath) { $ExecutablePath=Join-Path $PSScriptRoot '../src/IsletMonitor/bin/Release/net8.0-windows/IsletMonitor.exe' }
 $exe=(Resolve-Path -LiteralPath $ExecutablePath).Path
 $report=Join-Path $root 'probe.json'
-$arguments=@('--style',$Style,'--exit-after-seconds','345','--probe-report',('"' + $report + '"'))
+$arguments=@('--hold-diagnostic-input','--style',$Style,'--exit-after-seconds','345','--probe-report',('"' + $report + '"'))
 if ($Scenario -eq 'Expanded') { $arguments+=@('--state','Expanded') }
 if ($Scenario -eq 'Hidden') { $arguments+='--hidden' }
 if ($Scenario -eq 'PostExpansion') { $arguments+='--exercise-shell' }
@@ -38,7 +38,7 @@ try {
     $target=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -WindowStyle Hidden
     [ordered]@{ StartedUtc=[DateTimeOffset]::UtcNow.ToString('O'); Scenario=$Scenario; Style=$Style; IsAdministrator=$admin;
         LogicalProcessors=[Environment]::ProcessorCount; ProcessId=$target.Id; WarmupSeconds=30; MeasuredSeconds=300;
-        NaturalExitAfterSeconds=345; Scope='Native Tidlet dashboard with real metric providers; no WPF initialization';
+        NaturalExitAfterSeconds=345; Scope='Native Tidlet plus journaled media workers; real metric providers; diagnostic input hold, actual pointer/fullscreen checks; no WPF';
         Fixture=if($Scenario -eq 'Fullscreen'){'Owned borderless foreground fixture; not an exclusive D3D game'}else{$null};
         NativeVisibilityMeaning='WS_VISIBLE observed; occlusion and exhaustive input/focus audit remain separate' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $root 'context.json') -Encoding utf8
     & powershell -NoProfile -File (Join-Path $PSScriptRoot 'measure.ps1') -ProcessId $target.Id -Scenario $observerScenario -DurationSeconds 300 -WarmupSeconds 30 -OutputDirectory $root -ChildJournal ([IO.Path]::ChangeExtension($report,'.workers.jsonl'))
@@ -56,7 +56,7 @@ try {
     $native=$data.LastObservation
     if ($data.LoadedMediaAssemblies.Count -ne 0 -or @($data.Workers | Where-Object { -not $_.ExitedUtc -or $_.ExitCode -ne 0 -or -not $_.PeakWorkingSetBytes -or $_.FinalWpfAssemblies.Count -ne 0 }).Count) { throw 'Media isolation/exit costs failed.' }
     $aggregate=@(Import-Csv -LiteralPath (Join-Path $root 'samples.csv'))
-    if ($Scenario -eq 'Expanded' -and $Style -eq 'Notch' -and $data.MediaCapability.Availability -eq 0 -and @($aggregate | Where-Object { [int]$_.ActiveWorkers -ne 1 }).Count) { throw 'Expanded Notch did not include one media worker throughout.' }
+    if ($data.WorkerStarts -ne 0 -or $data.ActiveThreads -ne 0 -or ($Scenario -eq 'Expanded' -and $Style -eq 'Notch' -and ($data.ThreadStarts -lt 1 -or $data.LastCompletedMediaStatus.State -eq 0))) { throw 'Native media bridge was not exercised or did not stop.' }
     if ($Scenario -in @('Collapsed','PostExpansion','Hidden','Fullscreen') -and @($aggregate | Where-Object { [int]$_.ActiveWorkers -ne 0 }).Count) { throw 'Workers remained during collapsed/hidden measurement.' }
     if (-not $native.NoActivate -or -not $native.ToolWindow -or -not $native.Layered) { throw 'Required native window styles were lost.' }
     if ($Scenario -in @('Hidden','Fullscreen')) {

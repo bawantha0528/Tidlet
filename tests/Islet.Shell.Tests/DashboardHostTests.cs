@@ -52,8 +52,9 @@ public sealed class DashboardHostTests
         var tab = DashboardLayout.Tab(3, 860);
         desktop.Signal(new(IslandInputKind.LeftClick, X: (int)((tab.X + 5) * 1.5), Y: (int)((tab.Y + 5) * 1.5)));
         Assert.AreEqual(MonitorPage.Network, host.SelectedPage);
+        Assert.AreEqual(MonitorSurface.Module,desktop.Frame!.Dashboard!.Surface);
         var theme = DashboardLayout.ThemeButton(860);
-        desktop.Signal(new(IslandInputKind.LeftClick, X: (int)((theme.X + 5) * 1.5), Y: (int)((theme.Y + 5) * 1.5)));
+        desktop.Signal(new(IslandInputKind.Command,DashboardLayout.ThemeCommand));
         Assert.AreEqual(ThemeMode.Light, desktop.Frame!.Dashboard!.Theme);
         Assert.AreEqual(0, host.SampleAttempts);
     }
@@ -99,7 +100,20 @@ public sealed class DashboardHostTests
         host.SetHidden(true); desktop.Signal(new(IslandInputKind.Command,ControlCenterLayout.Next));
         Assert.AreEqual(1,media.Commands); Assert.AreEqual(MediaState.Waiting,host.MediaStatus.State);
     }
-    private sealed class ControllableMedia : IMediaProvider
+    [TestMethod]
+    public void DiagnosticInputHoldRequiresTimedReportAndLeavesNormalLaunchesInteractive()
+    {
+        Assert.IsFalse(IslandLaunchArguments.TryParse(["--hold-diagnostic-input"],out _,out _));
+        Assert.IsFalse(IslandLaunchArguments.TryParse(["--hold-diagnostic-input","--probe-report","sample.json"],out _,out _));
+        Assert.IsTrue(IslandLaunchArguments.TryParse(["--hold-diagnostic-input","--probe-report","sample.json","--exit-after-seconds","8"],out var options,out _));
+        var desktop=new Desktop();using var host=new NativeIslandHost(desktop,new Cpu());
+        host.Start(options with { State=IslandState.Expanded });
+        desktop.Signal(new(IslandInputKind.Toggle));desktop.Signal(new(IslandInputKind.Command,401));
+        Assert.AreEqual(IslandState.Expanded,host.State);Assert.AreEqual(MonitorPage.Overview,host.SelectedPage);
+        Assert.AreEqual(2,host.HeldDiagnosticInputs);
+        desktop.Signal(new(IslandInputKind.Close));Assert.IsTrue(host.Stopped);
+        Assert.IsTrue(IslandLaunchArguments.TryParse([],out var normal,out _));Assert.IsFalse(normal.HoldDiagnosticInput);
+    }    private sealed class ControllableMedia : IMediaProvider
     {
         public int Commands; public MediaCommand? LastCommand;
         public CapabilityProbeResult Probe()=>CapabilityProbeResult.Supported;

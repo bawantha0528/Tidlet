@@ -1,0 +1,1 @@
+Read-only module inventory captured during the solid trial. ImageSpanBytes is the mapped PE image address span, not resident RAM or attributable working-set cost. Do not add these image spans to the process working set or claim they identify a leak. Modules are captured by the external observer, with no profiler/setting change in the app.

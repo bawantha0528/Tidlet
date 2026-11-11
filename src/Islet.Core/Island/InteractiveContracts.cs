@@ -26,6 +26,10 @@ public interface IInteractiveIslandDesktop : IIslandDesktop
 
 public sealed record NativeIslandOptions
 {
+    public bool StyleSpecified { get; init; }
+    public Islet.Core.Presentation.MonitorSurface? Surface { get; init; }
+    public bool AutoRevealBar { get; init; }
+    public bool HoldDiagnosticInput { get; init; }
     public bool Minimal { get; init; }
     public int? ExitAfterSeconds { get; init; }
     public IslandStyle Style { get; init; } = IslandStyle.Island;

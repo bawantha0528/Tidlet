@@ -1,0 +1,1 @@
+{"OverallAccepted":false,"Reason":"Process exited before full 300-second observation (287 samples); retain as incomplete, not a budget pass.","DisplayedLayoutReviewed":true,"LaterSourceEdits":"Network/Battery changes discovered after pause; frozen isolated R2 build remains distinct from current source/normal Release."}

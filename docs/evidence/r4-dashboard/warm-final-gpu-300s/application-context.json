@@ -1,0 +1,9 @@
+{
+    "Scenario":  "Static",
+    "Gate":  "Application",
+    "Page":  "GPU",
+    "CapBytes":  100000000,
+    "LifetimeCapBytes":  100000000,
+    "CloseSeconds":  null,
+    "CycleSeconds":  null
+}

@@ -1,0 +1,10 @@
+{
+  "Purpose": "Read-only visual review only, not a resource acceptance trial",
+  "Frames": 9,
+  "Reads": 10,
+  "ActualArchitecture": "X86",
+  "ActualDpi": 1.25,
+  "WorkersDrained": true,
+  "Captures": "100/150 percent WPF render exports, not desktop screenshots",
+  "BudgetPassClaimed": false
+}

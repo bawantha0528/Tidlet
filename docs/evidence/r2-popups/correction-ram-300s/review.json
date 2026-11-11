@@ -1,0 +1,12 @@
+{
+  "OverallAccepted": true,
+  "DurationSeconds": 300.0010444,
+  "WorkingSetMaxBytes": 79896576,
+  "LifetimePeakWorkingSetBytes": 82391040,
+  "CpuMachineNormalizedPercent": 0.4029933887123494,
+  "Runtime": "X86",
+  "PointerSize": 4,
+  "Frames": 343,
+  "Allocations": 43510428,
+  "Scope": "Frozen R2 correction only; newer R3 edits not included"
+}

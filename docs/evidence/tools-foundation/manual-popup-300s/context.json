@@ -1,0 +1,22 @@
+{
+    "Stage":  "Tool strip/shared host feasibility, not five completed modules",
+    "Scenario":  "Popup",
+    "LimitBytes":  90000000,
+    "DurationSeconds":  300,
+    "WarmupSeconds":  30,
+    "SyntheticManualPercentages":  [
+                                       42,
+                                       68
+                                   ],
+    "PrivateDataRead":  false,
+    "GitRepositories":  [
+
+                        ],
+    "PendingBackends":  [
+                            "Screenshot",
+                            "Clipboard",
+                            "EyeCare"
+                        ],
+    "CaptureKind":  "WPF render exports, not desktop screenshots",
+    "ExpectedArchitecture":  "X86"
+}

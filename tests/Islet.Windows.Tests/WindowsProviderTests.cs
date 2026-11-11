@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Islet.Core.Capabilities;
 using Islet.Core.Metrics;
 using Islet.Windows.Metrics;
@@ -77,6 +77,44 @@ public sealed class WindowsProviderTests
         Assert.AreEqual(BatteryChargingStatus.Charging, sample.ChargingStatus);
     }
 
+    private sealed class FakeBatteryWithCapacitySource(bool success, byte flag, byte percent, int lifeTime, uint designed, uint full, uint cycles) : ISystemBatterySource
+    {
+        public bool TryRead(out byte acLineStatus, out byte batteryFlag, out byte batteryLifePercent, out int batteryLifeTime, out int error)
+        {
+            acLineStatus = 1;
+            batteryFlag = flag;
+            batteryLifePercent = percent;
+            batteryLifeTime = lifeTime;
+            error = 0;
+            return success;
+        }
+
+        public bool TryReadCapacity(out uint designedCapacity, out uint fullChargedCapacity, out uint cycleCount)
+        {
+            designedCapacity = designed;
+            fullChargedCapacity = full;
+            cycleCount = cycles;
+            return true;
+        }
+    }
+
+    [TestMethod]
+    public void BatteryProvider_WithRealHardwareCapacity_CalculatesHealthAndCycles()
+    {
+        var source = new FakeBatteryWithCapacitySource(true, 8, 100, 0, 57488, 42427, 160);
+        var provider = new SystemBatteryProvider(source);
+        var probe = provider.Probe();
+        Assert.AreEqual(CapabilityAvailability.Supported, probe.Availability);
+
+        var sample = provider.Sample();
+        Assert.AreEqual(BatteryReadingState.Available, sample.State);
+        Assert.IsTrue(sample.HealthPercent.HasValue);
+        Assert.AreEqual(73.8, Math.Round(sample.HealthPercent.Value, 1));
+        Assert.AreEqual(160, sample.CycleCount);
+        Assert.AreEqual(57488u, sample.DesignedCapacityMWh);
+        Assert.AreEqual(42427u, sample.FullChargedCapacityMWh);
+    }
+
     private sealed class FakeNetworkSource(bool success, ulong inBytes, ulong outBytes, string name) : ISystemNetworkSource
     {
         public bool TryReadActiveInterface(out ulong inOctets, out ulong outOctets, out string? interfaceName, out int error)
@@ -143,5 +181,41 @@ public sealed class WindowsProviderTests
             Assert.IsTrue(result.Succeeded);
             Assert.AreEqual(testPid, terminatedPid);
         }
+    }
+
+    [TestMethod]
+    public void SensorProvider_NativeSourceWithoutHelper_ReturnsNeedsHelper()
+    {
+        var provider = new SystemSensorProvider(new NativeSystemSensorSource());
+        var probe = provider.Probe();
+        Assert.AreEqual(CapabilityAvailability.NeedsHelper, probe.Availability);
+        StringAssert.Contains(probe.Explanation, "M4");
+
+        var sample = provider.Sample();
+        Assert.AreEqual(SensorReadingState.NeedsHelper, sample.State);
+        Assert.IsNull(sample.PackageTemperatureC);
+
+        var allowed = provider.TrySetFanProfile(FanControlMode.Performance, out var explanation);
+        Assert.IsFalse(allowed);
+        StringAssert.Contains(explanation, "M4");
+    }
+
+    [TestMethod]
+    public void SensorProvider_SimulatedSource_ReturnsSupportedAndAllowsPreview()
+    {
+        var provider = new SystemSensorProvider(new SimulatedSystemSensorSource(54.0, 2100));
+        var probe = provider.Probe();
+        Assert.AreEqual(CapabilityAvailability.Supported, probe.Availability);
+
+        var sample = provider.Sample();
+        Assert.AreEqual(SensorReadingState.Available, sample.State);
+        Assert.AreEqual(54.0, sample.PackageTemperatureC);
+        Assert.AreEqual(2100, sample.FanRpm);
+
+        var allowed = provider.TrySetFanProfile(FanControlMode.Performance, out var msg);
+        Assert.IsTrue(allowed);
+        StringAssert.Contains(msg, "Performance");
+        var updated = provider.Sample();
+        Assert.AreEqual(2800, updated.FanRpm);
     }
 }
