@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.IO;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -13,6 +14,24 @@ namespace Islet.Shell.Tests;
 [TestClass]
 public sealed class ApplicationPageTests
 {
+    [TestMethod]
+    [DataRow(1.0)]
+    [DataRow(1.5)]
+    public void GaugeReadoutsStayCenteredAcrossValueWidths(double scale)=>Sta(()=>
+    {
+        var helper=typeof(DashboardHost).Assembly.GetType("Islet.Shell.Bar.MonitorText")!;
+        var format=helper.GetMethod("Format",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var centered=helper.GetMethod("Centered",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var center=new Point(69,71);
+        foreach(var value in new[]{"9%","99%","100%","1.25 GiB","Unavailable"})
+        {
+            var text=(FormattedText)format.Invoke(null,[value,new Typeface("Segoe UI"),12.0,Brushes.White,scale])!;
+            var origin=(Point)centered.Invoke(null,[text,center,scale])!;
+            Assert.AreEqual(center.X,origin.X+text.Width/2,.501/scale,value);
+            Assert.AreEqual(center.Y,origin.Y+text.Height/2,.501/scale,value);
+        }
+    });
+
     [TestMethod]
     public void BatteryPowerModeUsesExplicitSelectionAndExposesFallback()=>Sta(()=>
     {
@@ -41,7 +60,14 @@ public sealed class ApplicationPageTests
         host.Open("Battery");
         Invoke(new Point(720,77),"Windows settings");
         PumpUntil(()=>control.Fallbacks==1);
+        var readsBeforeGuide=control.Reads;
+        Invoke(new Point(600,77),"80% charge limit");
+        PumpUntil(()=>host.PageHistory.LastOrDefault()==DashboardHost.BatteryOptimizationPage);
+        Assert.AreEqual(readsBeforeGuide,control.Reads);
         Assert.AreEqual(2,control.Changes.Count);
+        Invoke(new Point(700,30),"Back to Battery");
+        PumpUntil(()=>host.PageHistory.LastOrDefault()=="Battery");
+        Assert.AreEqual(readsBeforeGuide+1,control.Reads);
         host.Close();
         Assert.IsTrue(host.Drain(TimeSpan.FromSeconds(2)));
 
@@ -90,13 +116,29 @@ public sealed class ApplicationPageTests
                 var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
                 const int backgroundPixel=(75*690+550)*4;
                 Assert.IsTrue(Pixels(visual)[backgroundPixel]<60);
-                var row=(UIElement)visual.InputHitTest(new Point(260,140));
-                var peer=System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(row)!;
-                Assert.AreEqual("Theme: Dark",peer.GetName());
-                ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke)!).Invoke();
+                InvokeAt(new Point(260,140),"Theme: Dark");
+                PumpUntil(()=>NameAt(new Point(640,213))=="Light");
+                Assert.AreEqual(BarTheme.Dark,settings.Theme,"Opening the list does not change the setting.");
+                Assert.AreEqual("Dark (selected)",NameAt(new Point(640,181)));
+                InvokeAt(new Point(260,140),"Dismiss Theme choices");
+                PumpUntil(()=>NameAt(new Point(260,140))=="Theme: Dark");
+                Assert.AreEqual(BarTheme.Dark,settings.Theme,"Dismissing the list does not change the setting.");
+                InvokeAt(new Point(260,140),"Theme: Dark");
+                PumpUntil(()=>NameAt(new Point(640,213))=="Light");
+                InvokeAt(new Point(640,213),"Light");
                 PumpUntil(()=>settings.Theme==BarTheme.Light);
                 Assert.IsTrue(host.IsOpen);
                 Assert.IsTrue(Pixels(visual)[backgroundPixel]>230);
+
+                string? NameAt(Point point)=>visual.InputHitTest(point) is UIElement element
+                    ? UIElementAutomationPeer.CreatePeerForElement(element)?.GetName() : null;
+                void InvokeAt(Point point,string name)
+                {
+                    var row=(UIElement)visual.InputHitTest(point);
+                    var peer=UIElementAutomationPeer.CreatePeerForElement(row)!;
+                    Assert.AreEqual(name,peer.GetName());
+                    ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(PatternInterface.Invoke)!).Invoke();
+                }
             }
             Assert.IsTrue(host.Drain(TimeSpan.FromSeconds(2)));
             var restored=BarSettingsFile.Load(settingsPath,out var notice);
@@ -107,6 +149,88 @@ public sealed class ApplicationPageTests
             CollectionAssert.AreEqual(settings.ItemOrder,restored.ItemOrder);
         }
         finally{File.Delete(settingsPath);}
+    });
+
+    [TestMethod]
+    public void WidgetsSampleOnlyOnTheirPageAndSkipExpensiveDetails()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var sources=new System.Collections.Concurrent.ConcurrentBag<WidgetSource>();
+        using var host=new DashboardHost(()=>new BarSettings(),_=>{},()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>{var source=new WidgetSource();sources.Add(source);return source;},()=>display,
+            new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{}));
+        host.Open("Dashboard");
+        Assert.AreEqual(0,host.CurrentReads);
+        host.Open("Widgets");
+        PumpUntil(()=>host.CurrentFrames>0);
+        CollectionAssert.AreEquivalent(new[]{BarModule.Cpu,BarModule.Gpu,BarModule.Ram,BarModule.Disk,BarModule.Network},sources.Select(source=>source.Module).ToArray());
+        Assert.IsTrue(sources.All(source=>source.Details==PopupDetails.None));
+        host.Open("Settings");
+        Assert.IsTrue(sources.All(source=>source.Disposed));
+        Assert.AreEqual(1,host.CurrentReads);
+    });
+
+    private sealed class WidgetSource : IPopupSource, IPopupDetailSource
+    {
+        public BarModule Module { get; private set; }
+        public PopupDetails Details { get; private set; } = PopupDetails.All;
+        public bool Disposed { get; private set; }
+        public CapabilityProbeResult Probe(BarModule module){Module=module;return CapabilityProbeResult.Supported;}
+        public PopupSample Read(BarModule module)=>new(35,12,23,65,null,null,TimeSpan.Zero,null,[],[],[],"Mock");
+        public void SetDetails(PopupDetails details)=>Details=details;
+        public void Dispose()=>Disposed=true;
+    }
+
+    [TestMethod]
+    public void DataUsageCardAppliesTheSelectedPeriod()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var selected=UsagePeriod.Month;
+        using var host=new DashboardHost(()=>new BarSettings{Pause=true},_=>{},()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new WidgetSource(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
+                Usage:()=>new(selected,new(42,13),true),SelectUsage:period=>selected=period));
+        host.Open("Widgets");
+        var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+        var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+        var button=(UIElement)visual.InputHitTest(new Point(258,128));
+        var peer=UIElementAutomationPeer.CreatePeerForElement(button)!;
+        Assert.AreEqual("Data usage: Day",peer.GetName());
+        ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(PatternInterface.Invoke)!).Invoke();
+        PumpUntil(()=>selected==UsagePeriod.Day);
+    });
+
+    [TestMethod]
+    public void DesktopPinsAreRememberedAndDuplicatePinsReuseTheirWindow()=>Sta(()=>
+    {
+        var folder=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"));
+        var layout=Path.Combine(folder,"desktop-widgets.json");
+        var positions=new Dictionary<nint,BarRect>();
+        BarDisplay[] displays=[new("mock",true,new(0,0,1280,900),new(0,0,1280,860))];
+        DesktopWidgetHost Create()=>new(layout,()=>new BarSettings{Pause=true},()=>new WidgetSource(),new(),
+            ()=>displays,hwnd=>positions.GetValueOrDefault(hwnd,new(20,48,238,240)),(hwnd,rect,_)=>positions[hwnd]=rect);
+        try
+        {
+            using(var host=Create())
+            {
+                StringAssert.Contains(host.Pin(BarModule.Cpu),"added to desktop");
+                StringAssert.Contains(host.Pin(BarModule.Cpu),"already on the desktop");
+                StringAssert.Contains(host.Pin(null),"Combined added");
+                Assert.AreEqual(2,host.Count);
+                Assert.AreEqual(0,host.Frames);
+            }
+            using var reopened=Create();
+            reopened.Restore();
+            Assert.AreEqual(2,reopened.Count);
+            Assert.IsTrue(reopened.Drain(TimeSpan.FromSeconds(1)));
+        }
+        finally
+        {
+            if(Directory.Exists(folder))
+            {
+                if(File.Exists(layout))File.Delete(layout);
+                Directory.Delete(folder);
+            }
+        }
     });
 
     [TestMethod]
@@ -172,11 +296,17 @@ public sealed class ApplicationPageTests
     {
         var type=typeof(DashboardHost).Assembly.GetType("Islet.Shell.Bar.ApplicationModuleVisual",true)!;
         var visual=(UIElement)Activator.CreateInstance(type,[BarModule.Cpu,690.0,550.0,1.0])!;visual.Measure(new Size(690,550));visual.Arrange(new Rect(0,0,690,550));var cold=Pixels(visual);
+        var peer=System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(visual)!;
+        StringAssert.Contains(peer.GetName(),"Measuring CPU usage");
         Assert.IsTrue(cold[(220*690+400)*4+3]>0,"Cold start should contain a shaped loading card");
         var sample=new PopupSample(20,5,15,80,2.5,4,TimeSpan.Zero,null,[],[],[],"Previous fixture");
         type.GetMethod("ShowPrevious")!.Invoke(visual,[sample]);var previous=Pixels(visual);Assert.IsFalse(cold.SequenceEqual(previous));
+        StringAssert.Contains(peer.GetName(),"Previous reading");
         var history=new SampleRing(121);type.GetMethod("Update")!.Invoke(visual,[sample with{Cpu=null,WarmingUp=true},history,history,1.0]);CollectionAssert.AreEqual(previous,Pixels(visual));Assert.AreEqual(0,history.Count);
         type.GetMethod("Update")!.Invoke(visual,[sample with{Cpu=null,Explanation="Permission denied"},history,history,2.0]);Assert.IsFalse(previous.SequenceEqual(Pixels(visual)),"A real failure must replace the cached view");
+        StringAssert.Contains(peer.GetName(),"Permission denied");
+        type.GetMethod("ShowMeasuring")!.Invoke(visual,[sample with{Cpu=null,WarmingUp=true}]);
+        StringAssert.Contains(peer.GetName(),"Measuring CPU usage");
     });
     [TestMethod]
     public void FirstCompletedReadingAppearsBeforeNextPollWithoutStartingAnExtraRead()=>Sta(()=>

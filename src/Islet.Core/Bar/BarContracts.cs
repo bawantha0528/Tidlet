@@ -95,7 +95,8 @@ public readonly record struct BarRect(int Left,int Top,int Right,int Bottom)
 public sealed record BarDisplay(string Id,bool Primary,BarRect Bounds,BarRect Work);
 public readonly record struct BarPlacement(BarRect Pixels,double Scale,BarMode ActualMode,string? Notice);
 public sealed record BarSnapshot(double? Cpu,double? Ram,double? Battery,string CpuReason,string RamReason,string NetworkReason,string BatteryReason,
-    double? Download,double? Upload,bool Loading=false,bool CpuLoading=false,bool NetworkLoading=false,double? Gpu=null,string GpuReason="GPU readings are not enabled.",bool GpuLoading=false);
+    double? Download,double? Upload,bool Loading=false,bool CpuLoading=false,bool NetworkLoading=false,double? Gpu=null,string GpuReason="GPU readings are not enabled.",bool GpuLoading=false,
+    bool CpuRefreshing=false,bool NetworkRefreshing=false,bool GpuRefreshing=false);
 public readonly record struct BarItemLayout(BarModule Module,double X,double Width);
 public static class BarLayout
 {

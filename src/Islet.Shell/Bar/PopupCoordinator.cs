@@ -34,7 +34,7 @@ public sealed class PopupCoordinator:IDisposable
         Close();Opens++;if(Events.Count<64)Events.Add(new{Action="Open",Module=module.ToString(),Seconds=_lifetime.Elapsed.TotalSeconds});
         _window=new PopupWindow(module,item,display,scale,activate,_factory,_position,_taskManager,
             ()=>{_lastModule=module;_lastDismiss=Stopwatch.GetTimestamp();Close();},
-            (sample,allocated)=>{LastSample=sample;Frames++;PresentationAllocatedBytes+=allocated;_recent.Store(module,sample);},()=>Reads++,CanRead,delta=>Interlocked.Add(ref _workers,delta),_holdInput,settings?.Preference(module).UpdateSeconds??1,settings?.UseBits??false,settings?.Theme??BarTheme.Dark,_recent);
+            (sample,allocated)=>{LastSample=sample;Frames++;PresentationAllocatedBytes+=allocated;_recent.Store(module,sample);},()=>Reads++,CanRead,delta=>Interlocked.Add(ref _workers,delta),_holdInput,settings?.Preference(module).UpdateSeconds??1,settings?.UseBits??false,WindowsAppTheme.Resolve(settings?.Theme??BarTheme.Dark),_recent);
     }
     private bool CanRead()
     {
@@ -105,7 +105,11 @@ public sealed class PopupCoordinator:IDisposable
         {
             if(_closed||_pending?.IsCompleted!=true)return;
             var sample=_pending.GetAwaiter().GetResult();_pending=null;
-            if(sample.WarmingUp&&!_recent.TryGet(Module,out _))_visual.ClearPrevious();
+            if(sample.WarmingUp)
+            {
+                if(_recent.TryGet(Module,out var previous))_visual.ShowPrevious(previous!);
+                else _visual.ShowMeasuring(sample);
+            }
             var value=Module==BarModule.Cpu?sample.Cpu:sample.Memory?.UsedPercent;
             var now=_clock.Elapsed.TotalSeconds;if(value is{}v){_history.Push(now,v);_averages.Push(now,v);}
             var before=GC.GetAllocatedBytesForCurrentThread();_visual.Update(sample,_history,_averages,now);_frame(sample,GC.GetAllocatedBytesForCurrentThread()-before);

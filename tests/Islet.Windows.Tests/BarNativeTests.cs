@@ -29,12 +29,15 @@ public sealed class BarNativeTests
     [TestMethod]
     public void RecordedTotalsUseByteDeltasAndExcludeResetsAndPausedGaps()
     {
-        var source=new Fake();var provider=new PhysicalNetworkProvider(source);provider.Snapshot();
+        ulong download=0,upload=0;
+        var source=new Fake();var provider=new PhysicalNetworkProvider(source,(down,up)=>{download+=down;upload+=up;});provider.Snapshot();
         source.Rows=[new(1,200,400,"Physical A")];var first=provider.Snapshot();
         Assert.AreEqual(100UL,first.RecordedReceived);Assert.AreEqual(300UL,first.RecordedSent);
         var repeat=provider.Snapshot();Assert.AreEqual(first.RecordedReceived,repeat.RecordedReceived);
         source.Rows=[new(1,10,10,"Physical A")];var reset=provider.Snapshot();Assert.AreEqual(100UL,reset.RecordedReceived);
         provider.Reset();source.Rows=[new(1,10000,10000,"Physical A")];var paused=provider.Snapshot();Assert.AreEqual(100UL,paused.RecordedReceived);
+        Assert.AreEqual(100UL,download);
+        Assert.AreEqual(300UL,upload);
     }
     private sealed class Fake:ISystemPhysicalNetworkSource
     {

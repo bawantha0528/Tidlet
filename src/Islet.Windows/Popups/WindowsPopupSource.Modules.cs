@@ -92,10 +92,20 @@ public sealed partial class WindowsPopupSource
             }
             var volumes=new List<VolumeCapacity>();
             foreach(var drive in DriveInfo.GetDrives())try{if(drive.DriveType==DriveType.Fixed&&drive.IsReady&&drive.TotalSize>0&&drive.TotalFreeSpace>=0&&drive.TotalFreeSpace<=drive.TotalSize)volumes.Add(new(drive.Name,(ulong)drive.TotalSize,(ulong)drive.TotalFreeSpace));}catch(IOException){}catch(UnauthorizedAccessException){}
-            return new(null,null,null,null,null,null,uptime,null,[],[],[],reason,_capabilities,Disk:new(disks.ToArray(),volumes.ToArray(),disks.Count>0?"Per-physical-disk throughput. Volume space is listed separately.":"Measuring disk counters, or Windows did not provide valid disk samples."),WarmingUp:collected&&!ready);
+            var explanation=disks.Count>0?"Per-physical-disk throughput. Volume space is listed separately.":
+                collected&&!ready?"Windows is collecting the next disk counter sample. Volume capacity is already available where reported.":
+                "Windows did not provide valid disk activity readings.";
+            return new(null,null,null,null,null,null,uptime,null,[],[],[],reason,_capabilities,Disk:new(disks.ToArray(),volumes.ToArray(),explanation),WarmingUp:collected&&!ready);
         }
         var usage=ready?GpuEngineMath.Usage(ReadArray(_gpuEngine)):new Dictionary<ulong,double>();
-        var gpu=_gpuAdapters.Select(a=>a with{Usage=usage.TryGetValue(a.Luid,out var percent)?percent:null,Explanation=usage.ContainsKey(a.Luid)?"Busiest Windows engine; process samples sharing an engine are combined.":"Windows did not provide a valid engine sample for this adapter."}).ToArray();
+        var gpu=_gpuAdapters.Select(adapter=>
+        {
+            var available=usage.TryGetValue(adapter.Luid,out var percent);
+            var explanation=available?"Busiest Windows engine; process samples sharing an engine are combined.":
+                collected&&!ready?"Windows is collecting the next engine counter sample.":
+                "Windows did not provide a valid engine sample for this adapter.";
+            return adapter with{Usage=available?percent:null,Explanation=explanation};
+        }).ToArray();
         return new(null,null,null,null,null,null,uptime,null,[],[],[],reason,_capabilities,Gpu:new(gpu,gpu.Length>0?"Adapters are shown separately. Memory is dedicated hardware capacity, not current allocation.":reason),WarmingUp:collected&&!ready);
     }
     private static bool ValidRate(double value)=>double.IsFinite(value)&&value>=0&&value<ulong.MaxValue;

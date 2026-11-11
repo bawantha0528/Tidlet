@@ -961,3 +961,117 @@ Accepted foundation rerun: scripts/measure-tools.ps1 Scenario Popup (tools-found
 **Measured RAM and CPU:** No fresh five-minute trial because the older Tidlet instance was running. Short CPU popup presentation allocations fell from 1,337,840 to 1,175,076 bytes in Dark and 1,383,952 to 1,157,112 bytes in Light. Sensors stopped after one frame in both themes.
 
 **Known gaps / Next step:** Run fresh visible bar, popup and Dashboard budget trials with the earlier instance closed. See docs/UI_AUDIT.md. The audited build is isolated in src/IsletMonitor/bin/ui-audit.
+
+## Battery optimization — 11 November 2026
+
+**What was built**  
+Added an 80% charge-limit guide to Dashboard → Battery. The guide selects manufacturer instructions using the existing model. The manufacturer utility applies the limit.
+
+**How verified**  
+The isolated Release solution build passed without warnings or errors. All 18 x86 Dashboard tests passed. A native Acer guide preview rendered at both scales, recorded zero Dashboard metric reads, and exited cleanly.
+
+**Measured RAM and CPU**  
+The guide was verified by the read-only preview. Five-minute acceptance remains pending.
+
+**Known gaps and next step**  
+Exact-model support and actual charging behavior require confirmation in the manufacturer's utility. See docs/BATTERY_OPTIMIZATION.md.
+
+## Startup reading states — 11 November 2026
+
+**What was built**  
+Show Measuring or Paused in the strip, with module-specific first-read explanations in popups and Dashboard pages. Keep recent real readings marked during refresh. Label charts while they collect samples and report unavailable CPU data without showing an empty gauge.
+
+**How verified**  
+The isolated Release build completed with zero warnings or errors. All 143 x86-configured tests passed. Four native previews captured the strip, GPU popup, CPU page, and Disk page at the first strip sample.
+
+**Measured RAM and CPU**  
+The earlier Tidlet instance was running. The five-minute trial remains pending.
+
+**Known gaps and next step**  
+Recent readings are session-local. The current preview is under src/IsletMonitor/bin/startup-readings. See docs/STARTUP_READINGS.md.
+
+## Startup coverage follow-up — 11 November 2026
+
+**What was built**  
+Show valid first-read details in Dashboard pages and popups while rate counters measure. Describe unavailable readings separately from pending readings and omit charts whose counters are unavailable.
+
+**How verified**  
+The isolated Release build completed with zero warnings or errors. All 143 x86-configured tests passed. The 42-case startup smoke matrix passed in Dark and Light, before the second poll. Popups and pages rendered at 100% and 150%.
+
+**Measured RAM and CPU**  
+The older startup preview was running. The five-minute trial remains pending.
+
+**Known gaps and next step**  
+The preview is under src/IsletMonitor/bin/startup-complete-final. See docs/STARTUP_READINGS.md for verification details.
+
+## UI alignment and text polish
+
+**What was built**
+
+Centered gauge readouts and power controls using measured text, aligned dashboard values, and used DPI-aware display text formatting across the dashboard, popups, and monitor strip. Widened the logical processor status columns.
+
+**How verified**
+
+The Release build completed with zero warnings and errors. All 145 x86-configured tests passed on the final build. The 42-case light/dark smoke matrix passed before the final CPU column adjustment. The adjusted CPU page rendered successfully at 100% and 150% in both themes, including its first-sample status labels.
+
+**Measured RAM and CPU**
+
+No new five-minute resource trial was run for this visual revision.
+
+**Known gaps and next step**
+
+DPI verification used WPF render exports. The preview is under `src/IsletMonitor/bin/ui-polish-final`.
+
+## Settings controls and live widgets
+
+**What was built**
+
+Replaced cycling settings with explicit choices, switches and visible save feedback. Added individual module settings pages and a Widgets page with CPU, GPU, RAM, Disk, Network and Combined cards.
+
+**How verified**
+
+The final Release build completed with zero warnings and errors. All 146 x86-configured tests passed. The 44-case smoke matrix passed before the final chevron and widget-status adjustments. The final Settings and Widgets pages were rechecked in both themes at 100% and 150%.
+
+**Measured RAM and CPU**
+
+The completed Widgets trial passed. Over 300.98 seconds the working set peaked at 90.17 MB, whole-process lifetime peaked at 93.02 MB, and average CPU was 0.106% across eight logical processors. The fixture reported 115 reads and frames, verified the capture and binary hashes, and exited cleanly. Evidence is in `artifacts/settings-widgets-measure`.
+
+**Known gaps and next step**
+
+The fixture did not verify physical interaction. The preview is under `src/IsletMonitor/bin/settings-widgets-final`.
+
+## Desktop widget pins
+
+**What was built**
+
+Added desktop pinning from the Widgets page, draggable card titles, per-card removal, and local layout restoration. The desktop cards are ordinary non-topmost tool windows.
+
+**How verified**
+
+Release build passed with zero warnings and errors. All 147 x86-configured tests passed, including duplicate pin handling and restoring the saved layout. The real desktop benchmark restored all six windows, rendered 115 widget frames, and drained workers on exit.
+
+**Measured RAM and CPU**
+
+With the bar and six cards pinned over 300.99 seconds, observed peak RAM was 83.96 MB, lifetime peak RAM was 84.00 MB, and machine-normalized average CPU was 0.106%. The benchmark passed. Evidence is in `artifacts/desktop-widgets-measure`.
+
+**Known gaps and next step**
+
+The computer-use window list did not expose the tool windows, so physical drag remains unverified. The all-pinned trial ran with the dashboard closed. The preview is under `src/IsletMonitor/bin/desktop-widgets`.
+
+## Data usage widget
+
+**What was built**
+
+Added a pinnable Data usage card with Day, Week, and Month selectors, total traffic, and separate download and upload values. It uses the shared physical adapter sampler and saves daily totals locally.
+
+**How verified**
+
+The Release build completed with zero warnings and errors. All 149 x86 tests passed. The desktop smoke restored the pin and a seeded weekly total in both themes and rendered the page at 100% and 150%. It also verified that usage history survived exit.
+
+**Measured RAM and CPU**
+
+The seven-card benchmark stopped before sampling because the previous Tidlet preview was still running.
+
+**Known gaps and next step**
+
+Run the five-minute resource trial once the older preview exits. The preview build is under `src/IsletMonitor/bin/data-usage`.

@@ -33,7 +33,7 @@ Tidlet is under active development. Use the local preview or build the source. T
 Exit any running Tidlet from the tray menu, then run the audited preview if it has been built locally:
 
 ```powershell
-.\src\IsletMonitor\bin\ui-audit\IsletMonitor.exe
+.\src\IsletMonitor\bin\startup-complete-final\IsletMonitor.exe
 ```
 
 Look near the clock, including under the **^** hidden-icons arrow. Right-click Tidlet and choose **Open Dashboard**. Keep the executable and its companion files together.
@@ -60,7 +60,7 @@ dotnet build TidletMonitor.sln -c Release --no-restore -p:OutputPath=bin/ui-audi
 | **Battery** | Charge, power source, and reported health and capacity. The Dashboard also provides Windows power-mode controls where available. |
 | **Sensors** | Capability status for advanced readings that require an optional helper. |
 
-Readings depend on the hardware and the Windows providers available. Missing values are explained, and cached session readings are marked while they refresh.
+On startup, the strip shows **Measuring** for readings that need more time. Popups and Dashboard pages show available details such as graphics adapters and disk space while rate counters warm up. Recent readings are marked during refresh, and missing or unsupported readings show a reason.
 
 ![Light CPU page with a utilization ring, usage history, and logical processor readings](docs/screenshots/cpu-light.png)
 
@@ -71,9 +71,13 @@ Readings depend on the hardware and the Windows providers available. Missing val
 | Open a detail popup | Click a strip reading. Scroll for more, then press **Esc** or click outside to dismiss. |
 | Move the strip | Right-click the tray icon or use **Settings → Position**. Choose top, bottom, or **Top · reveal on hover**. |
 | Choose a placement mode | Use **Overlay** to float above the desktop or **Reserve** to request space from Windows. |
-| Switch themes | Click **Settings → Theme** to cycle the options. **Dark** and **Light** apply to the strip, popups, and Dashboard. **System** currently uses the dark fallback. |
-| Choose or reorder readings | Toggle a module from its page or Settings. Use **Move earlier** to reorder it. Re-enabled items return to their saved position. |
+| Switch themes | Open **Settings → Theme** and pick **Dark**, **Light**, or **System**. System reads the Windows app theme when Tidlet applies its appearance. |
+| Choose or reorder readings | Toggle a module from its page or under **Settings → Modules**. Use **Move earlier in strip** to reorder it. Re-enabled items return to their saved position. |
+| View live widgets | Open **Widgets** in the app sidebar for CPU, GPU, RAM, disk, network, and a combined card. Click an individual card for its full module page. The Widgets page refreshes every three seconds while open. |
+| Place widgets on the desktop | In **Widgets**, choose **+** on a card. Drag the card by its title and use **×** to remove it. Tidlet remembers the positions in its local data folder and restores the cards on launch. |
+| Check data usage | Open **Widgets → Data usage** and choose **Day**, **Week**, or **Month**. Totals combine uploads and downloads across monitored physical adapters, including local network traffic. The week starts Monday. Tidlet keeps daily totals locally and only records traffic while monitoring is running. |
 | Change Windows power mode | In **Dashboard → Battery**, choose a mode for the displayed power source. **Windows settings** opens the system page when needed. |
+| Set an 80% charge limit | In **Dashboard → Battery**, open **80% charge limit** for setup steps. The manufacturer's utility applies the limit on supported models. |
 | Pause or quit | Use the tray menu. Settings remain accessible while paused. |
 | Export or restore preferences | Use **Settings → Export settings** or **Import settings**. Changes save automatically. |
 

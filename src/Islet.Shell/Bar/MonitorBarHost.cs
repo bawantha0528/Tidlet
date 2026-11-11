@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Automation.Peers;
@@ -26,6 +25,8 @@ public sealed class MonitorBarHost : IDisposable
     public IReadOnlyList<object> Observations=>_finalObservations??_windows.Select(x=>(object)new{x.Display.Id,x.Display.Bounds,x.Display.Work,x.Scale,x.Hidden,x.FirstFrame,x.Surface.Placement,x.Surface.TrayPresent}).ToArray();
     public event Action<BarModule,BarRect,BarDisplay,double>? ModuleClicked;
     public event Action? Suppressed;
+    public event Action<bool>? EnvironmentVisibilityChanged;
+    private bool _environmentHidden;
     public event Action? Stopping;
     public event Action? DashboardRequested;public event Action? SettingsRequested;public event Action? SettingsChanged;
     public Func<string?>? PopupDisplay{get;set;}
@@ -107,6 +108,11 @@ public sealed class MonitorBarHost : IDisposable
         foreach(var window in _windows)
         {window.EnvironmentHidden=window.Surface.ShouldHide;if(window.EnvironmentHidden){EverHidden=true;window.Reveal.Reset();}}
         var environmentHidden=_windows.All(window=>window.EnvironmentHidden);
+        if (_environmentHidden != environmentHidden)
+        {
+            _environmentHidden = environmentHidden;
+            EnvironmentVisibilityChanged?.Invoke(environmentHidden);
+        }
         ApplyVisibility();
         if(environmentHidden)Suppressed?.Invoke();
         if(_settings.TopReveal&&_settings.Items.Length>0&&!environmentHidden)
@@ -225,6 +231,7 @@ public sealed class MonitorBarHost : IDisposable
         private readonly Brush _stripBackground;
         private readonly Pen _stripBorder;
         private readonly bool _floating;
+        private readonly bool _light;
         private static readonly Pen DarkBorder=CreateBorder(Color.FromRgb(68,68,68));
         private static readonly Pen LightBorder=CreateBorder(Color.FromRgb(179,192,205));
         public string? Notice{get;set;}public BarItemLayout[] Items{get;private set;}=[];
@@ -233,7 +240,7 @@ public sealed class MonitorBarHost : IDisposable
         {
             _settings=settings;Focusable=true;AddVisualChild(_background);
             _floating=settings.Edge==BarEdge.Bottom||settings.TopReveal;
-            var light=settings.Theme==BarTheme.Light;
+            var light=_light=WindowsAppTheme.Resolve(settings.Theme)==BarTheme.Light;
             var background=new LinearGradientBrush(light?Color.FromRgb(250,252,254):Color.FromRgb(39,39,39),
                 light?Color.FromRgb(231,237,244):Color.FromRgb(28,28,28),90){Opacity=settings.Opacity};
             background.Freeze();_stripBackground=background;_stripBorder=light?LightBorder:DarkBorder;
@@ -279,7 +286,7 @@ public sealed class MonitorBarHost : IDisposable
             if(layoutChanged)
             {
                 foreach(var c in _children)RemoveVisualChild(c);_children.Clear();Items=items;
-                foreach(var item in Items){var c=new ItemVisual(item.Module,()=>Clicked?.Invoke(item.Module),_settings.UseBits,_settings.Preference(item.Module).Style,item.Width>=84,_settings.Theme==BarTheme.Light);_children.Add(c);AddVisualChild(c);}
+                foreach(var item in Items){var c=new ItemVisual(item.Module,()=>Clicked?.Invoke(item.Module),_settings.UseBits,_settings.Preference(item.Module).Style,item.Width>=84,_light);_children.Add(c);AddVisualChild(c);}
             }
             for(var index=0;index<_children.Count;index++)
             {
@@ -289,7 +296,7 @@ public sealed class MonitorBarHost : IDisposable
                     child.Measure(new Size(item.Width,_height));
                     child.Arrange(new Rect(item.X,0,item.Width,_height));
                 }
-                child.Update(snapshot,_scale,_height,Notice,appendHistory);
+                child.Update(snapshot,_scale,_height,Notice,appendHistory,_settings.Pause);
             }
         }
         private sealed class RootPeer(BarVisual owner):UIElementAutomationPeer(owner)
@@ -332,24 +339,39 @@ public sealed class MonitorBarHost : IDisposable
         
         protected override int VisualChildrenCount=>1;protected override Visual GetVisualChild(int i)=>i==0?_visual:throw new ArgumentOutOfRangeException(nameof(i));
         protected override AutomationPeer OnCreateAutomationPeer()=>new ItemPeer(this);
-        public void Update(BarSnapshot s,double scale,double height,string? notice,bool appendHistory)
+        public void Update(BarSnapshot s,double scale,double height,string? notice,bool appendHistory,bool paused)
         {
             using var d=_visual.RenderOpen();
             var center=height/2;
             string value;var label=_module.ToString().ToUpperInvariant();
+            if(paused)
+            {
+                _name=label+" paused";_help="Resume monitoring from the Tidlet menu.";
+                Text(d,label,0,center-11,8,false,scale);
+                Text(d,"Paused",0,center-1,9,true,scale);
+                return;
+            }
             switch(_module)
             {
-                case BarModule.Cpu:value=s.Loading||s.CpuLoading?"…":Percent(s.Cpu);_help=s.CpuReason;break;
-                case BarModule.Ram:value=s.Loading?"…":Percent(s.Ram);_help=s.RamReason;break;
+                case BarModule.Cpu:value=s.Loading||s.CpuLoading?"Measuring":Percent(s.Cpu);_help=s.CpuReason;break;
+                case BarModule.Ram:value=s.Loading?"Measuring":Percent(s.Ram);_help=s.RamReason;break;
                 case BarModule.Battery:value=Percent(s.Battery);_help=s.BatteryReason;break;
-                case BarModule.Gpu:value=s.Loading||s.GpuLoading?"…":Percent(s.Gpu);_help=s.GpuReason;break;
+                case BarModule.Gpu:value=s.Loading||s.GpuLoading?"Measuring":Percent(s.Gpu);_help=s.GpuReason;break;
                 case BarModule.Disk:case BarModule.Sensors:value=_module==BarModule.Sensors?"Helper":"Details";_help="Click for capability-driven details.";break;
                 default:
-                    _help=s.NetworkReason;_name=$"Network, download {Rate(s.Download)}, upload {Rate(s.Upload)}";
-                    if(_style==BarItemStyle.TwoLine){label="NET ↓";value=s.Loading||s.NetworkLoading?"…":Rate(s.Download);break;}
+                    _help=s.NetworkReason;
+                    if(s.Loading||s.NetworkLoading){label="NETWORK";value="Measuring";break;}
+                    _name=$"Network, download {Rate(s.Download)}, upload {Rate(s.Upload)}";
+                    if(_style==BarItemStyle.TwoLine){label="NET ↓";value=Rate(s.Download);break;}
+                    if(s.NetworkRefreshing)
+                    {
+                        Text(d,"NET · UPDATING",0,center-11,8,false,scale);
+                        Text(d,"↓ "+Rate(s.Download),0,center-1,10,true,scale);
+                        return;
+                    }
                     Dot(d,center-5.5,TrafficUp);Dot(d,center+5.5,TrafficDown);
-                    Text(d,s.Loading||s.NetworkLoading?"…":Rate(s.Upload),13,center-11,10,true,scale);
-                    Text(d,s.Loading||s.NetworkLoading?"…":Rate(s.Download),13,center,10,true,scale);return;
+                    Text(d,Rate(s.Upload),13,center-11,10,true,scale);
+                    Text(d,Rate(s.Download),13,center,10,true,scale);return;
             }
             _name=$"{label} {value}";if(notice is not null)_help+=" "+notice;
             if(_module==BarModule.Battery&&_style!=BarItemStyle.TwoLine)
@@ -360,7 +382,13 @@ public sealed class MonitorBarHost : IDisposable
                     d.DrawRoundedRectangle(percent<=15?BatteryLow:BatteryGreen,null,new Rect(2,center-3,14*percent/100,6),1,1);
                 Text(d,value,26,center-7,11,true,scale);
             }
-            else{Text(d,label,0,center-11,8,false,scale);Text(d,value,0,center-1,11,true,scale);}
+            else
+            {
+                var refreshing=_module==BarModule.Cpu&&s.CpuRefreshing||_module==BarModule.Gpu&&s.GpuRefreshing||_module==BarModule.Network&&s.NetworkRefreshing;
+                Text(d,refreshing?label+" · ↻":label,0,center-11,8,false,scale);
+                Text(d,value,0,center-1,value is "Measuring" or "Unavailable"?9:11,true,scale);
+                if(refreshing||value is "Measuring" or "Unavailable")return;
+            }
             if(!_wide)return;
             if(_module==BarModule.Cpu)DrawCpuRing(d,center,s.Loading||s.CpuLoading?null:s.Cpu);
             if(_gpuHistory is not null&&!s.Loading&&!s.GpuLoading&&s.Gpu is{}gpu&&ValidPercent(gpu))DrawGpuHistory(d,center,gpu,appendHistory);
@@ -400,14 +428,14 @@ public sealed class MonitorBarHost : IDisposable
             geometry.Freeze();d.DrawGeometry(null,GpuTrace,geometry);
         }
         private static bool ValidPercent(double value)=>double.IsFinite(value)&&value is>=0 and<=100;
-        private static string Percent(double? value)=>value is{}v&&double.IsFinite(v)&&v is>=0 and<=100?$"{v:0}%":"—";
-        private string Rate(double? value)=>MetricFormat.TransferRate(value,_useBits,"—");
+        private static string Percent(double? value)=>value is{}v&&double.IsFinite(v)&&v is>=0 and<=100?$"{v:0}%":"Unavailable";
+        private string Rate(double? value)=>MetricFormat.TransferRate(value,_useBits);
         private static void Dot(DrawingContext d,double y,Brush brush)=>d.DrawEllipse(brush,null,new Point(3,y),2.5,2.5);
         private void Text(DrawingContext d,string text,double x,double y,double size,bool bold,double scale)
         {
             var brush=_light?(bold?LightText:LightLabel):(bold?Brushes.White:LabelBrush);
-            var t=new FormattedText(text,CultureInfo.CurrentUICulture,FlowDirection.LeftToRight,bold?Bold:Face,size,brush,scale);
-            d.DrawText(t,new Point(x,y));
+            var t=MonitorText.Format(text,bold?Bold:Face,size,brush,scale);
+            d.DrawText(t,MonitorText.PixelAligned(x,y,scale));
         }
         private sealed class ItemPeer(ItemVisual owner):UIElementAutomationPeer(owner),IInvokeProvider
         {

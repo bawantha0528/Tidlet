@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
@@ -15,8 +14,17 @@ internal sealed partial class PopupVisual:UIElement
     private string _accessible="Measuring Windows readings";
     private bool _useBits;
     private bool _previous;
-    public void ShowPrevious(PopupSample sample){_sample=sample;_previous=true;_accessible="Previous reading; refreshing live data";Redraw(_scale);}
-    public void ClearPrevious(){if(!_previous)return;_sample=null;_previous=false;_accessible="Preparing live readings";Redraw(_scale);}
+    private bool IsMeasuring=>_sample?.WarmingUp==true;
+    public void ShowPrevious(PopupSample sample){if(_previous&&ReferenceEquals(_sample,sample))return;_sample=sample;_previous=true;_accessible=MetricLoading.Previous;Redraw(_scale);}
+    public void ShowMeasuring(PopupSample sample)
+    {
+        var partial=MetricLoading.HasPartialDetails(_module,sample)?sample:null;
+        if(ReferenceEquals(_sample,partial))return;
+        _sample=partial;
+        _previous=false;
+        _accessible=MetricLoading.For(_module).Title;
+        Redraw(_scale);
+    }
     public void SetUnits(bool useBits){if(_useBits==useBits)return;_useBits=useBits;_texts.Clear();Redraw(_scale);}
     // One last text value per drawing position; dynamic values cannot grow the cache.
     private readonly Dictionary<(double X,double Y,double Size,Brush Color,bool Bold,bool Icons,double? Width), (string Value,FormattedText Text)> _texts=[];
@@ -43,6 +51,7 @@ internal sealed partial class PopupVisual:UIElement
     internal PopupVisual(BarModule module,double height,double scale,Action taskManager,Action close,bool diagnostic,BarTheme theme)
     {
         _module=module;_palette=PopupPalette.For(theme);_chart=_palette.Chart(module);_height=height;_scale=scale;_taskManager=taskManager;_close=close;_diagnostic=diagnostic;Focusable=true;AddVisualChild(_drawing);
+        _accessible=MetricLoading.For(module).Title;
         _outline=new RectangleGeometry(new Rect(0,0,320,height),9,9);_outline.Freeze();
         _viewport=new RectangleGeometry(new Rect(8,43,304,Math.Max(1,height-51)));_viewport.Freeze();
         _taskButton=new("Open Task Manager",taskManager){Focusable=true};_closeButton=new("Close details",close){Focusable=true};AddVisualChild(_taskButton);AddVisualChild(_closeButton);
@@ -94,8 +103,9 @@ internal sealed partial class PopupVisual:UIElement
         var title=_module switch{BarModule.Cpu=>"CPU",BarModule.Ram=>"RAM",BarModule.Gpu=>"GPU",_=>_module.ToString()};
         Text(d,"\uE9D9",24,13,14,_chart.Accent,center:true,icons:true);Text(d,title,45,8,17,TextBrush,bold:true);Text(d,"\uE711",297,14,11,Dim,center:true,icons:true);
         d.DrawLine(SectionPen,new Point(14,41),new Point(306,41));
-        if(_diagnostic)Text(d,"Measurement running · tray Exit stops it",160,30,8,Dim,center:true);
-        else if(_previous)Text(d,"Previous reading · refreshing",160,30,8,Dim,center:true);
+        if(_previous)Text(d,MetricLoading.Previous,160,30,8,Dim,center:true);
+        else if(IsMeasuring)Text(d,MetricLoading.For(_module).Title,160,30,8,Dim,center:true);
+        else if(_diagnostic)Text(d,"Measurement running · tray Exit stops it",160,30,8,Dim,center:true);
         d.PushClip(_viewport);d.PushTransform(new TranslateTransform(0,-_scroll));
         if(_sample is{}s){if(_module==BarModule.Cpu)Cpu(d,s);else if(_module==BarModule.Ram)Ram(d,s);else DrawModule(d,s);}else Loading(d);
         d.Pop();d.Pop();
@@ -104,15 +114,21 @@ internal sealed partial class PopupVisual:UIElement
     }
     private void Loading(DrawingContext d)
     {
-        Hero(d,49,124);
-        d.DrawEllipse(null,RingPen,new Point(160,98),32,32);Text(d,"Preparing live readings",160,148,12,Dim,center:true);
-        d.DrawRoundedRectangle(ChartBackground,null,new Rect(15,187,290,90),7,7);
-        Text(d,"History starts with your real readings",160,220,10,Dim,center:true);
-        for(int i=0;i<3;i++){d.DrawRoundedRectangle(Gray,null,new Rect(18,305+i*28,100,8),3,3);d.DrawRoundedRectangle(Gray,null,new Rect(236,305+i*28,66,8),3,3);}
-        _contentBottom=400;
+        var (title,detail)=MetricLoading.For(_module);
+        Hero(d,49,116);
+        Text(d,title,27,69,15,TextBrush,bold:true,maxWidth:266);
+        Text(d,detail,27,102,11,Dim,maxWidth:266);
+        _contentBottom=177;
+        if(_module is BarModule.Cpu or BarModule.Ram or BarModule.Gpu or BarModule.Disk or BarModule.Network)
+        {
+            Hero(d,180,76);
+            Text(d,MetricLoading.CollectingHistory,160,209,11,Dim,center:true);
+            _contentBottom=268;
+        }
     }
     private void Cpu(DrawingContext d,PopupSample s)
     {
+        if(s.Cpu is not (>=0 and <=100)){Unavailable(d,s.Explanation);return;}
         Hero(d,49,104);
         if(s.FrequencyGhz is{} frequency&&double.IsFinite(frequency)&&frequency>0)
         {Ring(d,100,91,34,s.Cpu,Percent(s.Cpu));Ring(d,226,91,28,frequency/s.MaxGhz*100,$"{frequency:0.00}");Text(d,"USAGE",100,132,9,Dim,center:true);Text(d,"GHZ · REPORTED",226,132,9,Dim,center:true);}
@@ -207,8 +223,12 @@ internal sealed partial class PopupVisual:UIElement
     private void Hero(DrawingContext d,double y,double height)=>d.DrawRoundedRectangle(_palette.Panel,_palette.InsetBorder,new Rect(14,y,292,height),9,9);
     private void Ring(DrawingContext d,double x,double y,double radius,double? percent,string value)
     {
+        if(!Intersects(y-radius-4,2*radius+8))return;
         d.DrawEllipse(_palette.Panel,RingPen,new Point(x,y),radius,radius);if(percent is{}p&&double.IsFinite(p)&&p>0&&p<=100)Arc(d,x,y,radius,-90,Math.Min(359.99,p*3.6),_chart.Accent,7);
-        Text(d,value,x,y-10,18,TextBrush,bold:true,center:true);
+        var text=GetText(value,x,y,18,TextBrush,true,false,null);
+        if(text.Width>2*radius-14)
+            text=GetText(value,x,y,11,TextBrush,true,false,null);
+        d.DrawText(text,MonitorText.Centered(text,new Point(x,y),_scale));
     }
     private void MemoryBar(DrawingContext d,string label,double percent,double y,Brush fill)
     {
@@ -228,7 +248,7 @@ internal sealed partial class PopupVisual:UIElement
         if(Intersects(y,24))
         {
             var text=GetText(name,15,y,10,TextBrush,true,false,280);
-            d.DrawText(text,new Point(15,y));
+            d.DrawText(text,MonitorText.PixelAligned(15,y,_scale));
             d.DrawLine(SectionPen,new Point(Math.Min(305,24+text.Width),y+7),new Point(305,y+7));
         }
         y+=24;
@@ -247,13 +267,13 @@ internal sealed partial class PopupVisual:UIElement
     {
         if(y>=43&&!Intersects(y,size*3))return;
         var t=GetText(value,x,y,size,color,bold,icons,maxWidth);
-        d.DrawText(t,new Point(right?x-t.Width:center?x-t.Width/2:x,y));
+        d.DrawText(t,MonitorText.PixelAligned(right?x-t.Width:center?x-t.Width/2:x,y,_scale));
     }
     private FormattedText GetText(string value,double x,double y,double size,Brush color,bool bold,bool icons,double? maxWidth)
     {
         var key=(x,y,size,color,bold,icons,maxWidth);
         if(_texts.TryGetValue(key,out var cached)&&cached.Value==value)return cached.Text;
-        var text=new FormattedText(value,CultureInfo.CurrentUICulture,FlowDirection.LeftToRight,icons?Icons:bold?Bold:Face,size,color,_scale);
+        var text=MonitorText.Format(value,icons?Icons:bold?Bold:Face,size,color,_scale);
         if(maxWidth is{}width){text.MaxTextWidth=width;text.MaxLineCount=2;text.Trimming=TextTrimming.CharacterEllipsis;}
         // Capability changes can move rows. Bound lifetime retention even across every layout.
         if(_texts.Count>=128)_texts.Clear();_texts[key]=(value,text);return text;

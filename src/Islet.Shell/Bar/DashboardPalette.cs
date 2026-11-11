@@ -8,7 +8,7 @@ internal sealed class DashboardPalette
 {
     private static readonly Lazy<DashboardPalette> Dark = new(() => new(BarTheme.Dark));
     private static readonly Lazy<DashboardPalette> Light = new(() => new(BarTheme.Light));
-    internal static DashboardPalette For(BarTheme theme) => theme == BarTheme.Light ? Light.Value : Dark.Value;
+    internal static DashboardPalette For(BarTheme theme) => WindowsAppTheme.Resolve(theme) == BarTheme.Light ? Light.Value : Dark.Value;
 
     internal Color BaseColor { get; }
     internal PopupPalette Metrics { get; }

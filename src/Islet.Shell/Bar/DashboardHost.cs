@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -15,13 +14,15 @@ namespace Islet.Shell.Bar;
 
 public sealed record DashboardActions(Action<nint,BarRect,bool> Position,Action TaskManager,Action Quit,Func<string> ClipboardText,
     Func<string,string> ImportSettings,Func<string> ExportSettings,Func<string> CompatibilityReport,Action Support,Func<nint,BarRect>? Bounds=null,
-    IPowerModeControl? PowerModes=null);
+    IPowerModeControl? PowerModes=null,Func<BarModule?,string>? DesktopWidget=null,
+    Func<UsageSnapshot>? Usage=null,Action<UsagePeriod>? SelectUsage=null,Func<string>? PinUsage=null);
 public sealed record DashboardEvent(string Action,string Page,double Seconds,int Reads,int Frames);
 public sealed record DashboardCapture(string Path,int Percent,int Width,int Height,double StartedSeconds,double CompletedSeconds);
 
 /// <summary>Lazily creates the application window; does not initialize a WPF Window/control tree.</summary>
-public sealed class DashboardHost:IDisposable
+public sealed partial class DashboardHost:IDisposable
 {
+    public const string BatteryOptimizationPage="Battery optimization";
     private readonly Func<BarSettings> _settings;private readonly Action<BarSettings> _save;private readonly Func<DeviceOverview> _device;
     private readonly Func<IPopupSource> _metrics;private readonly Func<BarDisplay> _display;private readonly DashboardActions _actions;
     private DashboardWindow? _window;private readonly List<Task> _cleanup=[];private readonly bool _diagnostic;private readonly Action<string,bool>? _phase;
@@ -103,9 +104,9 @@ public sealed class DashboardHost:IDisposable
         public void Dispose(){if(_closed)return;_closed=true;_visual.Dispose();if(!_source.IsDisposed){_source.RootVisual=null;_source.Dispose();}}
     }
 
-    private sealed class DashboardVisual:UIElement,IDisposable
+    private sealed partial class DashboardVisual:UIElement,IDisposable
     {
-        private static readonly string[] Pages=["Dashboard","CPU","GPU","RAM","Disk","Network","Battery","Sensors","Settings"];
+        private static readonly string[] Pages=["Dashboard","CPU","GPU","RAM","Disk","Network","Battery","Sensors","Widgets","Settings"];
         private readonly DrawingVisual _drawing=new();private readonly List<SurfaceAction> _buttons=[];
         private DrawingGroup _backdrop;
         private DashboardPalette _palette;
@@ -124,17 +125,19 @@ public sealed class DashboardHost:IDisposable
         private Brush _surface=>_palette.Card;
         private Brush _text=>_palette.Text;
         private Brush _dim=>_palette.Muted;
-        private Brush _blue=>_palette.Accent;
+        private Brush _blue=>_customAccent??_palette.Accent;
         public double Width{get;}public double Height{get;}public int Reads{get;private set;}public int Frames{get;private set;}public List<Task> Cleanup{get;}=[];
-        public int CurrentReads=>Reads+(_presenter?.Reads??0);public int CurrentFrames=>Frames+(_presenter?.Frames??0);
+        public int CurrentReads=>Reads+(_presenter?.Reads??0)+(_widgetReader?.Reads??0);
+        public int CurrentFrames=>Frames+(_presenter?.Frames??0)+(_widgetReader?.Frames??0);
         private int _coreDetailRequests,_processDetailRequests;
         public int CurrentCoreDetailRequests=>_coreDetailRequests+(_presenter?.CoreDetailRequests??0);public int CurrentProcessDetailRequests=>_processDetailRequests+(_presenter?.ProcessDetailRequests??0);
         public DashboardVisual(double width,double height,double scale,Func<BarSettings> settings,Action<BarSettings> save,Func<IPopupSource> metrics,DashboardActions actions,Action close,string page,Action<string> navigation,Task predecessor,RecentSampleCache recent)
         {
             Width=width;Height=height;_scale=scale;_settings=settings;_save=save;_metrics=metrics;_actions=actions;_close=close;_page=page;_navigation=navigation;_previous=predecessor;_recent=recent;Focusable=true;AddVisualChild(_drawing);
             _palette=DashboardPalette.For(settings().Theme);
+            RefreshAccent(settings().Accent);
             _backdrop=_palette.CreateBackdrop(width,height);
-            MouseWheel+=(_,e)=>{if(_presenter is null){_scroll=Math.Clamp(_scroll-e.Delta/3.0,0,Math.Max(0,_bottom-Height+55));Draw(_scale);e.Handled=true;}};
+            MouseWheel+=(_,e)=>{if(_presenter is null){if(_settingsMenu is null)_scroll=Math.Clamp(_scroll-e.Delta/3.0,0,Math.Max(0,_bottom-Height+55));Draw(_scale);e.Handled=true;}};
             KeyDown+=HandleKey;TextInput+=(_,e)=>{if(_editing is not null&&!string.IsNullOrEmpty(e.Text)){Insert(e.Text);e.Handled=true;}};Select(page);
         }
         protected override int VisualChildrenCount=>1+_buttons.Count+(_presenter is null?0:1);
@@ -143,9 +146,10 @@ public sealed class DashboardHost:IDisposable
         public void SetDevice(DeviceOverview device){_device=device;Draw(_scale);}
         public void Select(string page)
         {
-            if(!Pages.Contains(page)&&page!="About")page="Dashboard";
+            if(!Pages.Contains(page)&&page is not ("About" or BatteryOptimizationPage))page="Dashboard";
             if(page!=_page)_status="";
-            _settingsModule=null;_page=page;_navigation(page);_scroll=0;_editing=null;
+            _settingsModule=null;_settingsMenu=null;_page=page;_navigation(page);_scroll=0;_editing=null;
+            StopWidgets();
             _powerMode=ShowsPowerMode?_actions.PowerModes!.Read():null;
             if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();_previous=_presenter.Cleanup;Cleanup.RemoveAll(t=>t.IsCompleted);Cleanup.Add(_previous);RemoveVisualChild(_presenter);_presenter=null;}
             if(!_settings().Pause&&Enum.TryParse<BarModule>(page,true,out var module))
@@ -157,11 +161,13 @@ public sealed class DashboardHost:IDisposable
                 _presenter.WarmStart(_recent);
                 _presenter.Measure(new Size(Width-250,height));_presenter.Arrange(new Rect(230,top,Width-250,height));
             }
+            if(page=="Widgets")StartWidgets();
             Draw(_scale);
         }
         public void RefreshSettings()
         {
             var settings=_settings();
+            RefreshAccent(settings.Accent);
             var palette=DashboardPalette.For(settings.Theme);
             var themeChanged=palette!=_palette;
             if(themeChanged)
@@ -176,6 +182,11 @@ public sealed class DashboardHost:IDisposable
                 return;
             }
             _presenter?.SetUnits(settings.UseBits);
+            if(_page=="Widgets")
+            {
+                if(settings.Pause)StopWidgets();
+                else if(_widgetReader is null)StartWidgets();
+            }
             Draw(_scale);
         }
         public void Draw(double scale)
@@ -190,7 +201,7 @@ public sealed class DashboardHost:IDisposable
             if(Enum.TryParse<BarModule>(_page,true,out var selected))
             {
                 var current=selected;
-                Button(d,"Settings for "+_page,"⚙",new Rect(Width-82,16,28,28),()=>{Select("Settings");_settingsModule=current;Draw(_scale);});
+                Button(d,"Settings for "+_page,"⚙",new Rect(Width-82,16,28,28),()=>OpenModuleSettings(current));
                 var enabled=_settings().Items.Contains(current);var toggle=new Rect(Width-132,23,36,20);
                 d.DrawRoundedRectangle(enabled?_blue:_palette.Metrics.Track,null,toggle,10,10);
                 d.DrawEllipse(enabled?Brushes.White:_dim,null,new Point(toggle.Left+(enabled?26:10),toggle.Top+10),7,7);
@@ -198,10 +209,10 @@ public sealed class DashboardHost:IDisposable
             }
             for(int i=0;i<Pages.Length;i++)
             {
-                var name=Pages[i];var rect=new Rect(20,85+i*44,175,36);var active=_page==name;
-                if(active)DashboardPalette.DrawSelection(d,rect);
-                Icon(d,name,31,rect.Top+10,active?Brushes.White:_dim);
-                Label(d,name,59,rect.Top+8,14,active?Brushes.White:_text,active);Hit("Open "+name,rect,()=>Select(name));
+                var name=Pages[i];var rect=new Rect(20,85+i*42,175,36);var active=_page==name||name=="Battery"&&_page==BatteryOptimizationPage;
+                if(active)DrawSettingsSelection(d,rect);
+                Icon(d,name,31,rect.Top+10,active?SelectionText:_dim);
+                Label(d,name,59,rect.Top+8,14,active?SelectionText:_text,active);Hit("Open "+name,rect,()=>Select(name));
             }
             Button(d,"Settings","⚙",new Rect(24,Height-55,28,28),()=>Select("Settings"));
             Button(d,"About and support","↗",new Rect(57,Height-55,28,28),()=>Select("About"));
@@ -209,13 +220,17 @@ public sealed class DashboardHost:IDisposable
             Button(d,"Pause monitoring",_settings().Pause?"▶":"Ⅱ",new Rect(123,Height-55,28,28),()=>Change(s=>s with{Pause=!s.Pause}));
             Button(d,"Exit Tidlet","⏻",new Rect(156,Height-55,28,28),_actions.Quit);
             if(ShowsPowerMode)DrawPowerMode(d,_actions.PowerModes!);
+            if(_page==BatteryOptimizationPage)
+                DrawPageButton(d,"Back to Battery",new Rect(Width-195,19,145,27),false,()=>Select("Battery"));
             d.PushClip(new RectangleGeometry(new Rect(220,66,Width-240,Height-120)));d.PushTransform(new TranslateTransform(0,-_scroll));
-            if(_page=="Dashboard")Overview(d);else if(_page=="Settings")Settings(d);else if(_page=="About")About(d);
+            if(_page=="Dashboard")Overview(d);else if(_page=="Settings")Settings(d);else if(_page=="About")About(d);else if(_page=="Widgets")Widgets(d);
+            else if(_page==BatteryOptimizationPage)DrawBatteryOptimization(d);
             else if(_settings().Pause){var y=ShowsPowerMode?150:100;Label(d,"Monitoring is paused",245,y,18,_text,true);Label(d,"Resume monitoring to show live readings. No module queries run while paused.",245,y+40,12,_dim,false,Width-285);_bottom=y+110;}
             d.Pop();d.Pop();
             if(_presenter is null&&_bottom>Height-55){var track=Height-150;var maximum=Math.Max(1,_bottom-Height+55);d.DrawRoundedRectangle(_dim,null,new Rect(Width-10,80+(track-70)*_scroll/maximum,3,70),1.5,1.5);}
             var status=_status.Length>0?_status:_page=="Settings"?"Changes are saved automatically.":"";
-            if(status.Length>0)Label(d,status,230,Height-38,10,_dim,false,Width-255);
+            if(status.Length>0)Label(d,status,235,Height-38,11,_status.Length>0?_text:_dim,false,Width-260);
+            DrawSettingsMenu(d);
             _presenter?.Redraw(scale);
             if(focused is not null)
             {
@@ -228,7 +243,8 @@ public sealed class DashboardHost:IDisposable
             var source=_powerMode?.Source;
             var scope=source switch{PowerSource.PluggedIn=>" · Plugged in",PowerSource.Battery=>" · On battery",_=>""};
             Label(drawing,"Power mode"+scope,230,70,14,_text,true);
-            PowerButton("Windows settings",new Rect(Width-165,67,135,23),false,()=>Run(control.OpenSettings));
+            DrawPageButton(drawing,"80% charge limit",new Rect(Width-292,67,119,23),false,()=>Select(BatteryOptimizationPage));
+            DrawPageButton(drawing,"Windows settings",new Rect(Width-165,67,135,23),false,()=>Run(control.OpenSettings));
             if(source is not{} current||_powerMode?.Mode is null)
             {
                 Label(drawing,_powerMode?.Reason??"Windows did not report a configured power mode.",230,103,11,_dim,false,Width-260);
@@ -240,7 +256,7 @@ public sealed class DashboardHost:IDisposable
             {
                 var (mode,label)=PowerChoices[index];
                 var selected=mode==_powerMode.Mode;
-                PowerButton(label,new Rect(230+index*(width+8),96,width,30),selected,()=>
+                DrawPageButton(drawing,label,new Rect(230+index*(width+8),96,width,30),selected,()=>
                 {
                     var error=mode==_powerMode?.Mode?null:control.Apply(current,mode);
                     _powerMode=control.Read();
@@ -250,12 +266,41 @@ public sealed class DashboardHost:IDisposable
                 });
             }
 
-            void PowerButton(string label,Rect bounds,bool selected,Action action)
+        }
+        private void DrawPageButton(DrawingContext drawing,string label,Rect bounds,bool selected,Action action)
+        {
+            drawing.DrawRoundedRectangle(selected?_blue:_surface,_palette.CardBorder,bounds,5,5);
+            var text=MonitorText.Format(label,Bold,11,selected?SelectionText:_text,_scale);
+            text.MaxTextWidth=bounds.Width-8;
+            text.MaxLineCount=1;
+            text.Trimming=TextTrimming.CharacterEllipsis;
+            drawing.DrawText(text,MonitorText.Centered(text,new Point(bounds.X+bounds.Width/2,bounds.Y+bounds.Height/2),_scale));
+            Hit(selected?label+" (current)":label,bounds,action,pinned:true);
+        }
+        private void DrawBatteryOptimization(DrawingContext drawing)
+        {
+            var model=_device?.Model??"";
+            var (utility,steps)=model switch
             {
-                drawing.DrawRoundedRectangle(selected?_blue:_surface,_palette.CardBorder,bounds,5,5);
-                Label(drawing,label,bounds.X,bounds.Y+(bounds.Height-14)/2,11,selected?Brushes.White:_text,true,bounds.Width,true);
-                Hit(selected?label+" (current)":label,bounds,action,pinned:true);
-            }
+                var name when name.StartsWith("Acer",StringComparison.OrdinalIgnoreCase)
+                    => ("Acer Care Center or AcerSense",
+                        "Acer Care Center → Checkup → Battery Charge Limit. In AcerSense, open Personal Settings → Battery & USB Charging and turn on Optimized Battery Charging."),
+                var name when name.StartsWith("ASUS",StringComparison.OrdinalIgnoreCase)
+                    => ("MyASUS","Open Device Settings and turn on Battery Care Mode. On older models, choose Balanced in Battery Health Charging."),
+                var name when name.StartsWith("Dell",StringComparison.OrdinalIgnoreCase)
+                    => ("MyDell or Dell Power Manager","Choose Custom charging and set Stop Charging to 80%. Use a start threshold allowed by your model."),
+                var name when name.StartsWith("Surface",StringComparison.OrdinalIgnoreCase)||
+                    name.StartsWith("Microsoft",StringComparison.OrdinalIgnoreCase)&&name.Contains("Surface",StringComparison.OrdinalIgnoreCase)
+                    => ("Surface app","Open Battery & charging → Charging mode → Limit to 80%, if available."),
+                _ => ("Laptop manufacturer's utility","Look for a battery charge limit in the manufacturer's app or firmware. Choose 80% when your model offers it.")
+            };
+            var width=Width-255;
+            Label(drawing,"Set an 80% charge limit on supported laptops.",230,82,14,_text,true,width);
+            drawing.DrawRoundedRectangle(_surface,_palette.CardBorder,new Rect(230,119,width,124),9,9);
+            Label(drawing,utility,246,134,14,_text,true,width-32);
+            Label(drawing,steps,246,163,12,_dim,false,width-32);
+            Label(drawing,"Check the limit in the manufacturer's utility. Your laptop applies it.",230,258,12,_dim,false,width);
+            _bottom=305;
         }
         private void Overview(DrawingContext d)
         {
@@ -283,45 +328,6 @@ public sealed class DashboardHost:IDisposable
                 Label(d,"Preparing device details…",245,top+14,13,_dim);_bottom=top+50;
             }
         }
-        private void Settings(DrawingContext d)
-        {
-            var s=_settings();double y=85;
-            if(_settingsModule is{}selected){Heading(d,selected.ToString().ToUpperInvariant()+" SETTINGS",ref y);ModuleSettings(d,s,selected,ref y);Choice(d,"All settings","Open",ref y,()=>Select("Settings"));_bottom=y+30;return;}
-            Heading(d,"APPEARANCE & BAR",ref y);
-            Choice(d,"Theme",s.Theme.ToString(),ref y,()=>Change(x=>x with{Theme=(BarTheme)(((int)x.Theme+1)%3)}));
-            Choice(d,"Accent",s.Accent,ref y,()=>Edit("Accent",s.Accent));
-            Choice(d,"Mode",(s.TopReveal?BarMode.Overlay:s.Mode).ToString(),ref y,()=>Change(x=>x.TopReveal||x.Mode==BarMode.Overlay?x with{Mode=BarMode.Reserve,RevealAtTop=false}:x with{Mode=BarMode.Overlay}));
-            Choice(d,"Position",s.TopReveal?"Top · reveal on hover":s.Edge==BarEdge.Bottom?"Bottom · above taskbar":"Top",ref y,()=>Change(x=>x.TopReveal?x with{Edge=BarEdge.Bottom,RevealAtTop=false}:x.Edge==BarEdge.Bottom?x with{Edge=BarEdge.Top,RevealAtTop=false}:x with{RevealAtTop=true,Mode=BarMode.Overlay}));
-            Choice(d,"Alignment",s.Alignment.ToString(),ref y,()=>Change(x=>x with{Alignment=(BarAlignment)(((int)x.Alignment+1)%3)}));
-            Choice(d,"Monitors",s.Monitors.ToString(),ref y,()=>Change(x=>x with{Monitors=x.Monitors==MonitorSelection.Primary?MonitorSelection.All:MonitorSelection.Primary}));
-            Choice(d,"Opacity",$"{s.Opacity*100:0}%",ref y,()=>Change(x=>x with{Opacity=x.Opacity>=.99?.5:Math.Min(1,Math.Round(x.Opacity+.1,1))}));
-            Choice(d,"Bar refresh",$"{s.IntervalSeconds} seconds",ref y,()=>Change(x=>x with{IntervalSeconds=NextInterval(x.IntervalSeconds)}));
-            Choice(d,"Transfer units",s.UseBits?"Bits / second":"Bytes / second",ref y,()=>Change(x=>x with{UseBits=!x.UseBits}));
-            Choice(d,"Temperature",s.Fahrenheit?"°F":"°C",ref y,()=>Change(x=>x with{Fahrenheit=!x.Fahrenheit}));
-            Choice(d,"Monitoring",s.Pause?"Paused":"Running",ref y,()=>Change(x=>x with{Pause=!x.Pause}));
-            Heading(d,"MODULES",ref y);
-            foreach(var module in Enum.GetValues<BarModule>())
-            {
-                ModuleSettings(d,s,module,ref y);
-            }
-            Heading(d,"IMPORT & EXPORT",ref y);
-            Choice(d,"Export settings","Save local JSON",ref y,()=>Run(()=>_actions.ExportSettings()));
-            Choice(d,"Import settings","Enter local file path",ref y,()=>Edit("Import settings",""));
-            Choice(d,"Compatibility report","Export local JSON",ref y,()=>Run(()=>_actions.CompatibilityReport()));
-            _bottom=y+30;
-        }
-        private void ModuleSettings(DrawingContext d,BarSettings s,BarModule m,ref double y)
-        {
-            var preference=s.Preference(m);var cost=m==BarModule.Sensors?"High · helper required (not installed)":m is BarModule.Gpu or BarModule.Cpu or BarModule.Ram?"Medium":"Low";
-            Choice(d,m+" in bar",s.Items.Contains(m)?"On":"Off",ref y,()=>Change(x=>x.WithItemVisibility(m,!x.Items.Contains(m))));
-            Label(d,"Cost: "+cost,250,y-8,9,_dim);y+=13;
-            Choice(d,"Details refresh",preference.UpdateSeconds+" seconds",ref y,()=>Preference(m,p=>p with{UpdateSeconds=NextInterval(p.UpdateSeconds)}));
-            Choice(d,"Bar style",preference.Style.ToString(),ref y,()=>Preference(m,p=>p with{Style=NextStyle(m,p.Style)}));
-            Choice(d,"Click-open popup",preference.PopupEnabled?"On":"Off",ref y,()=>Preference(m,p=>p with{PopupEnabled=!p.PopupEnabled}));
-            if(s.Items.Contains(m))Choice(d,"Move earlier",s.Items.First()==m?"First":"Move ↑",ref y,()=>Change(x=>x.MoveItemEarlier(m)));y+=12;
-        }
-        private static BarItemStyle NextStyle(BarModule module,BarItemStyle style)
-        {BarItemStyle[] styles=module switch{BarModule.Network=>[BarItemStyle.Auto,BarItemStyle.Speed,BarItemStyle.TwoLine],BarModule.Battery=>[BarItemStyle.Auto,BarItemStyle.Battery,BarItemStyle.TwoLine],_=>[BarItemStyle.Auto,BarItemStyle.TwoLine]};return styles[(Array.IndexOf(styles,style)+1)%styles.Length];}
         private void Choice(DrawingContext d,string name,string value,ref double y,Action action)
         {
             var rect=new Rect(235,y-3,Width-275,35);
@@ -340,24 +346,23 @@ public sealed class DashboardHost:IDisposable
             Label(d,"The report excludes IP/MAC addresses, usernames, serial numbers and process lists.",245,y+12,11,_dim,false,Width-285);_bottom=y+100;
         }
         private void Heading(DrawingContext d,string name,ref double y){y+=12;Label(d,name,243,y,10,_dim,true);y+=32;}
-        private void Change(Func<BarSettings,BarSettings> update)
+        private void Change(Func<BarSettings,BarSettings> update,string? feedback=null)
         {
-            try{_save(update(_settings()).Validate());_status="Settings saved.";}
+            try{_save(update(_settings()).Validate());_status=feedback??"Settings saved.";}
             catch(Exception ex)when(ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidDataException)
             {_status="Settings were not saved. "+ex.Message;}
             Draw(_scale);
         }
-        private void Preference(BarModule module,Func<ModulePreference,ModulePreference> update)=>Change(s=>s with{Modules=new(s.Modules){[module]=update(s.Preference(module))}});
-        private static int NextInterval(int seconds)=>seconds switch{1=>2,2=>3,3=>5,_=>1};
         private void Run(Func<string> action){try{_status=action();}catch(Exception ex)when(ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidDataException or System.Text.Json.JsonException){_status=ex.Message;}Draw(_scale);}
         private void Edit(string field,string value){_editing=field;_entry=value;_caret=value.Length;_selectAll=true;_status="Type a value, Enter to apply, Esc to cancel · Ctrl+V to paste";Focus();Draw(_scale);}
         private void Insert(string text){if(_selectAll){_entry="";_caret=0;_selectAll=false;}if(_entry.Length+text.Length>1024)return;_entry=_entry.Insert(_caret,text);_caret+=text.Length;Draw(_scale);}
         private void HandleKey(object sender,KeyEventArgs e)
         {
+            if(HandleSettingsMenuKey(e))return;
             if(_editing is not null)
             {
                 if(e.Key==Key.Escape){_editing=null;_status="Edit cancelled";Draw(_scale);}
-                else if(e.Key==Key.Enter){var field=_editing;_editing=null;if(field=="Accent")Change(s=>s with{Accent=_entry.Trim()});else if(field=="Import settings")Run(()=>_actions.ImportSettings(_entry.Trim().Trim('"')));}
+                else if(e.Key==Key.Enter){var field=_editing;_editing=null;if(field=="Accent color")Change(s=>s with{Accent=_entry.Trim()},"Accent color saved.");else if(field=="Import settings")Run(()=>_actions.ImportSettings(_entry.Trim().Trim('"')));}
                 else if(e.Key==Key.Back){if(_selectAll){_entry="";_caret=0;_selectAll=false;}else if(_caret>0){_entry=_entry.Remove(--_caret,1);}Draw(_scale);}
                 else if(e.Key==Key.Left){_selectAll=false;_caret=Math.Max(0,_caret-1);}else if(e.Key==Key.Right){_selectAll=false;_caret=Math.Min(_entry.Length,_caret+1);}
                 else if(e.Key==Key.Home)_caret=0;else if(e.Key==Key.End)_caret=_entry.Length;
@@ -387,19 +392,25 @@ public sealed class DashboardHost:IDisposable
         }
         private void Button(DrawingContext d,string name,string label,Rect rect,Action action){Label(d,label,rect.Left+6,rect.Top+3,17,_dim);Hit(name,rect,action);}
         private void Label(DrawingContext d,string value,double x,double y,double size,Brush brush,bool bold=false,double? width=null,bool center=false,bool right=false)
-        {var t=new FormattedText(value,CultureInfo.CurrentUICulture,FlowDirection.LeftToRight,bold?Bold:Face,size,brush,_scale);if(width is{}w){t.MaxTextWidth=w;t.MaxLineCount=2;t.Trimming=TextTrimming.CharacterEllipsis;t.TextAlignment=center?TextAlignment.Center:right?TextAlignment.Right:TextAlignment.Left;}d.DrawText(t,new Point(x,y));}
+        {var t=MonitorText.Format(value,bold?Bold:Face,size,brush,_scale);if(width is{}w){t.MaxTextWidth=w;t.MaxLineCount=2;t.Trimming=TextTrimming.CharacterEllipsis;t.TextAlignment=center?TextAlignment.Center:right?TextAlignment.Right:TextAlignment.Left;}d.DrawText(t,MonitorText.PixelAligned(x,y,_scale));}
         private void Icon(DrawingContext d,string page,double x,double y,Brush color)
         {var p=new Pen(color,1.3);if(page=="Dashboard"){for(int i=0;i<9;i++)d.DrawEllipse(color,null,new Point(x+i%3*5,y+i/3*5),1.5,1.5);}else if(page=="Network")d.DrawEllipse(null,p,new Point(x+6,y+6),7,7);else if(page=="Battery"){d.DrawRoundedRectangle(null,p,new Rect(x-1,y+1,14,9),2,2);d.DrawRectangle(color,null,new Rect(x+14,y+4,2,3));}else{d.DrawRoundedRectangle(null,p,new Rect(x,y,13,12),2,2);d.DrawLine(p,new Point(x+3,y+4),new Point(x+10,y+4));d.DrawLine(p,new Point(x+3,y+8),new Point(x+10,y+8));}}
-        public void Dispose(){if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();Cleanup.Add(_presenter.Cleanup);RemoveVisualChild(_presenter);_presenter=null;}}
+        public void Dispose(){StopWidgets();if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();Cleanup.Add(_presenter.Cleanup);RemoveVisualChild(_presenter);_presenter=null;}}
         private sealed class DashboardPeer(DashboardVisual owner):UIElementAutomationPeer(owner)
         {protected override string GetNameCore()=>"Tidlet "+owner._page;protected override string GetClassNameCore()=>"TidletDashboard";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Window;}
     }
     private sealed class SurfaceAction:UIElement
     {
+        private static readonly Pen FocusBorder=PopupPalette.Stroke(PopupPalette.Solid(0x52A9FC),1);
         private readonly string _name;private readonly Action _action;
         internal string Label=>_name;
         protected override HitTestResult HitTestCore(PointHitTestParameters parameters)=>new PointHitTestResult(this,parameters.HitPoint);
-        public SurfaceAction(string name,Action action){_name=name;_action=action;Focusable=true;MouseLeftButtonUp+=(_,e)=>{_action();e.Handled=true;};KeyDown+=(_,e)=>{if(e.Key is Key.Enter or Key.Space){_action();e.Handled=true;}};}
+        public SurfaceAction(string name,Action action){_name=name;_action=action;Focusable=true;IsKeyboardFocusedChanged+=(_,_)=>InvalidateVisual();MouseLeftButtonUp+=(_,e)=>{_action();e.Handled=true;};KeyDown+=(_,e)=>{if(e.Key is Key.Enter or Key.Space){_action();e.Handled=true;}};}
+        protected override void OnRender(DrawingContext drawing)
+        {
+            if(IsKeyboardFocused&&RenderSize.Width>2&&RenderSize.Height>2)
+                drawing.DrawRoundedRectangle(null,FocusBorder,new Rect(1,1,RenderSize.Width-2,RenderSize.Height-2),5,5);
+        }
         protected override AutomationPeer OnCreateAutomationPeer()=>new ActionPeer(this);
         private sealed class ActionPeer(SurfaceAction owner):UIElementAutomationPeer(owner),IInvokeProvider
         {protected override string GetNameCore()=>owner._name;protected override string GetClassNameCore()=>"TidletAction";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Button;public override object? GetPattern(PatternInterface p)=>p==PatternInterface.Invoke?this:base.GetPattern(p);public void Invoke()=>owner.Dispatcher.BeginInvoke(owner._action);}

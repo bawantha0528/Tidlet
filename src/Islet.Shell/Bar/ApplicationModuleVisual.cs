@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Input;
@@ -15,11 +14,19 @@ internal sealed partial class ApplicationModuleVisual:UIElement
     public PopupDetails Details{get;private set;}
     private bool _useBits;
     private bool _previous;
-    public void ShowPrevious(PopupSample sample){_sample=sample;_previous=true;Redraw(_scale);}
-    public void ClearPrevious(){if(!_previous)return;_sample=null;_previous=false;Redraw(_scale);}
+    private bool IsMeasuring=>_sample?.WarmingUp==true;
+    public void ShowPrevious(PopupSample sample){if(_previous&&ReferenceEquals(_sample,sample))return;_sample=sample;_previous=true;Redraw(_scale);}
+    public void ShowMeasuring(PopupSample sample)
+    {
+        var partial=MetricLoading.HasPartialDetails(_module,sample)?sample:null;
+        if(ReferenceEquals(_sample,partial))return;
+        _sample=partial;
+        _previous=false;
+        Redraw(_scale);
+    }
     public void SetUnits(bool useBits){if(_useBits==useBits)return;_useBits=useBits;_labels.Clear();Redraw(_scale);}
     private readonly RectangleGeometry _clip;
-    private readonly Dictionary<(double,double,double,Brush,bool,TextAlignment), (string,FormattedText)> _labels=[];
+    private readonly Dictionary<(double,double,double,Brush,bool,TextAlignment,bool,double?), (string,FormattedText)> _labels=[];
     private static readonly Typeface Face=new("Segoe UI Variable, Segoe UI"),Bold=new(new FontFamily("Segoe UI Variable, Segoe UI"),FontStyles.Normal,FontWeights.SemiBold,FontStretches.Normal);
     private readonly DashboardPalette _palette;
     private Brush Text=>_palette.Text;
@@ -66,20 +73,30 @@ internal sealed partial class ApplicationModuleVisual:UIElement
         if(_sample is null)Loading(d);
         else if(_module==BarModule.Cpu)Cpu(d);else if(_module==BarModule.Ram)Ram(d);else if(_module is BarModule.Gpu or BarModule.Disk or BarModule.Network or BarModule.Battery)Module(d);else
         {CardAt(d,0,140);Label(d,_module==BarModule.Sensors?"Optional sensor helper required":"Wide module page awaiting resource validation",20,24,16,Text,true);Label(d,_sample?.Explanation??"Reading capability…",20,65,12,Dim);_bottom=145;}
-        if(_previous)Label(d,"Previous reading · refreshing",Math.Max(15,_width-215),2,10,Dim);
+        if(_previous)Label(d,MetricLoading.Previous,Math.Max(15,_width-215),2,10,Dim);
+        else if(IsMeasuring)Label(d,MetricLoading.For(_module).Title,Math.Max(15,_width-215),2,10,Dim);
         d.Pop();if(_bottom>_height){var max=_bottom-_height;d.DrawRoundedRectangle(Dim,null,new Rect(_width-4,(_height-60)*_scroll/max,3,60),1.5,1.5);}d.Pop();
     }
     private void Loading(DrawingContext d)
     {
-        CardAt(d,0,142);Ring(d,new(69,71),48,null,Gray);Label(d,"Preparing live readings",144,24,17,Text,true);
-        if(Intersects(65,14))d.DrawRoundedRectangle(Track,null,new Rect(144,65,Math.Max(20,_width-190),12),4,4);
-        Label(d,"Windows is collecting the first sample in the background.",144,94,11,Dim);
-        CardAt(d,174,200);Label(d,"History starts with your real readings",20,196,13,Dim);_bottom=390;
+        var (title,detail)=MetricLoading.For(_module);
+        CardAt(d,0,132);
+        Label(d,title,20,24,17,Text,true);
+        Label(d,detail,20,60,12,Dim);
+        _bottom=147;
+        if(_module is BarModule.Cpu or BarModule.Ram or BarModule.Gpu or BarModule.Disk or BarModule.Network)
+        {
+            CardAt(d,158,146);
+            Label(d,MetricLoading.CollectingHistory,20,218,12,Dim,centered:true);
+            _bottom=320;
+        }
     }
     private void Cpu(DrawingContext d)
     {
-        var s=_sample;CardAt(d,0,142);Ring(d,new(69,71),48,s?.Cpu,Blue);
-        Label(d,s?.Cpu is{}v?$"{v:0}%":"—",35,55,24,Text,true);
+        var s=_sample;
+        if(s?.Cpu is not (>=0 and <=100)){Empty(d,s?.Explanation??"Windows CPU readings are unavailable.");return;}
+        CardAt(d,0,142);Ring(d,new(69,71),48,s.Cpu,Blue);
+        Label(d,Percent(s.Cpu),69,71,24,Text,true,centerOnPoint:true);
         Label(d,"Processor utilization",144,20,16,Text,true);Label(d,s?.FrequencyGhz is{}f?$"{f:0.00} GHz":"Windows CPU readings",144,48,12,Dim);
         var barWidth=_width-170;Bar(d,144,79,barWidth,s?.System,s?.User);
         Label(d,"System: "+Percent(s?.System),144,103,12,Red);Label(d,"User: "+Percent(s?.User),144+barWidth*.35,103,12,Blue);Label(d,"Idle: "+Percent(s?.Idle),144+barWidth*.68,103,12,Dim);
@@ -96,8 +113,11 @@ internal sealed partial class ApplicationModuleVisual:UIElement
                 if(!Intersects(top,32))continue;
                 var valid=double.IsFinite(value)&&value is>=0 and<=100;
                 var kind=hybrid?(s!.Classes[i]==highest?1:0):-1;var label=kind==0?"E · logical ":kind>0?"P · logical ":"Logical processor ";
-                Label(d,label+(i+1),x,top,11,Dim);Label(d,valid?$"{value:0}%":s?.Capabilities?.GetValueOrDefault("cores")?.ReasonCode=="cores.unavailable"?"Unavailable":"Measuring…",x+_width/2-88,top,11,Text,true);
-                var w=_width/2-35;d.DrawRoundedRectangle(Track,null,new Rect(x,top+23,w,6),3,3);if(valid&&value>0)d.DrawRoundedRectangle(kind==0?Cyan:Blue,null,new Rect(x,top+23,w*value/100,6),3,3);
+                var w=_width/2-35;const double valueWidth=84;
+                Label(d,label+(i+1),x,top,11,Dim,maxWidth:w-valueWidth-8);
+                Label(d,valid?$"{value:0}%":s?.Capabilities?.GetValueOrDefault("cores")?.ReasonCode=="cores.unavailable"?"Unavailable":"Measuring…",
+                    x+w-valueWidth,top,11,Text,true,right:true,maxWidth:valueWidth);
+                d.DrawRoundedRectangle(Track,null,new Rect(x,top+23,w,6),3,3);if(valid&&value>0)d.DrawRoundedRectangle(kind==0?Cyan:Blue,null,new Rect(x,top+23,w*value/100,6),3,3);
             }
             y+=rows*52+35;
         }
@@ -109,7 +129,7 @@ internal sealed partial class ApplicationModuleVisual:UIElement
     private void Ram(DrawingContext d)
     {
         var m=_sample?.Memory;var valid=m?.Valid==true;CardAt(d,0,144);Ring(d,new(69,72),48,valid?m!.UsedPercent:null,Blue);
-        Label(d,valid?$"{m!.UsedPercent:0}%":"—",35,56,24,Text,true);
+        Label(d,valid?$"{m!.UsedPercent:0}%":"Unavailable",69,72,valid?24:11,valid?Text:Dim,true,centerOnPoint:true);
         Label(d,"Used: "+(valid?Bytes(m!.Total-m.Available):"Unavailable"),144,20,16,Text,true);
         Label(d,"Total: "+(valid?Bytes(m!.Total):"Unavailable"),_width-180,23,12,Dim);
         var w=_width-170;if(Intersects(64,13)){d.DrawRoundedRectangle(Track,null,new Rect(144,64,w,13),4,4);
@@ -121,12 +141,12 @@ internal sealed partial class ApplicationModuleVisual:UIElement
         var pressure=valid?m!.Pressure:double.NaN;var center=new Point(half/2,y+105);
         Arc(d,center,62,180,60,Green,8);Arc(d,center,62,240,60,Orange,8);Arc(d,center,62,300,60,Red,8);
         if(Intersects(center.Y-62,62)&&double.IsFinite(pressure)){var angle=(180+Math.Clamp(pressure,0,100)*1.8)*Math.PI/180;d.DrawLine(Line,center,new Point(center.X+Math.Cos(angle)*50,center.Y+Math.Sin(angle)*50));}
-        Label(d,m?.PressureName??"Unavailable",half/2-35,y+125,13,Text,true);
+        Label(d,m?.PressureName??"Unavailable",center.X,y+133,13,Text,true,centerOnPoint:true);
         var pageValid=m?.PageFileUsed is{}used&&m.PageFileTotal is>0&&used<=m.PageFileTotal;
         Ring(d,new(half+16+half/2,y+74),43,pageValid?100.0*m!.PageFileUsed!.Value/m.PageFileTotal!.Value:null,Blue);
-        Label(d,pageValid?Bytes(m!.PageFileUsed!.Value):"Not reported",half+36,y+131,12,Text,true);
+        Label(d,pageValid?Bytes(m!.PageFileUsed!.Value):"Not reported",half+16+half/2,y+74,12,Text,true,centerOnPoint:true);
         y+=190;
-        if(m?.Cache is{}cache){Label(d,"System cache (may overlap other memory)",16,y,12,Dim);Label(d,Bytes(cache),_width-120,y,12,Text,true);y+=35;}
+        if(m?.Cache is{}cache){Label(d,"System cache (may overlap other memory)",16,y,12,Dim);Label(d,Bytes(cache),_width-120,y,12,Text,true,right:true);y+=35;}
         Processes(d,ref y,true);Explanation(d,ref y);_bottom=y+15;
     }
     private void Processes(DrawingContext d,ref double y,bool memory)
@@ -139,7 +159,7 @@ internal sealed partial class ApplicationModuleVisual:UIElement
             var reason=_sample?.Capabilities?.GetValueOrDefault("processes");
             Label(d,reason?.ReasonCode=="processes.unavailable"?reason.Explanation??"Process details unavailable":Details.HasFlag(PopupDetails.Processes)?"Measuring processes…":"Scroll here to measure processes",16,y+7,12,Dim);
         }
-        for(int i=0;i<p.Length;i++){var topRow=y+7+i*29;if(!Intersects(topRow,36))continue;var item=p[i];Label(d,item.Name,16,topRow,12,Text);Label(d,memory?Bytes(item.WorkingSet):Percent(item.CpuPercent),_width-120,topRow,12,Text,true);}y+=6*29+40;
+        for(int i=0;i<p.Length;i++){var topRow=y+7+i*29;if(!Intersects(topRow,36))continue;var item=p[i];Label(d,item.Name,16,topRow,12,Text);Label(d,memory?Bytes(item.WorkingSet):Percent(item.CpuPercent),_width-120,topRow,12,Text,true,right:true);}y+=6*29+40;
     }
     private bool Intersects(double top,double height)=>top<_scroll+_height&&top+height>_scroll;
     private void Explanation(DrawingContext d,ref double y){if(!string.IsNullOrWhiteSpace(_sample?.Explanation)){Label(d,_sample.Explanation,16,y,11,Dim);y+=48;}}
@@ -148,7 +168,12 @@ internal sealed partial class ApplicationModuleVisual:UIElement
         Label(d,title,6,y-27,16,Text,true);CardAt(d,y,200);var rect=new Rect(50,y+15,_width-68,150);
         if(!Intersects(y,200))return;
         for(int i=0;i<=4;i++){double top=rect.Top+i*rect.Height/4;d.DrawLine(Grid,new Point(rect.Left,top),new Point(rect.Right,top));Label(d,(100-i*25)+"%",10,top-7,10,Dim);}
-        var history=series??_history;if(history?.Count>0)
+        var history=series??_history;
+        if(history is not{Count:>=2})
+        {
+            Label(d,MetricLoading.CollectingHistory,0,rect.Top+60,12,Dim,centered:true);
+        }
+        else
         {
             var geometry=new StreamGeometry();using(var c=geometry.Open())
             {
@@ -167,13 +192,27 @@ internal sealed partial class ApplicationModuleVisual:UIElement
     private void Ring(DrawingContext d,Point center,double radius,double? value,Brush color){if(!Intersects(center.Y-radius-5,2*radius+10))return;d.DrawEllipse(null,Pen(Track,9),center,radius,radius);if(value is>0 and<=100)Arc(d,center,radius,-90,Math.Min(359.99,value.Value*3.6),color,9);}
     private void Arc(DrawingContext d,Point center,double radius,double start,double sweep,Brush color,double thickness)
     {if(!Intersects(center.Y-radius-thickness/2,2*radius+thickness))return;Point At(double degrees)=>new(center.X+radius*Math.Cos(degrees*Math.PI/180),center.Y+radius*Math.Sin(degrees*Math.PI/180));var g=new StreamGeometry();using(var c=g.Open()){c.BeginFigure(At(start),false,false);c.ArcTo(At(start+sweep),new Size(radius,radius),0,sweep>180,SweepDirection.Clockwise,true,false);}g.Freeze();d.DrawGeometry(null,Pen(color,thickness),g);}
-    private void Label(DrawingContext d,string value,double x,double y,double size,Brush brush,bool bold=false,bool right=false,bool centered=false)
+    private void Label(DrawingContext d,string value,double x,double y,double size,Brush brush,bool bold=false,bool right=false,bool centered=false,bool centerOnPoint=false,double? maxWidth=null)
     {
-        if(!Intersects(y,size*3))return;
+        if(!Intersects(centerOnPoint?y-size:y,size*3))return;
         var alignment=centered?TextAlignment.Center:right?TextAlignment.Right:TextAlignment.Left;
-        var key=(x,y,size,brush,bold,alignment);if(!_labels.TryGetValue(key,out var cached)||cached.Item1!=value)
-        {var t=new FormattedText(value,CultureInfo.CurrentUICulture,FlowDirection.LeftToRight,bold?Bold:Face,size,brush,_scale){MaxTextWidth=Math.Max(10,_width-x-12),MaxLineCount=2,Trimming=TextTrimming.CharacterEllipsis,TextAlignment=alignment};if(_labels.Count>=192)_labels.Clear();_labels[key]=(value,t);cached=(value,t);}d.DrawText(cached.Item2,new Point(x,y));
+        var key=(x,y,size,brush,bold,alignment,centerOnPoint,maxWidth);
+        if(!_labels.TryGetValue(key,out var cached)||cached.Item1!=value)
+        {
+            var text=MonitorText.Format(value,bold?Bold:Face,size,brush,_scale);
+            if(!centerOnPoint)
+            {
+                text.MaxTextWidth=Math.Max(10,maxWidth??_width-x-12);
+                text.MaxLineCount=2;
+                text.Trimming=TextTrimming.CharacterEllipsis;
+                text.TextAlignment=alignment;
+            }
+            if(_labels.Count>=192)_labels.Clear();
+            _labels[key]=cached=(value,text);
+        }
+        var origin=centerOnPoint?MonitorText.Centered(cached.Item2,new Point(x,y),_scale):MonitorText.PixelAligned(x,y,_scale);
+        d.DrawText(cached.Item2,origin);
     }
     private sealed class PagePeer(ApplicationModuleVisual owner):UIElementAutomationPeer(owner)
-    {protected override string GetNameCore()=>owner._module+" application page. "+(owner._sample?.Explanation??"Reading Windows metrics");protected override string GetClassNameCore()=>"TidletModulePage";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Pane;}
+    {protected override string GetNameCore()=>owner._module+" application page. "+(owner._previous?MetricLoading.Previous:owner.IsMeasuring||owner._sample is null?MetricLoading.For(owner._module).Title:owner._sample.Explanation);protected override string GetClassNameCore()=>"TidletModulePage";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Pane;}
 }

@@ -47,7 +47,7 @@ public sealed class PhysicalNetworkSource : ISystemPhysicalNetworkSource
 public readonly record struct PhysicalCounter(ulong Id,ulong Received,ulong Sent,string Name,Guid Guid=default,string? Mac=null);
 public interface ISystemPhysicalNetworkSource{bool TryRead(out PhysicalCounter[] counters,out string reason);}
 public sealed record PhysicalNetworkSnapshot(NetworkReading Reading,PhysicalCounter[] Adapters,ulong RecordedReceived,ulong RecordedSent);
-public sealed class PhysicalNetworkProvider(ISystemPhysicalNetworkSource source)
+public sealed class PhysicalNetworkProvider(ISystemPhysicalNetworkSource source,Action<ulong,ulong>? recordUsage=null)
 {
     private PhysicalCounter[] _previous=[];private long _timestamp;
     private readonly object _gate=new();private ulong _recordedReceived,_recordedSent;
@@ -61,14 +61,17 @@ public sealed class PhysicalNetworkProvider(ISystemPhysicalNetworkSource source)
         Reads++;if(!source.TryRead(out var now,out var reason)){Reset();return NetworkReading.Missing(NetworkReadingState.Unavailable,reason);}
         var time=Stopwatch.GetTimestamp();var elapsed=(time-_timestamp)/(double)Stopwatch.Frequency;
         var valid=_timestamp!=0&&elapsed>0&&now.Length==_previous.Length;double down=0,up=0;
+        ulong received=0,sent=0;var matched=false;
         foreach(var row in now)
         {
             var old=_previous.FirstOrDefault(x=>x.Id==row.Id);
             if(old.Id==0||row.Received<old.Received||row.Sent<old.Sent){valid=false;continue;}
-            _recordedReceived=Add(_recordedReceived,row.Received-old.Received);_recordedSent=Add(_recordedSent,row.Sent-old.Sent);
+            received=Add(received,row.Received-old.Received);sent=Add(sent,row.Sent-old.Sent);matched=true;
             down+=(row.Received-old.Received)/elapsed;up+=(row.Sent-old.Sent)/elapsed;
         }
         _previous=now;_timestamp=time;
+        _recordedReceived=Add(_recordedReceived,received);_recordedSent=Add(_recordedSent,sent);
+        if(matched)recordUsage?.Invoke(received,sent);
         return valid?new(NetworkReadingState.Available,(ulong)Math.Max(0,down),(ulong)Math.Max(0,up),string.Join(", ",now.Select(x=>x.Name)),reason)
             :NetworkReading.Missing(NetworkReadingState.WarmingUp,"Measuring physical adapters; counter baseline reset.");
     }

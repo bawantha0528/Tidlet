@@ -1,6 +1,6 @@
 #requires -Version 5.1
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$OutputDirectory,[ValidateSet('Dashboard','Settings','CPU','RAM','GPU','Disk','Network','Battery')][string]$Page='Dashboard',[Parameter(Mandatory)][string]$Executable,[ValidateSet('Static','Navigation','AfterClose','Paused')][string]$Scenario='Static',[ValidateSet(0,100,150)][int]$CapturePercent=0,[switch]$MemoryProfile)
+param([Parameter(Mandatory)][string]$OutputDirectory,[ValidateSet('Dashboard','Settings','CPU','RAM','GPU','Disk','Network','Battery','Widgets')][string]$Page='Dashboard',[Parameter(Mandatory)][string]$Executable,[ValidateSet('Static','Navigation','AfterClose','Paused')][string]$Scenario='Static',[ValidateSet(0,100,150)][int]$CapturePercent=0,[switch]$MemoryProfile)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'Measurement.psm1') -Force

@@ -35,12 +35,13 @@ internal sealed partial class ApplicationModuleVisual
         foreach(var adapter in gpu?.Adapters.Take(32)??[])
         {
             CardAt(d,y,142);Ring(d,new(69,y+71),48,adapter.Usage,Blue);
-            Label(d,ValidPercent(adapter.Usage)?$"{adapter.Usage:0}%":"—",35,y+55,24,Text,true);
+            if(ValidPercent(adapter.Usage))Label(d,$"{adapter.Usage:0}%",69,y+71,24,Text,true,centerOnPoint:true);
+            else Label(d,IsMeasuring?"Measuring":"Unavailable",69,y+71,11,Dim,centerOnPoint:true);
             Label(d,adapter.Name,144,y+18,16,Text,true);
             Label(d,"Busiest engine · Windows GPU counters",144,y+63,11,Dim);
             if(adapter.DedicatedMemory>0)Label(d,"Dedicated capacity: "+Bytes(adapter.DedicatedMemory),144,y+94,12,Dim);
             _gpuHistories.TryGetValue(adapter.Luid,out var history);
-            y+=176;if(history is{Count:>0}){History(d,y,"GPU utilization history",history);y+=230;}
+            y+=176;if(ValidPercent(adapter.Usage)){History(d,y,"GPU utilization history",history);y+=230;}
             if(!string.IsNullOrWhiteSpace(adapter.Explanation)){Label(d,adapter.Explanation,16,y,11,Dim);y+=48;}
         }
         if(y==0){Empty(d,gpu?.Explanation??_sample?.Explanation??"Reading graphics capabilities…");return;}
@@ -52,7 +53,8 @@ internal sealed partial class ApplicationModuleVisual
         foreach(var disk in data?.Disks.Take(32)??[])
         {
             CardAt(d,y,142);Ring(d,new(69,y+71),48,disk.Active,Blue);
-            Label(d,ValidPercent(disk.Active)?$"{disk.Active:0}%":"—",35,y+55,24,Text,true);
+            if(ValidPercent(disk.Active))Label(d,$"{disk.Active:0}%",69,y+71,24,Text,true,centerOnPoint:true);
+            else Label(d,"Unavailable",69,y+71,11,Dim,centerOnPoint:true);
             Label(d,disk.Name,144,y+20,16,Text,true);Label(d,"Physical disk activity",144,y+51,11,Dim);
             Label(d,"Read: "+Rate(disk.Read),144,y+83,12,Blue,true);Label(d,"Write: "+Rate(disk.Write),_width*.6,y+83,12,Red,true);
             y+=176;_diskHistories.TryGetValue(disk.Name,out var history);TransferChart(d,y,"Read / write history",history,false);y+=230;
@@ -78,7 +80,12 @@ internal sealed partial class ApplicationModuleVisual
         if(data.Adapters.Length==0&&!ValidRate(data.Download)&&!ValidRate(data.Upload)){Empty(d,data.Explanation);return;}
         CardAt(d,0,138);Label(d,"Download",20,20,12,Dim);Label(d,"Upload",_width/2+12,20,12,Dim);
         Label(d,Rate(data.Download),20,53,29,Blue,true);Label(d,Rate(data.Upload),_width/2+12,53,29,Red,true);
-        TransferChart(d,176,"Transfer history",_networkHistory,true);double y=410;
+        double y=176;
+        if(IsMeasuring||_networkHistory is not null||ValidRate(data.Download)&&ValidRate(data.Upload))
+        {
+            TransferChart(d,y,"Transfer history",_networkHistory,true);
+            y=410;
+        }
         Label(d,"Recorded this session",6,y,16,Text,true);y+=35;CardAt(d,y,94);
         Row(d,"Downloaded",Bytes(data.RecordedDownload),y+15,Blue);Row(d,"Uploaded",Bytes(data.RecordedUpload),y+51,Red);y+=118;
         if(ValidRate(data.Latency)||ValidRate(data.Jitter))
@@ -107,9 +114,9 @@ internal sealed partial class ApplicationModuleVisual
             d.DrawRoundedRectangle(null,Pen(Gray,2),new Rect(center-70,24,140,58),10,10);d.DrawRoundedRectangle(Gray,null,new Rect(center+74,42,6,23),2,2);
             if(reading.Percent is>0)d.DrawRoundedRectangle(reading.Percent<=15?Orange:Green,null,new Rect(center-64,30,128*reading.Percent.Value/100,46),6,6);
         }
-        Label(d,$"{reading.Percent:0}%",0,99,32,Text,true,centered:true);
+        Label(d,$"{reading.Percent:0}%",center,123,32,Text,true,centerOnPoint:true);
         var state=reading.ChargingStatus switch{BatteryChargingStatus.Charging=>"Charging",BatteryChargingStatus.Full=>"Full",BatteryChargingStatus.Critical=>"Battery low",BatteryChargingStatus.Discharging=>data!.OnAc==true?"AC connected · not charging":"Discharging",_=>"State not reported"};
-        Label(d,state,0,151,14,Dim,centered:true);double y=222;
+        Label(d,state,center,161,14,Dim,centerOnPoint:true);double y=222;
         Label(d,"Battery details",6,y,16,Text,true);y+=34;var rows=new List<(string,string)>();
         if(data!.OnAc is{}ac)rows.Add(("Power source",ac?"AC power":"Battery"));
         if(reading.HealthPercent is{}health&&ValidPercent(health))rows.Add(("Health",$"{health:0}%"));
@@ -133,16 +140,21 @@ internal sealed partial class ApplicationModuleVisual
     {if(!Intersects(y,12))return;d.DrawRoundedRectangle(Track,null,new Rect(18,y,_width-46,12),4,4);if(double.IsFinite(percent)&&percent is>0 and<=100)d.DrawRoundedRectangle(Blue,null,new Rect(18,y,(_width-46)*percent/100,12),4,4);}
     private static bool ValidPercent(double? value)=>value is{}v&&double.IsFinite(v)&&v is>=0 and<=100;
     private static bool ValidRate(double? value)=>value is{}v&&double.IsFinite(v)&&v>=0&&v<ulong.MaxValue;
-    private string Rate(double? value)=>MetricFormat.TransferRate(value,_module==BarModule.Network&&_useBits);
+    private string Rate(double? value)=>MetricFormat.TransferRate(value,_module==BarModule.Network&&_useBits,IsMeasuring?"Measuring":"Not reported");
     private void TransferChart(DrawingContext d,double y,string title,TransferHistory? history,bool mirrored)
     {
         Label(d,title,6,y-27,16,Text,true);CardAt(d,y,200);if(!Intersects(y,200))return;
         var rect=new Rect(20,y+35,_width-50,130);var middle=mirrored?rect.Top+rect.Height/2:rect.Bottom;var amplitude=mirrored?rect.Height/2:rect.Height;
-        d.DrawLine(Grid,new Point(rect.Left,middle),new Point(rect.Right,middle));var scale=history?.Scale(_now)??1024;
+        if(history is not{Count:>=2})
+        {
+            Label(d,MetricLoading.CollectingHistory,0,y+82,12,Dim,centered:true);
+            return;
+        }
+        d.DrawLine(Grid,new Point(rect.Left,middle),new Point(rect.Right,middle));var scale=history.Scale(_now);
         Label(d,Rate(scale),rect.Left,y+10,10,Dim);
         for(int channel=0;channel<2;channel++)
         {
-            if(history is not{Count:>0})break;var geometry=new StreamGeometry();var started=false;double lastX=0;
+            var geometry=new StreamGeometry();var started=false;double lastX=0;
             using(var context=geometry.Open())
             {
                 for(int i=0;i<history.Count;i++)

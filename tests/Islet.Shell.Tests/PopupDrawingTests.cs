@@ -20,6 +20,12 @@ public sealed class PopupDrawingTests
             try
             {
                 var type=typeof(PopupCoordinator).Assembly.GetType("Islet.Shell.Bar.PopupVisual",true)!;
+                foreach(var module in Enum.GetValues<BarModule>())
+                {
+                    var popup=(UIElement)Activator.CreateInstance(type,[module,684.0,1.0,(Action)(()=>{}),(Action)(()=>{}),false])!;
+                    var peer=System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(popup)!;
+                    Assert.IsTrue(peer.GetName().Contains("Measuring")||peer.GetName().Contains("Reading")||peer.GetName().Contains("Checking"),$"Missing startup status for {module}");
+                }
                 foreach(var module in new[]{BarModule.Cpu,BarModule.Ram})
                 {
                     var visual=(UIElement)Activator.CreateInstance(type,BindingFlags.Instance|BindingFlags.Public,null,

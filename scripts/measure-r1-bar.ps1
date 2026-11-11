@@ -1,6 +1,6 @@
 #requires -Version 5.1
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$OutputDirectory,[switch]$Reserve,[switch]$Bottom,[string]$Executable='',[switch]$Gpu,[switch]$Light)
+param([Parameter(Mandatory)][string]$OutputDirectory,[switch]$Reserve,[switch]$Bottom,[string]$Executable='',[switch]$Gpu,[switch]$Light,[switch]$DesktopWidgets,[switch]$DataUsageWidget)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'Measurement.psm1') -Force
@@ -10,6 +10,17 @@ $null=New-Item -ItemType Directory -Force $root
 $root=(Resolve-Path $root).Path
 if((Get-ChildItem -LiteralPath $root -Force|Measure-Object).Count){throw 'Use a fresh evidence directory.'}
 $exe=if($Executable){(Resolve-Path -LiteralPath $Executable).Path}else{(Resolve-Path (Join-Path $PSScriptRoot '../src/IsletMonitor/bin/win-x86-probe/IsletMonitor.exe')).Path}
+if($DesktopWidgets -or $DataUsageWidget){
+    $names=@()
+    if($DesktopWidgets){$names+=@('CPU','GPU','RAM','Disk','Network','Combined')}
+    if($DataUsageWidget){$names+='Data usage'}
+    $index=0
+    $layout=@(foreach($name in $names){
+        @{Name=$name;X=20+$index%3*240;Y=48+[int][Math]::Floor($index/3)*210}
+        $index++
+    })
+    ConvertTo-Json -InputObject $layout | Set-Content (Join-Path $root 'desktop-widgets.json')
+}
 if($Gpu -or $Light){
     $settings=@{Version=1;Theme=if($Light){'Light'}else{'Dark'}}
     if($Gpu){$settings.Items=@('Cpu','Gpu','Ram','Network','Battery')}
@@ -40,8 +51,10 @@ try
     $policy|ConvertTo-Json|Set-Content (Join-Path $root 'memory-policy.json')
     $unchanged=$true;foreach($hash in $hashes){if((Get-FileHash -LiteralPath (Join-Path (Split-Path $exe) $hash.File) -Algorithm SHA256).Hash -ne $hash.SHA256){$unchanged=$false}}
     $gpuProof=if($Gpu){$d.GpuBarWorkersDrained -and $d.GpuBarRequests -ge 100 -and $null -ne $d.LastSnapshot.Gpu -and $d.LastSnapshot.Gpu -ge 0 -and $d.LastSnapshot.Gpu -le 100}else{$true}
-    $accepted=$result -eq 0 -and $policy.Accepted -and $unchanged -and $gpuProof
-    [ordered]@{Lifecycle='Pass';NumericalExit=$result;Samples=$d.Samples;Windows=$d.WindowCount;TrayRemoved=$d.AllTrayRemoved;ClosedPopupChartWork=$d.ChartWork;ClosedPopupProcessWork=$d.ProcessWork;GpuProof=$gpuProof;LifetimePeakWorkingSetBytes=$wholePeak;BinaryHashesUnchanged=$unchanged;OverallAccepted=$accepted}|ConvertTo-Json|Set-Content (Join-Path $root 'scenario-check.json')
+    $expectedPins=6*[int][bool]$DesktopWidgets+[int][bool]$DataUsageWidget
+    $desktopProof=$expectedPins -eq 0 -or ($d.RestoredDesktopWidgets -eq $expectedPins -and $d.DesktopWidgetWorkersDrained -and (!$DesktopWidgets -or $d.DesktopWidgetFrames -gt 100))
+    $accepted=$result -eq 0 -and $policy.Accepted -and $unchanged -and $gpuProof -and $desktopProof
+    [ordered]@{Lifecycle='Pass';NumericalExit=$result;Samples=$d.Samples;Windows=$d.WindowCount;TrayRemoved=$d.AllTrayRemoved;ClosedPopupChartWork=$d.ChartWork;ClosedPopupProcessWork=$d.ProcessWork;GpuProof=$gpuProof;DesktopWidgetProof=$desktopProof;LifetimePeakWorkingSetBytes=$wholePeak;BinaryHashesUnchanged=$unchanged;OverallAccepted=$accepted}|ConvertTo-Json|Set-Content (Join-Path $root 'scenario-check.json')
     if(-not $accepted){$result=2}
 }finally{$p.Dispose()}
 exit $result

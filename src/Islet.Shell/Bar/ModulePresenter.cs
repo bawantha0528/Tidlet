@@ -52,7 +52,11 @@ internal sealed class ModulePresenter:UIElement,IDisposable
     {
         if(_closed||_pending?.IsCompleted!=true)return;
         var sample=_pending.GetAwaiter().GetResult();_pending=null;var now=_clock.Elapsed.TotalSeconds;
-        if(sample.WarmingUp&&_recent is not null&&!_recent.TryGet(_module,out _))_visual.ClearPrevious();
+        if(sample.WarmingUp)
+        {
+            if(_recent?.TryGet(_module,out var previous)==true)_visual.ShowPrevious(previous!);
+            else _visual.ShowMeasuring(sample);
+        }
         if(_pendingDetails!=_visual.Details)sample=sample with{Cores=Enumerable.Repeat(double.NaN,sample.Cores.Length).ToArray(),Processes=[]};
         var value=_module==BarModule.Cpu?sample.Cpu:sample.Memory?.UsedPercent;if(value is{}v){_history.Push(now,v);_averages.Push(now,v);}
         _recent?.Store(_module,sample);_visual.Update(sample,_history,_averages,now);Frames++;

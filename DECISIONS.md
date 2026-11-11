@@ -334,3 +334,35 @@ Use the documented AC/DC Windows power-mode APIs from the Battery page. Recheck 
 ## Monitor UI audit — 11 November 2026
 
 Keep the existing visual host and reduce work at viewport and provider-lifetime boundaries. Treat popup and Dashboard navigation during bar-only diagnostics as out of scenario. Preserve resource budgets and earlier verdicts. See docs/UI_AUDIT.md for the fixes, tests and repeatable render matrix.
+
+## Battery optimization — 11 November 2026
+
+Guide the user to the manufacturer's documented 80% charge control. Use the existing Dashboard device model as a hint and let the manufacturer utility confirm support and the active limit. Keep the guide free of polling and system actions. See docs/BATTERY_OPTIMIZATION.md.
+
+## Startup reading states — 11 November 2026
+
+Keep startup feedback in the existing WPF surfaces and session cache. Use clear measuring and paused labels, retain real readings during refresh, and draw a chart after it has enough samples. Preserve the sampling intervals. See docs/STARTUP_READINGS.md.
+
+## First-reading details — 11 November 2026
+
+Preserve known disk capacity, graphics adapter data, and network interfaces when a provider is still calculating rates. Mark pending values as Measuring, and omit empty charts after Windows reports unavailable counters.
+## DPI-aware text in the monitor UI
+
+The WPF dashboard, monitor strip, and popups share device-scale text formatting and pixel-aligned text origins. Gauge readouts use the measured text width and height to stay centered as the reading changes. Logical processor values use fixed-width, right-aligned columns so status messages fit at the default window size. No dependency was added.
+
+Microsoft documents the DPI-aware `FormattedText` constructor and its `TextFormattingMode` parameter. [WPF FormattedText constructors](https://learn.microsoft.com/en-us/dotnet/api/system.windows.media.formattedtext.-ctor)
+
+## Settings controls and in-app widgets
+
+Settings choices open a keyboard-operable list with the current option marked. Selection applies through the existing validated settings store. The page reports the result and keeps related controls together in individual module pages. Opacity uses 10% steps from 20% to 100%, while imported values remain valid at their original precision.
+
+System theme reads the documented Windows app preference when Tidlet applies its theme. The read uses the current user's `AppsUseLightTheme` value and falls back to light if the value is missing or inaccessible. Tidlet does not write to Windows personalization. [Microsoft Windows settings reference](https://learn.microsoft.com/en-us/windows/apps/develop/settings/settings-common#personalization---colors)
+
+The Widgets page owns one sampling loop with a three-second interval and module-specific sources. It requests no per-core or process details, shares the recent-reading cache, and releases sources on navigation, pause, or close. The combined card reuses the same samples. GPU shows the busiest reported adapter, disk shows the first valid fixed volume, and the Network card shows a local address only when one adapter is present.
+
+Desktop pins use separate non-topmost WPF tool windows and the existing card renderer. Pins share one sampling loop for the requested metrics, pause when monitoring pauses or the bar reports environmental suppression, and save only widget names and screen positions in `desktop-widgets.json`. Clicking **+** adds a card or reports that it is already pinned. The title uses Windows caption hit testing for movement, and Tidlet saves the coordinates at the end of the move. [Extended window styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles), [WM_NCHITTEST](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest), [WM_EXITSIZEMOVE](https://learn.microsoft.com/en-us/windows/desktop/winmsg/wm-exitsizemove), [SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos)
+
+## Data usage totals
+
+The usage ledger records each accepted byte delta from the shared physical adapter sampler once, even if several surfaces read it. It stores only dates, totals by transfer direction, and the selected period. A delta crossing midnight is credited to the date of the later sample. Calendar weeks start Monday. Startup baselines, counter resets, and time when monitoring is stopped do not contribute. The app checkpoints locally about once a minute when values change and on clean exit.
+

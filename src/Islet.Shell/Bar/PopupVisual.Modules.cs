@@ -38,7 +38,11 @@ internal sealed partial class PopupVisual
         Hero(d,49,70);d.DrawLine(SectionPen,new Point(160,64),new Point(160,105));
         Text(d,Rate(net.Download),87,62,19,TextBrush,bold:true,center:true,maxWidth:132);Text(d,Rate(net.Upload),233,62,19,TextBrush,bold:true,center:true,maxWidth:132);
         Text(d,"↓ DOWNLOAD",87,94,9,_palette.Download.Line.Brush,center:true);Text(d,"↑ UPLOAD",233,94,9,_palette.Upload.Line.Brush,center:true);
-        double y=125;Section(d,"USAGE HISTORY",ref y);TransferChart(d,y);y+=98;
+        double y=125;
+        if(IsMeasuring||_transferHistory is not null||net.Download.HasValue&&net.Upload.HasValue)
+        {
+            Section(d,"USAGE HISTORY",ref y);TransferChart(d,y);y+=98;
+        }
         Section(d,"CONNECTIVITY",ref y);
         for(int i=0;i<40;i++)d.DrawRoundedRectangle(Gray,null,new Rect(16+i%20*14.5,y+i/20*10,11,7),2,2);
         y+=30;Text(d,"Internet checks are off · no requests are sent",16,y,9.5,Dim);y+=27;
@@ -82,8 +86,11 @@ internal sealed partial class PopupVisual
         double y=60;
         var active=disk.Disks.Where(x=>x.Active.HasValue).Select(x=>x.Active!.Value).ToArray();
         if(active.Length>0){Hero(d,49,117);Ring(d,160,99,36,active.Max(),Percent(active.Max()));Text(d,"BUSIEST PHYSICAL DISK",160,147,9,Dim,center:true);y=176;}
-        else{Hero(d,49,49);Text(d,"Disk activity",160,65,18,TextBrush,bold:true,center:true);y=110;}
-        Section(d,"READ / WRITE HISTORY",ref y);TransferChart(d,y);y+=98;
+        else{Hero(d,49,49);Text(d,IsMeasuring?"Measuring disk activity":"Disk activity unavailable",160,65,16,TextBrush,bold:true,center:true);y=110;}
+        if(IsMeasuring||_transferHistory is not null||disk.Disks.Any(item=>item.Read.HasValue&&item.Write.HasValue))
+        {
+            Section(d,"READ / WRITE HISTORY",ref y);TransferChart(d,y);y+=98;
+        }
         foreach(var item in disk.Disks){Section(d,"PHYSICAL DISK "+Short(item.Name,18),ref y);Row(d,"Read",Rate(item.Read),Blue,ref y,item.Read.HasValue);Row(d,"Write",Rate(item.Write),Red,ref y,item.Write.HasValue);}
         if(disk.Disks.Length==0){Text(d,disk.Explanation,15,y,10.5,Dim,maxWidth:288);y+=44;}
         foreach(var volume in disk.Volumes.Where(x=>x.Valid))
@@ -102,9 +109,12 @@ internal sealed partial class PopupVisual
             Hero(d,y-6,adapter.Usage.HasValue?132:88);
             Text(d,adapter.Name,24,y+4,12,TextBrush,bold:true,maxWidth:272);y+=43;
             if(adapter.Usage is{}usage){Ring(d,160,y+35,32,usage,Percent(usage));y+=86;}
-            else{Text(d,"Waiting for valid engine readings",160,y+8,11,Dim,center:true);y+=48;}
-            Section(d,"BUSIEST ENGINE HISTORY",ref y);
-            var saved=_history;try{_history=_gpuHistory.GetValueOrDefault(adapter.Luid);Chart(d,y);}finally{_history=saved;}y+=99;
+            else{Text(d,IsMeasuring?"Measuring engine usage":"Engine usage unavailable",160,y+8,11,Dim,center:true);y+=48;}
+            if(IsMeasuring||adapter.Usage.HasValue)
+            {
+                Section(d,"BUSIEST ENGINE HISTORY",ref y);
+                var saved=_history;try{_history=_gpuHistory.GetValueOrDefault(adapter.Luid);Chart(d,y);}finally{_history=saved;}y+=99;
+            }
             Row(d,"Dedicated capacity",Bytes(adapter.DedicatedMemory),Blue,ref y,adapter.DedicatedMemory>0);
             Text(d,adapter.Explanation,15,y+4,9,Dim,maxWidth:288);y+=48;
         }
@@ -130,6 +140,6 @@ internal sealed partial class PopupVisual
             geometry.Freeze();d.DrawGeometry(direction==0?_palette.Download.Fill:_palette.Upload.Fill,direction==0?_palette.Download.Line:_palette.Upload.Line,geometry);
         }
     }
-    private string Rate(double? bytes)=>MetricFormat.TransferRate(bytes,_module==BarModule.Network&&_useBits,"Measuring");
+    private string Rate(double? bytes)=>MetricFormat.TransferRate(bytes,_module==BarModule.Network&&_useBits,IsMeasuring?"Measuring":"Not reported");
     private static string Short(string text,int max=26)=>text.Length>max?text[..(max-1)]+"…":text;
 }
