@@ -366,3 +366,13 @@ Desktop pins use separate non-topmost WPF tool windows and the existing card ren
 
 The usage ledger records each accepted byte delta from the shared physical adapter sampler once, even if several surfaces read it. It stores only dates, totals by transfer direction, and the selected period. A delta crossing midnight is credited to the date of the later sample. Calendar weeks start Monday. Startup baselines, counter resets, and time when monitoring is stopped do not contribute. The app checkpoints locally about once a minute when values change and on clean exit.
 
+## In-app temp cleanup
+
+The scan reads accessible files in the local user's Temp folder, skips reparse points, and is bounded to 5,000 files and 16 levels. Only top-level, single-link `.tmp` and `.temp` files last modified at least seven days ago enter the removal plan. Tidlet requires a separate confirmation. The executor opens each candidate exclusively, checks the resolved path, file identity, metadata and age again, and deletes by handle. The estimated reclaimable size and removed byte count use logical file sizes. The measured free-space change is separate because allocation and other disk activity can affect it. [Windows file disposition API](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileinformationbyhandle) · [Windows reparse point handling](https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-operations)
+
+
+## Gaming Mode FPS feasibility
+
+The user approved evaluating PresentMon under its free-use license. PresentMon 2.6.0 upstream source uses the MIT license with Intel's copyright and permission notices retained on redistribution. Evaluated only the official standalone x64 console artifact. Its SHA-256 matched the published digest b2a706bc6ad475749e3b7e3409263aa1e6906d45bdcf993f6dbc0f660188f1af. An out-of-process console would keep the current x86 WPF host and avoid loading a capture SDK into Tidlet. The MSI and service were not installed. TODO(verify) Review the standalone release's transitive notices and runtime requirements before any redistribution. [License](https://github.com/GameTechDev/PresentMon/blob/v2.6.0/LICENSE.txt) · [Release assets](https://github.com/GameTechDev/PresentMon/releases/expanded_assets/v2.6.0)
+
+The standalone console ran with the normal user token but could not start its ETW session. Keep FPS unavailable for this account under the existing no-admin and no-system-setting-change requirements. Gaming Mode remains unimplemented. [PresentMon permissions](https://github.com/GameTechDev/PresentMon/tree/v2.6.0#permissions)

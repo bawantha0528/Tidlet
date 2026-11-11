@@ -60,7 +60,10 @@ public sealed partial class DashboardHost
             var settings = _settings();
             var paused = settings.Pause;
             var renderer = new WidgetCardRenderer(_palette, _blue, _scale, settings.UseBits, _widgetSamples, _previousWidgets);
-            var count = _actions.Usage is null ? 6 : 7;
+            var hasUsage = _actions.Usage is not null;
+            var cleanupIndex = hasUsage ? 1 : 0;
+            var hasCleanup = CanOpenCleanup;
+            var count = DashboardWidgetReader.Modules.Length + (hasUsage ? 2 : 1) + (hasCleanup ? 1 : 0);
             for (var index = 0; index < count; index++)
             {
                 var x = 230 + index % columns * (width + gap);
@@ -78,7 +81,19 @@ public sealed partial class DashboardHost
                         Button(drawing, "Add Data usage to desktop", "+", new Rect(card.Right - 25, y + 6, 20, 20), () => Run(pinUsage));
                     continue;
                 }
-                var moduleIndex = count == 7 ? index - 1 : index;
+                if (index == cleanupIndex && hasCleanup)
+                {
+                    drawing.DrawRoundedRectangle(_surface, _palette.CardBorder, card, 15, 15);
+                    Label(drawing,"Storage cleanup",x+12,y+10,12,_text,true);
+                    DashboardIcons.Draw(drawing,"Disk",new Point(x+width/2,y+62),_dim);
+                    Label(drawing,"Scan temporary files and see potential savings",x+10,y+94,11,_dim,width:width-20,center:true);
+                    var button=new Rect(x+12,y+137,width-24,30);
+                    drawing.DrawRoundedRectangle(_palette.Metrics.Surface,_palette.CardBorder,button,6,6);
+                    Label(drawing,"Review cleanup",button.Left,button.Top+7,11,_text,true,button.Width,center:true);
+                    Hit("Review storage cleanup",button,OpenCleanup);
+                    continue;
+                }
+                var moduleIndex = index - (hasUsage ? 1 : 0) - (hasCleanup ? 1 : 0);
                 BarModule? module = moduleIndex < DashboardWidgetReader.Modules.Length ? DashboardWidgetReader.Modules[moduleIndex] : null;
                 renderer.Draw(drawing, card, module, paused, _actions.DesktopWidget is null ? 0 : 20);
                 if (module is { } item)

@@ -15,7 +15,10 @@ namespace Islet.Shell.Bar;
 public sealed record DashboardActions(Action<nint,BarRect,bool> Position,Action TaskManager,Action Quit,Func<string> ClipboardText,
     Func<string,string> ImportSettings,Func<string> ExportSettings,Func<string> CompatibilityReport,Action Support,Func<nint,BarRect>? Bounds=null,
     IPowerModeControl? PowerModes=null,Func<BarModule?,string>? DesktopWidget=null,
-    Func<UsageSnapshot>? Usage=null,Action<UsagePeriod>? SelectUsage=null,Func<string>? PinUsage=null);
+    Func<UsageSnapshot>? Usage=null,Action<UsagePeriod>? SelectUsage=null,Func<string>? PinUsage=null,
+    Func<CancellationToken,Task<string>>? WifiDiagnostics=null,Func<CancellationToken,Task<string>>? StorageHealth=null,
+    Func<string>? StorageCleanup=null,Func<string>? BatteryCapacity=null,
+    Func<CancellationToken,TempCleanupScan>? TempScan=null,Func<TempCleanupScan,CancellationToken,TempCleanupResult>? TempClean=null);
 public sealed record DashboardEvent(string Action,string Page,double Seconds,int Reads,int Frames);
 public sealed record DashboardCapture(string Path,int Percent,int Width,int Height,double StartedSeconds,double CompletedSeconds);
 
@@ -23,6 +26,7 @@ public sealed record DashboardCapture(string Path,int Percent,int Width,int Heig
 public sealed partial class DashboardHost:IDisposable
 {
     public const string BatteryOptimizationPage="Battery optimization";
+    public const string TempCleanupPage="Temp cleanup";
     private readonly Func<BarSettings> _settings;private readonly Action<BarSettings> _save;private readonly Func<DeviceOverview> _device;
     private readonly Func<IPopupSource> _metrics;private readonly Func<BarDisplay> _display;private readonly DashboardActions _actions;
     private DashboardWindow? _window;private readonly List<Task> _cleanup=[];private readonly bool _diagnostic;private readonly Action<string,bool>? _phase;
@@ -122,6 +126,7 @@ public sealed partial class DashboardHost:IDisposable
         private string? _editing;private string _entry="";private bool _selectAll;private int _caret;
         private BarModule? _settingsModule;
         private static readonly Typeface Face=new("Segoe UI Variable, Segoe UI"),Bold=new(new FontFamily("Segoe UI Variable, Segoe UI"),FontStyles.Normal,FontWeights.SemiBold,FontStretches.Normal);
+        private static readonly Typeface SettingsFace=new("Segoe Fluent Icons, Segoe MDL2 Assets");
         private Brush _surface=>_palette.Card;
         private Brush _text=>_palette.Text;
         private Brush _dim=>_palette.Muted;
@@ -146,18 +151,19 @@ public sealed partial class DashboardHost:IDisposable
         public void SetDevice(DeviceOverview device){_device=device;Draw(_scale);}
         public void Select(string page)
         {
-            if(!Pages.Contains(page)&&page is not ("About" or BatteryOptimizationPage))page="Dashboard";
-            if(page!=_page)_status="";
+            if(!Pages.Contains(page)&&page is not ("About" or BatteryOptimizationPage or TempCleanupPage))page="Dashboard";
+            if(page!=_page){_status="";_inspectionCancellation?.Cancel();_inspectionResult=null;ResetTempCleanup();}
             _settingsModule=null;_settingsMenu=null;_page=page;_navigation(page);_scroll=0;_editing=null;
             StopWidgets();
             _powerMode=ShowsPowerMode?_actions.PowerModes!.Read():null;
             if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();_previous=_presenter.Cleanup;Cleanup.RemoveAll(t=>t.IsCompleted);Cleanup.Add(_previous);RemoveVisualChild(_presenter);_presenter=null;}
             if(!_settings().Pause&&Enum.TryParse<BarModule>(page,true,out var module))
             {
-                var top=ShowsPowerMode?142:70;
-                var height=Height-top-(ShowsPowerMode?55:30);
+                var top=StripPreviewTop+76;
+                var height=Math.Max(1,Height-top-(ShowsPowerMode?55:30));
                 _presenter=new(module,Width-250,height,_scale,_settings().Preference(module).UpdateSeconds,_metrics,_previous,_palette);AddVisualChild(_presenter);
                 _presenter.SetUnits(_settings().UseBits);
+                if(module==BarModule.Battery)_presenter.SetBatteryCapacity(_actions.BatteryCapacity);
                 _presenter.WarmStart(_recent);
                 _presenter.Measure(new Size(Width-250,height));_presenter.Arrange(new Rect(230,top,Width-250,height));
             }
@@ -201,7 +207,7 @@ public sealed partial class DashboardHost:IDisposable
             if(Enum.TryParse<BarModule>(_page,true,out var selected))
             {
                 var current=selected;
-                Button(d,"Settings for "+_page,"⚙",new Rect(Width-82,16,28,28),()=>OpenModuleSettings(current));
+                SettingsButton(d,"Settings for "+_page,new Rect(Width-82,16,28,28),()=>OpenModuleSettings(current));
                 var enabled=_settings().Items.Contains(current);var toggle=new Rect(Width-132,23,36,20);
                 d.DrawRoundedRectangle(enabled?_blue:_palette.Metrics.Track,null,toggle,10,10);
                 d.DrawEllipse(enabled?Brushes.White:_dim,null,new Point(toggle.Left+(enabled?26:10),toggle.Top+10),7,7);
@@ -209,23 +215,29 @@ public sealed partial class DashboardHost:IDisposable
             }
             for(int i=0;i<Pages.Length;i++)
             {
-                var name=Pages[i];var rect=new Rect(20,85+i*42,175,36);var active=_page==name||name=="Battery"&&_page==BatteryOptimizationPage;
+                var name=Pages[i];var rect=new Rect(20,85+i*42,175,36);var active=_page==name||name=="Battery"&&_page==BatteryOptimizationPage||name=="Disk"&&_page==TempCleanupPage;
                 if(active)DrawSettingsSelection(d,rect);
-                Icon(d,name,31,rect.Top+10,active?SelectionText:_dim);
+                var iconBrush=active?SelectionText:_dim;
+                if(name=="Settings")DrawSettingsGear(d,new Point(38,rect.Top+17),iconBrush,14);
+                else DashboardIcons.Draw(d,name,new Point(38,rect.Top+18),iconBrush);
                 Label(d,name,59,rect.Top+8,14,active?SelectionText:_text,active);Hit("Open "+name,rect,()=>Select(name));
             }
-            Button(d,"Settings","⚙",new Rect(24,Height-55,28,28),()=>Select("Settings"));
-            Button(d,"About and support","↗",new Rect(57,Height-55,28,28),()=>Select("About"));
-            Button(d,"Export compatibility report","!",new Rect(90,Height-55,28,28),()=>Run(()=>_actions.CompatibilityReport()));
-            Button(d,"Pause monitoring",_settings().Pause?"▶":"Ⅱ",new Rect(123,Height-55,28,28),()=>Change(s=>s with{Pause=!s.Pause}));
-            Button(d,"Exit Tidlet","⏻",new Rect(156,Height-55,28,28),_actions.Quit);
+            SettingsButton(d,"Settings",new Rect(24,Height-55,28,28),()=>Select("Settings"));
+            SidebarButton(d,"About and support","About",new Rect(57,Height-55,28,28),()=>Select("About"));
+            SidebarButton(d,"Export compatibility report","Report",new Rect(90,Height-55,28,28),()=>Run(()=>_actions.CompatibilityReport()));
+            var paused=_settings().Pause;
+            SidebarButton(d,paused?"Resume monitoring":"Pause monitoring",paused?"Resume":"Pause",new Rect(123,Height-55,28,28),()=>Change(s=>s with{Pause=!s.Pause}));
+            SidebarButton(d,"Exit Tidlet","Exit",new Rect(156,Height-55,28,28),_actions.Quit);
             if(ShowsPowerMode)DrawPowerMode(d,_actions.PowerModes!);
+            if(ShowsInspection)DrawInspection(d);
+            if(Enum.TryParse<BarModule>(_page,true,out var previewModule))DrawStripPreviews(d,previewModule);
             if(_page==BatteryOptimizationPage)
                 DrawPageButton(d,"Back to Battery",new Rect(Width-195,19,145,27),false,()=>Select("Battery"));
             d.PushClip(new RectangleGeometry(new Rect(220,66,Width-240,Height-120)));d.PushTransform(new TranslateTransform(0,-_scroll));
             if(_page=="Dashboard")Overview(d);else if(_page=="Settings")Settings(d);else if(_page=="About")About(d);else if(_page=="Widgets")Widgets(d);
             else if(_page==BatteryOptimizationPage)DrawBatteryOptimization(d);
-            else if(_settings().Pause){var y=ShowsPowerMode?150:100;Label(d,"Monitoring is paused",245,y,18,_text,true);Label(d,"Resume monitoring to show live readings. No module queries run while paused.",245,y+40,12,_dim,false,Width-285);_bottom=y+110;}
+            else if(_page==TempCleanupPage)DrawTempCleanup(d);
+            else if(_settings().Pause){var y=StripPreviewTop+85;Label(d,"Monitoring is paused",245,y,18,_text,true);Label(d,"Resume monitoring to show live readings.",245,y+40,12,_dim,false,Width-285);_bottom=y+110;}
             d.Pop();d.Pop();
             if(_presenter is null&&_bottom>Height-55){var track=Height-150;var maximum=Math.Max(1,_bottom-Height+55);d.DrawRoundedRectangle(_dim,null,new Rect(Width-10,80+(track-70)*_scroll/maximum,3,70),1.5,1.5);}
             var status=_status.Length>0?_status:_page=="Settings"?"Changes are saved automatically.":"";
@@ -267,7 +279,7 @@ public sealed partial class DashboardHost:IDisposable
             }
 
         }
-        private void DrawPageButton(DrawingContext drawing,string label,Rect bounds,bool selected,Action action)
+        private void DrawPageButton(DrawingContext drawing,string label,Rect bounds,bool selected,Action action,bool pinned=true)
         {
             drawing.DrawRoundedRectangle(selected?_blue:_surface,_palette.CardBorder,bounds,5,5);
             var text=MonitorText.Format(label,Bold,11,selected?SelectionText:_text,_scale);
@@ -275,7 +287,7 @@ public sealed partial class DashboardHost:IDisposable
             text.MaxLineCount=1;
             text.Trimming=TextTrimming.CharacterEllipsis;
             drawing.DrawText(text,MonitorText.Centered(text,new Point(bounds.X+bounds.Width/2,bounds.Y+bounds.Height/2),_scale));
-            Hit(selected?label+" (current)":label,bounds,action,pinned:true);
+            Hit(selected?label+" (current)":label,bounds,action,pinned:pinned);
         }
         private void DrawBatteryOptimization(DrawingContext drawing)
         {
@@ -391,11 +403,24 @@ public sealed partial class DashboardHost:IDisposable
             button.Measure(visibleBounds.Size);button.Arrange(visibleBounds);
         }
         private void Button(DrawingContext d,string name,string label,Rect rect,Action action){Label(d,label,rect.Left+6,rect.Top+3,17,_dim);Hit(name,rect,action);}
+        private void SettingsButton(DrawingContext d,string name,Rect rect,Action action)
+        {
+            DrawSettingsGear(d,new Point(rect.Left+rect.Width/2,rect.Top+rect.Height/2),_dim,16);
+            Hit(name,rect,action);
+        }
+        private void DrawSettingsGear(DrawingContext d,Point center,Brush brush,double size)
+        {
+            var text=MonitorText.Format("\uE713",SettingsFace,size,brush,_scale);
+            d.DrawText(text,MonitorText.Centered(text,center,_scale));
+        }
         private void Label(DrawingContext d,string value,double x,double y,double size,Brush brush,bool bold=false,double? width=null,bool center=false,bool right=false)
         {var t=MonitorText.Format(value,bold?Bold:Face,size,brush,_scale);if(width is{}w){t.MaxTextWidth=w;t.MaxLineCount=2;t.Trimming=TextTrimming.CharacterEllipsis;t.TextAlignment=center?TextAlignment.Center:right?TextAlignment.Right:TextAlignment.Left;}d.DrawText(t,MonitorText.PixelAligned(x,y,_scale));}
-        private void Icon(DrawingContext d,string page,double x,double y,Brush color)
-        {var p=new Pen(color,1.3);if(page=="Dashboard"){for(int i=0;i<9;i++)d.DrawEllipse(color,null,new Point(x+i%3*5,y+i/3*5),1.5,1.5);}else if(page=="Network")d.DrawEllipse(null,p,new Point(x+6,y+6),7,7);else if(page=="Battery"){d.DrawRoundedRectangle(null,p,new Rect(x-1,y+1,14,9),2,2);d.DrawRectangle(color,null,new Rect(x+14,y+4,2,3));}else{d.DrawRoundedRectangle(null,p,new Rect(x,y,13,12),2,2);d.DrawLine(p,new Point(x+3,y+4),new Point(x+10,y+4));d.DrawLine(p,new Point(x+3,y+8),new Point(x+10,y+8));}}
-        public void Dispose(){StopWidgets();if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();Cleanup.Add(_presenter.Cleanup);RemoveVisualChild(_presenter);_presenter=null;}}
+        private void SidebarButton(DrawingContext d,string name,string icon,Rect rect,Action action)
+        {
+            DashboardIcons.Draw(d,icon,new Point(rect.Left+rect.Width/2,rect.Top+rect.Height/2),_dim);
+            Hit(name,rect,action);
+        }
+        public void Dispose(){_inspectionCancellation?.Cancel();ResetTempCleanup();StopWidgets();if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();Cleanup.Add(_presenter.Cleanup);RemoveVisualChild(_presenter);_presenter=null;}}
         private sealed class DashboardPeer(DashboardVisual owner):UIElementAutomationPeer(owner)
         {protected override string GetNameCore()=>"Tidlet "+owner._page;protected override string GetClassNameCore()=>"TidletDashboard";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Window;}
     }

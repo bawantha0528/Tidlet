@@ -35,7 +35,7 @@ public sealed class DesktopWidgetHost(
         {
             if (new FileInfo(path).Length > 16_384) return;
             var placements = JsonSerializer.Deserialize<Placement[]>(File.ReadAllText(path)) ?? [];
-            foreach (var entry in placements.Take(7))
+            foreach (var entry in placements.Take(DashboardWidgetReader.Modules.Length + 2))
             {
                 if (entry is null || entry.Name is null || _windows.ContainsKey(entry.Name)) continue;
                 if (entry.Name == "Combined" || entry.Name == UsageName && usage is not null ||
@@ -94,7 +94,7 @@ public sealed class DesktopWidgetHost(
         var state = settings();
         var requested = _hidden || state.Pause || _windows.Count == 0 ? [] : DashboardWidgetReader.Modules
             .Where(module => _windows.ContainsKey(WidgetCardRenderer.WidgetName(module)) ||
-                module != BarModule.Network && _windows.ContainsKey("Combined")).ToArray();
+                DashboardWidgetReader.CombinedModules.Contains(module) && _windows.ContainsKey("Combined")).ToArray();
         if (!_active.SequenceEqual(requested))
         {
             StopReader();

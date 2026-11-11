@@ -15,6 +15,104 @@ namespace Islet.Shell.Tests;
 public sealed class ApplicationPageTests
 {
     [TestMethod]
+    public void EachModulePageAppliesAndHighlightsItsStripStyle()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var settings=new BarSettings{Pause=true};
+        using var host=new DashboardHost(()=>settings,s=>settings=s,()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{}));
+        foreach(var module in Enum.GetValues<BarModule>())
+        {
+            var page=module is BarModule.Cpu or BarModule.Gpu or BarModule.Ram?module.ToString().ToUpperInvariant():module.ToString();
+            host.Open(page);
+            var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+            var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            var count=BarStyles.Options(module).Count;
+            var width=(605-(count-1)*5)/count;
+            var point=new Point(235+width*1.5,100);
+            AutomationPeer Peer()=>UIElementAutomationPeer.CreatePeerForElement((UIElement)visual.InputHitTest(point))!;
+            Assert.AreEqual("Text strip style",Peer().GetName(),page);
+            ((System.Windows.Automation.Provider.IInvokeProvider)Peer().GetPattern(PatternInterface.Invoke)!).Invoke();
+            PumpUntil(()=>settings.Preference(module).Style==BarItemStyle.TwoLine);
+            Assert.AreEqual("Text strip style (selected)",Peer().GetName(),page);
+        }
+        var restored=BarSettingsFile.Import(BarSettingsFile.Export(settings));
+        Assert.IsTrue(Enum.GetValues<BarModule>().All(module=>restored.Preference(module).Style==BarItemStyle.TwoLine));
+    });
+    [TestMethod]
+    public void TempCleanupRequiresScanAndExplicitPermanentConfirmation()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var scans=0;var deletes=0;
+        var plan=new TempCleanupScan(2048,3,[new("stale.tmp",1024,1,1,1)],false);
+        using var host=new DashboardHost(()=>new BarSettings{Pause=true},_=>{},()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
+                TempScan:_=>{Interlocked.Increment(ref scans);return plan;},
+                TempClean:(confirmed,_)=>{Assert.AreSame(plan,confirmed);Interlocked.Increment(ref deletes);return new(1,0,1024,1024);}));
+        host.Open("Disk");
+        Invoke(new Point(620,82),"Review cleanup");
+        PumpUntil(()=>host.PageHistory.LastOrDefault()==DashboardHost.TempCleanupPage);
+        Assert.AreEqual(0,scans);
+        Assert.AreEqual(0,deletes);
+        Invoke(new Point(270,170),"Scan temp files");
+        PumpUntil(()=>NameAt(new Point(270,358))=="Review removal");
+        Assert.AreEqual(1,scans);
+        Invoke(new Point(270,358),"Review removal");
+        PumpUntil(()=>NameAt(new Point(270,392))=="Delete permanently (current)");
+        Assert.AreEqual(0,deletes);
+        Invoke(new Point(420,392),"Cancel");
+        PumpUntil(()=>NameAt(new Point(270,358))=="Review removal");
+        Assert.AreEqual(0,deletes);
+        Invoke(new Point(270,358),"Review removal");
+        PumpUntil(()=>NameAt(new Point(270,392))=="Delete permanently (current)");
+        Invoke(new Point(270,392),"Delete permanently (current)");
+        PumpUntil(()=>Volatile.Read(ref deletes)==1);
+
+        AutomationPeer? PeerAt(Point point)
+        {
+            var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+            var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            return visual.InputHitTest(point) is UIElement hit ? UIElementAutomationPeer.CreatePeerForElement(hit) : null;
+        }
+        string? NameAt(Point point)=>PeerAt(point)?.GetName();
+        void Invoke(Point point,string expected)
+        {
+            var peer=PeerAt(point)!;
+            Assert.AreEqual(expected,peer.GetName());
+            ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(PatternInterface.Invoke)!).Invoke();
+        }
+    });
+    [TestMethod]
+    public void DiagnosticsAndCleanupRunOnlyThroughExplicitActions()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var wifi=0;var storage=0;var cleanup=0;
+        using var host=new DashboardHost(()=>new BarSettings{Pause=true},_=>{},()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
+                WifiDiagnostics:_=>{Interlocked.Increment(ref wifi);return Task.FromResult("Mock Wi-Fi result");},
+                StorageHealth:_=>{Interlocked.Increment(ref storage);return Task.FromResult("Mock storage result");},
+                StorageCleanup:()=>{cleanup++;return "Mock cleanup opened";}));
+        host.Open("Network");
+        Assert.AreEqual(0,wifi);
+        Invoke(new Point(745,81),"Run checks");
+        PumpUntil(()=>Volatile.Read(ref wifi)==1);
+        host.Open("Disk");
+        Assert.AreEqual(0,storage);
+        Invoke(new Point(620,82),"Review cleanup");
+        PumpUntil(()=>cleanup==1);
+        Invoke(new Point(744,82),"Check health");
+        PumpUntil(()=>Volatile.Read(ref storage)==1);
+
+        void Invoke(Point point,string name)
+        {
+            var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+            var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            var peer=UIElementAutomationPeer.CreatePeerForElement((UIElement)visual.InputHitTest(point))!;
+            Assert.AreEqual(name,peer.GetName());
+            ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(PatternInterface.Invoke)!).Invoke();
+        }
+    });
+    [TestMethod]
     [DataRow(1.0)]
     [DataRow(1.5)]
     public void GaugeReadoutsStayCenteredAcrossValueWidths(double scale)=>Sta(()=>
@@ -163,7 +261,7 @@ public sealed class ApplicationPageTests
         Assert.AreEqual(0,host.CurrentReads);
         host.Open("Widgets");
         PumpUntil(()=>host.CurrentFrames>0);
-        CollectionAssert.AreEquivalent(new[]{BarModule.Cpu,BarModule.Gpu,BarModule.Ram,BarModule.Disk,BarModule.Network},sources.Select(source=>source.Module).ToArray());
+        CollectionAssert.AreEquivalent(new[]{BarModule.Cpu,BarModule.Gpu,BarModule.Ram,BarModule.Disk,BarModule.Network,BarModule.Battery},sources.Select(source=>source.Module).ToArray());
         Assert.IsTrue(sources.All(source=>source.Details==PopupDetails.None));
         host.Open("Settings");
         Assert.IsTrue(sources.All(source=>source.Disposed));
@@ -215,12 +313,13 @@ public sealed class ApplicationPageTests
                 StringAssert.Contains(host.Pin(BarModule.Cpu),"added to desktop");
                 StringAssert.Contains(host.Pin(BarModule.Cpu),"already on the desktop");
                 StringAssert.Contains(host.Pin(null),"Combined added");
-                Assert.AreEqual(2,host.Count);
+                StringAssert.Contains(host.Pin(BarModule.Battery),"Battery added");
+                Assert.AreEqual(3,host.Count);
                 Assert.AreEqual(0,host.Frames);
             }
             using var reopened=Create();
             reopened.Restore();
-            Assert.AreEqual(2,reopened.Count);
+            Assert.AreEqual(3,reopened.Count);
             Assert.IsTrue(reopened.Drain(TimeSpan.FromSeconds(1)));
         }
         finally

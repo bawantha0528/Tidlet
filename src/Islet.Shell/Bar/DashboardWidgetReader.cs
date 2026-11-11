@@ -6,7 +6,8 @@ namespace Islet.Shell.Bar;
 
 internal sealed class DashboardWidgetReader : IDisposable
 {
-    internal static readonly BarModule[] Modules = [BarModule.Cpu, BarModule.Gpu, BarModule.Ram, BarModule.Disk, BarModule.Network];
+    internal static readonly BarModule[] CombinedModules = [BarModule.Cpu, BarModule.Gpu, BarModule.Ram, BarModule.Disk];
+    internal static readonly BarModule[] Modules = [BarModule.Cpu, BarModule.Gpu, BarModule.Ram, BarModule.Battery, BarModule.Disk, BarModule.Network];
     private readonly BarModule[] _modules;
     private readonly IPopupSource?[] _sources;
     private readonly Func<IPopupSource> _create;

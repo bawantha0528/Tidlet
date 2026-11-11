@@ -7,6 +7,7 @@ namespace Islet.Shell.Bar;
 
 internal sealed partial class ApplicationModuleVisual
 {
+    internal Func<string>? BatteryCapacity { get; set; }
     private TransferHistory? _networkHistory;
     private static readonly Brush UploadFill=Frozen(Color.FromArgb(80,255,69,58));
     private readonly Dictionary<ulong,SampleRing> _gpuHistories=[];
@@ -68,7 +69,9 @@ internal sealed partial class ApplicationModuleVisual
                 CardAt(d,y,130);Label(d,volume.Name,18,y+15,15,Text,true);
                 Label(d,Bytes(volume.Total)+" total",_width/2,y+18,12,Dim,right:true);
                 CapacityBar(d,y+56,volume.UsedPercent);
-                Label(d,"Used: "+Bytes(volume.Total-volume.Free),18,y+85,12,Blue);Label(d,"Free: "+Bytes(volume.Free),_width/2,y+85,12,Dim,right:true);y+=146;
+                Label(d,"Used: "+Bytes(volume.Total-volume.Free),18,y+85,12,Blue);
+                var low=volume.Free<=volume.Total/10;
+                Label(d,(low?"Low space · ":"Free: ")+Bytes(volume.Free),_width/2,y+85,12,low?Orange:Dim,right:true);y+=146;
             }
         }
         if(y==0){Empty(d,data?.Explanation??_sample?.Explanation??"Reading storage capabilities…");return;}
@@ -116,7 +119,13 @@ internal sealed partial class ApplicationModuleVisual
         }
         Label(d,$"{reading.Percent:0}%",center,123,32,Text,true,centerOnPoint:true);
         var state=reading.ChargingStatus switch{BatteryChargingStatus.Charging=>"Charging",BatteryChargingStatus.Full=>"Full",BatteryChargingStatus.Critical=>"Battery low",BatteryChargingStatus.Discharging=>data!.OnAc==true?"AC connected · not charging":"Discharging",_=>"State not reported"};
-        Label(d,state,center,161,14,Dim,centerOnPoint:true);double y=222;
+        Label(d,state,center,161,14,Dim,centerOnPoint:true);double y=254;
+        History(d,y,"Charge level · last 2 minutes");y+=228;
+        if(BatteryCapacity is { } capacity)
+        {
+            Label(d,"Full-charge capacity trend",6,y,16,Text,true);y+=34;
+            CardAt(d,y,65);Label(d,capacity(),18,y+16,12,Dim);y+=88;
+        }
         Label(d,"Battery details",6,y,16,Text,true);y+=34;var rows=new List<(string,string)>();
         if(data!.OnAc is{}ac)rows.Add(("Power source",ac?"AC power":"Battery"));
         if(reading.HealthPercent is{}health&&ValidPercent(health))rows.Add(("Health",$"{health:0}%"));

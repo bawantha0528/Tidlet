@@ -10,9 +10,12 @@ internal sealed partial class PopupVisual:UIElement
 {
     private readonly DrawingVisual _drawing=new();private readonly BarModule _module;private readonly double _height;
     private readonly Action _taskManager,_close;private readonly bool _diagnostic;private readonly HeaderAction _taskButton,_closeButton;
+    private readonly Action? _openDashboard;
+    private readonly HeaderAction? _dashboardButton;
     private PopupSample? _sample;private SampleRing? _history,_averages;private double _now,_scale,_scroll,_contentBottom;
     private string _accessible="Measuring Windows readings";
     private bool _useBits;
+    internal bool Fahrenheit { get; init; }
     private bool _previous;
     private bool IsMeasuring=>_sample?.WarmingUp==true;
     public void ShowPrevious(PopupSample sample){if(_previous&&ReferenceEquals(_sample,sample))return;_sample=sample;_previous=true;_accessible=MetricLoading.Previous;Redraw(_scale);}
@@ -48,7 +51,7 @@ internal sealed partial class PopupVisual:UIElement
     private static readonly int[] AverageMinutes=[1,5,15];
     public PopupVisual(BarModule module,double height,double scale,Action taskManager,Action close,bool diagnostic=false)
         :this(module,height,scale,taskManager,close,diagnostic,BarTheme.Dark){}
-    internal PopupVisual(BarModule module,double height,double scale,Action taskManager,Action close,bool diagnostic,BarTheme theme)
+    internal PopupVisual(BarModule module,double height,double scale,Action taskManager,Action close,bool diagnostic,BarTheme theme,Action? openDashboard=null)
     {
         _module=module;_palette=PopupPalette.For(theme);_chart=_palette.Chart(module);_height=height;_scale=scale;_taskManager=taskManager;_close=close;_diagnostic=diagnostic;Focusable=true;AddVisualChild(_drawing);
         _accessible=MetricLoading.For(module).Title;
@@ -56,19 +59,50 @@ internal sealed partial class PopupVisual:UIElement
         _viewport=new RectangleGeometry(new Rect(8,43,304,Math.Max(1,height-51)));_viewport.Freeze();
         _taskButton=new("Open Task Manager",taskManager){Focusable=true};_closeButton=new("Close details",close){Focusable=true};AddVisualChild(_taskButton);AddVisualChild(_closeButton);
         _taskButton.Measure(new Size(28,32));_taskButton.Arrange(new Rect(8,4,28,32));_closeButton.Measure(new Size(28,32));_closeButton.Arrange(new Rect(284,4,28,32));
-        MouseLeftButtonUp+=(_,e)=>{var p=e.GetPosition(this);if(p.Y<40){if(p.X<42)_taskManager();else if(p.X>280)_close();}};
+        _openDashboard=openDashboard;
+        if(openDashboard is not null)
+        {
+            _dashboardButton=new("Open Dashboard",openDashboard){Focusable=true};
+            AddVisualChild(_dashboardButton);
+            _dashboardButton.Measure(new Size(28,32));
+            _dashboardButton.Arrange(new Rect(251,4,28,32));
+        }
+        MouseLeftButtonUp+=(_,e)=>
+        {
+            var p=e.GetPosition(this);
+            if(p.Y>=40)return;
+            if(p.X<42)_taskManager();
+            else if(p.X>280)_close();
+            else if(p.X>=251&&p.X<279)_openDashboard?.Invoke();
+        };
         MouseWheel+=(_,e)=>{Scroll(-e.Delta/4.0);e.Handled=true;};
         KeyDown+=(_,e)=>
         {
             if(e.Key==Key.Escape){_close();e.Handled=true;}
             if(e.Key is Key.PageDown or Key.PageUp){Scroll(e.Key==Key.PageDown?_height/2:-_height/2);e.Handled=true;}
-            if(e.Key==Key.Tab){if(Keyboard.FocusedElement==_taskButton)_closeButton.Focus();else _taskButton.Focus();e.Handled=true;}
-            if(e.Key is Key.Enter or Key.Space){if(Keyboard.FocusedElement==_taskButton)_taskManager();else if(Keyboard.FocusedElement==_closeButton)_close();e.Handled=true;}
+            if(e.Key==Key.Tab)
+            {
+                var focused=Keyboard.FocusedElement;
+                var backwards=(Keyboard.Modifiers&ModifierKeys.Shift)!=0;
+                if(focused==_taskButton)(backwards?_closeButton:_dashboardButton??_closeButton).Focus();
+                else if(focused==_closeButton)(backwards?_dashboardButton??_taskButton:_taskButton).Focus();
+                else if(_dashboardButton is not null&&focused==_dashboardButton)(backwards?_taskButton:_closeButton).Focus();
+                else (backwards?_closeButton:_taskButton).Focus();
+                e.Handled=true;
+            }
+            if(e.Key is Key.Enter or Key.Space)
+            {
+                var focused=Keyboard.FocusedElement;
+                if(focused==_taskButton)_taskManager();
+                else if(focused==_closeButton)_close();
+                else if(_dashboardButton is not null&&focused==_dashboardButton)_openDashboard?.Invoke();
+                e.Handled=true;
+            }
         };
         Redraw(scale);
     }
-    protected override int VisualChildrenCount=>3;
-    protected override Visual GetVisualChild(int index)=>index switch{0=>_drawing,1=>_taskButton,2=>_closeButton,_=>throw new ArgumentOutOfRangeException(nameof(index))};
+    protected override int VisualChildrenCount=>_dashboardButton is null?3:4;
+    protected override Visual GetVisualChild(int index)=>index switch{0=>_drawing,1=>_taskButton,2=>_closeButton,3 when _dashboardButton is not null=>_dashboardButton,_=>throw new ArgumentOutOfRangeException(nameof(index))};
     protected override AutomationPeer OnCreateAutomationPeer()=>new PopupPeer(this);
     public void Update(PopupSample sample,SampleRing history,SampleRing averages,double now)
     {
@@ -101,7 +135,10 @@ internal sealed partial class PopupVisual:UIElement
         d.PushClip(_outline);
         d.DrawRoundedRectangle(_palette.Surface,_palette.Border,new Rect(.5,.5,319,_height-1),8.5,8.5);
         var title=_module switch{BarModule.Cpu=>"CPU",BarModule.Ram=>"RAM",BarModule.Gpu=>"GPU",_=>_module.ToString()};
-        Text(d,"\uE9D9",24,13,14,_chart.Accent,center:true,icons:true);Text(d,title,45,8,17,TextBrush,bold:true);Text(d,"\uE711",297,14,11,Dim,center:true,icons:true);
+        Text(d,"\uE9D9",24,13,14,_chart.Accent,center:true,icons:true);Text(d,title,45,8,17,TextBrush,bold:true,maxWidth:200);Text(d,"\uE711",297,14,11,Dim,center:true,icons:true);
+        if(_dashboardButton is not null)
+            for(var i=0;i<4;i++)
+                d.DrawRoundedRectangle(TextBrush,null,new Rect(259+i%2*7,13+i/2*7,5,5),1,1);
         d.DrawLine(SectionPen,new Point(14,41),new Point(306,41));
         if(_previous)Text(d,MetricLoading.Previous,160,30,8,Dim,center:true);
         else if(IsMeasuring)Text(d,MetricLoading.For(_module).Title,160,30,8,Dim,center:true);
@@ -130,9 +167,17 @@ internal sealed partial class PopupVisual:UIElement
     {
         if(s.Cpu is not (>=0 and <=100)){Unavailable(d,s.Explanation);return;}
         Hero(d,49,104);
-        if(s.FrequencyGhz is{} frequency&&double.IsFinite(frequency)&&frequency>0)
-        {Ring(d,100,91,34,s.Cpu,Percent(s.Cpu));Ring(d,226,91,28,frequency/s.MaxGhz*100,$"{frequency:0.00}");Text(d,"USAGE",100,132,9,Dim,center:true);Text(d,"GHZ · REPORTED",226,132,9,Dim,center:true);}
-        else{Ring(d,160,91,36,s.Cpu,Percent(s.Cpu));Text(d,"TOTAL USAGE",160,135,9,Dim,center:true);}
+        Ring(d,65,101,31,s.Cpu,Percent(s.Cpu));
+        Text(d,"Total CPU usage",113,64,12,TextBrush,bold:true);
+        if(s.FrequencyGhz is >0 and <double.PositiveInfinity && s.MaxGhz is >0 and <double.PositiveInfinity)
+        {
+            MetricBar(d,"Clock speed",$"{s.FrequencyGhz:0.00} GHz",Math.Min(100,s.FrequencyGhz.Value/s.MaxGhz.Value*100),91,_chart.Accent);
+            Text(d,$"Reported maximum · {s.MaxGhz:0.00} GHz",113,123,9.5,Dim);
+        }
+        else if(s.System is >=0 and <=100)
+            MetricBar(d,"System CPU",Percent(s.System),s.System.Value,91,Red);
+        else if(s.FrequencyGhz is >0 and <double.PositiveInfinity)
+            Text(d,$"Clock speed · {s.FrequencyGhz:0.00} GHz",113,94,10.5,Dim);
         double y=161;Section(d,"USAGE HISTORY",ref y);Chart(d,y);y+=94;
         if(s.Cores.Any(v=>double.IsFinite(v)&&v is>=0 and<=100))
         {
@@ -160,6 +205,8 @@ internal sealed partial class PopupVisual:UIElement
             if(eCount>0)Row(d,"E-cores",Percent(e/eCount),Cyan,ref y);
         }
         Row(d,"Uptime",$"{(int)s.Uptime.TotalDays}d {s.Uptime.Hours}h {s.Uptime.Minutes}m",null,ref y);
+        if(s.Capabilities?.GetValueOrDefault("temperature")?.Availability==Islet.Core.Capabilities.CapabilityAvailability.NeedsHelper)
+            Row(d,"CPU temperature","Sensor helper required",null,ref y);
         y+=6;
         if(_averages is{}averages)
         {
@@ -175,11 +222,17 @@ internal sealed partial class PopupVisual:UIElement
     private void Ram(DrawingContext d,PopupSample s)
     {
         if(s.Memory is not{Valid:true}m){Text(d,"RAM readings unavailable",160,100,12,Dim,center:true);Text(d,s.Explanation,16,135,11,Dim,maxWidth:288);_contentBottom=200;return;}
-        var memoryPanelHeight=m.CommitValid?111:76;
+        var memoryPanelHeight=m.CommitValid?116:92;
         Hero(d,49,memoryPanelHeight);
-        MemoryBar(d,"Physical memory",m.UsedPercent,59,_chart.Accent);
-        if(m.CommitValid)MemoryBar(d,"Committed memory",100.0*m.Committed!.Value/m.CommitLimit!.Value,94,Red);
-        Text(d,"Memory pressure · "+m.PressureName,26,49+memoryPanelHeight-24,10.5,Dim);
+        Ring(d,65,49+memoryPanelHeight/2.0,31,m.UsedPercent,Percent(m.UsedPercent));
+        Text(d,"Physical memory",113,61,12,TextBrush,bold:true);
+        Text(d,$"{Bytes(m.Total-m.Available)} used of {Bytes(m.Total)}",113,79,10.5,Dim,maxWidth:181);
+        if(m.CommitValid)
+        {
+            var committed=100.0*m.Committed!.Value/m.CommitLimit!.Value;
+            MetricBar(d,"Committed memory",Percent(committed),committed,100,Red);
+        }
+        Text(d,"Memory pressure · "+m.PressureName,113,49+memoryPanelHeight-23,10.5,Dim,maxWidth:181);
         double y=57+memoryPanelHeight;Section(d,"USAGE HISTORY",ref y);Chart(d,y);y+=98;Section(d,"DETAILS",ref y);
         Row(d,"Used",Bytes(m.Total-m.Available),Blue,ref y);
         d.DrawRoundedRectangle(Gray,null,new Rect(15,y,290,7),3,3);d.DrawRoundedRectangle(_chart.Accent,null,new Rect(15,y,290*m.UsedPercent/100,7),3,3);y+=20;
@@ -230,12 +283,14 @@ internal sealed partial class PopupVisual:UIElement
             text=GetText(value,x,y,11,TextBrush,true,false,null);
         d.DrawText(text,MonitorText.Centered(text,new Point(x,y),_scale));
     }
-    private void MemoryBar(DrawingContext d,string label,double percent,double y,Brush fill)
+    private void MetricBar(DrawingContext d,string label,string value,double percent,double y,Brush fill)
     {
-        Text(d,label,26,y,11,TextBrush);
-        Text(d,Percent(percent),294,y,11,TextBrush,bold:true,right:true);
-        d.DrawRoundedRectangle(Gray,null,new Rect(26,y+17,268,9),3,3);
-        if(percent>0)d.DrawRoundedRectangle(fill,null,new Rect(26,y+17,268*percent/100,9),3,3);
+        const double left=113,width=181;
+        if(!Intersects(y,26))return;
+        Text(d,label,left,y,11,TextBrush);
+        Text(d,value,294,y,11,TextBrush,bold:true,right:true);
+        d.DrawRoundedRectangle(Gray,null,new Rect(left,y+17,width,9),3,3);
+        if(percent>0)d.DrawRoundedRectangle(fill,null,new Rect(left,y+17,width*percent/100,9),3,3);
     }
     private static void Arc(DrawingContext d,double x,double y,double r,double start,double sweep,Brush color,double thickness)
     {

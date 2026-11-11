@@ -57,6 +57,21 @@ public sealed class BarPolicyTests
         Assert.AreEqual(BarModule.Cpu,BarLayout.Hit(items,items[1].X+1));Assert.IsNull(BarLayout.Hit(items,0));
     }
     [TestMethod]
+    public void ExplicitMeterStylesCompactToTextWhenTheStripHasLimitedSpace()
+    {
+        foreach(var module in new[]{BarModule.Cpu,BarModule.Gpu,BarModule.Ram,BarModule.Battery})
+        {
+            Assert.AreEqual(BarItemStyle.Ring,BarStyles.Resolve(module,BarItemStyle.Ring));
+            Assert.AreEqual(BarItemStyle.TwoLine,BarStyles.Resolve(module,BarItemStyle.Ring,false));
+        }
+        var settings=new BarSettings{Items=[BarModule.Cpu,BarModule.Ram],
+            Modules=new(){[BarModule.Cpu]=new(){Style=BarItemStyle.IconOnly},[BarModule.Ram]=new(){Style=BarItemStyle.Bar}}};
+        var items=BarLayout.Items(settings,220,true);
+        Assert.AreEqual(32.0,items[0].Width);
+        Assert.AreEqual(84.0,items[1].Width);
+        Assert.AreEqual(BarModule.Ram,BarLayout.Hit(items,items[1].X+1));
+    }
+    [TestMethod]
     public void TopStripFitsMetersWhenSpaceAllowsAndFallsBackInTheSameOrder()
     {
         var settings=new BarSettings{Items=[BarModule.Cpu,BarModule.Gpu,BarModule.Ram,BarModule.Network,BarModule.Battery]};

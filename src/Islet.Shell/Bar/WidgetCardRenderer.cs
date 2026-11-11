@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 using Islet.Core.Bar;
+using Islet.Core.Metrics;
 using Islet.Core.Popups;
 
 namespace Islet.Shell.Bar;
@@ -59,7 +60,9 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
     {
         var center = new Point(card.Left + card.Width / 2, card.Top + 76);
         var first = module == BarModule.Cpu ? ValidWidgetPercent(sample?.System) : null;
-        WidgetRing(drawing, center, 34, WidgetPercent(module, sample), first);
+        var charge = WidgetPercent(module, sample);
+        var accent = module == BarModule.Battery ? charge <= 15 ? _palette.Metrics.Red : _palette.Metrics.BatteryFill : _blue;
+        WidgetRing(drawing, center, 34, charge, first, accent);
         var row = card.Top + 119;
         switch (module)
         {
@@ -88,6 +91,21 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
                     if (!_previous.Contains(module)) WidgetRow(drawing, card, "Volume", volume.Name, row + 42);
                 }
                 break;
+            case BarModule.Battery:
+                if (sample?.Battery is { } battery && charge.HasValue)
+                {
+                    var reading = battery.Reading;
+                    var status = reading.ChargingStatus == BatteryChargingStatus.Unknown
+                        ? battery.OnAc switch { true => "Plugged in", false => "On battery", _ => null }
+                        : reading.ChargingStatus.ToString();
+                    WidgetRow(drawing, card, "Status", status, row, accent);
+                    WidgetRow(drawing, card, "Health", WidgetPercentText(ValidWidgetPercent(reading.HealthPercent)), row + 21);
+                    if (reading.ChargeRateMilliwatts is { } power && double.IsFinite(power))
+                        WidgetRow(drawing, card, "Power", $"{Math.Abs(power) / 1000:0.0} W", row + 42);
+                }
+                else if (sample?.Battery?.Reading is { } missing)
+                    Label(drawing, missing.Explanation, card.Left + 12, row, 10, _dim, width: card.Width - 24);
+                break;
         }
     }
 
@@ -108,9 +126,9 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
     private void CombinedWidget(DrawingContext drawing, Rect card)
     {
         WidgetTitle(drawing, "Combined", card);
-        for (var index = 0; index < 4; index++)
+        for (var index = 0; index < DashboardWidgetReader.CombinedModules.Length; index++)
         {
-            var module = DashboardWidgetReader.Modules[index];
+            var module = DashboardWidgetReader.CombinedModules[index];
             var x = card.Left + card.Width * (index % 2 == 0 ? .26 : .74);
             var y = card.Top + 69 + index / 2 * 72;
             var center = new Point(x, y);
@@ -134,7 +152,7 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
         Label(drawing, value, split, y, 10, _text, true, card.Right - split - 12, right: true);
     }
 
-    private void WidgetRing(DrawingContext drawing, Point center, double radius, double? value, double? first = null)
+    private void WidgetRing(DrawingContext drawing, Point center, double radius, double? value, double? first = null, Brush? accent = null)
     {
         const double thickness = 6;
         drawing.DrawEllipse(null, PopupPalette.Stroke(_palette.Metrics.Track, thickness), center, radius, radius);
@@ -142,7 +160,7 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
         {
             var split = Math.Min(value.Value, first ?? 0);
             if (split > 0) WidgetArc(drawing, center, radius, -90, split * 3.6, _palette.Metrics.Red);
-            if (split < value) WidgetArc(drawing, center, radius, -90 + split * 3.6, (value.Value - split) * 3.6, _blue);
+            if (split < value) WidgetArc(drawing, center, radius, -90 + split * 3.6, (value.Value - split) * 3.6, accent ?? _blue);
         }
         var text = MonitorText.Format(WidgetPercentText(value) ?? "—", Bold, radius > 26 ? 20 : 13, _text, _scale);
         drawing.DrawText(text, MonitorText.Centered(text, center, _scale));
@@ -177,6 +195,7 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
         BarModule.Gpu => BusiestGpu(sample)?.Usage,
         BarModule.Ram => sample?.Memory?.UsedPercent,
         BarModule.Disk => WidgetVolume(sample)?.UsedPercent,
+            BarModule.Battery when sample?.Battery?.Reading is { State: BatteryReadingState.Available } battery => battery.Percent,
         _ => null
     });
     private static double? ValidWidgetPercent(double? value) => value is >= 0 and <= 100 ? value : null;

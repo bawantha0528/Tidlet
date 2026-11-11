@@ -1070,8 +1070,48 @@ The Release build completed with zero warnings and errors. All 149 x86 tests pas
 
 **Measured RAM and CPU**
 
-The seven-card benchmark stopped before sampling because the previous Tidlet preview was still running.
+The completed seven-card run recorded 300.99 seconds and 302 samples. Observed peak RAM was 90.26 MB and whole-process lifetime peak RAM was 90.31 MB, both above the 90 MB cap. Average CPU was 0.164% across eight logical processors. Desktop restoration, worker cleanup, and unchanged binary hashes passed. The overall verdict failed. Evidence is in `artifacts/data-usage-measure`.
 
 **Known gaps and next step**
 
-Run the five-minute resource trial once the older preview exits. The preview build is under `src/IsletMonitor/bin/data-usage`.
+Stop at the RAM gate. Proposed correction for review is to draw the pinned Data usage card once per changed snapshot. The bar tick and the desktop widget reader can both redraw it today. Keep period switches immediate and repeat the same five-minute trial at the unchanged 90 MB cap. The preview build is under `src/IsletMonitor/bin/data-usage`.
+
+### Windows usage history feasibility
+
+A read-only Windows PowerShell probe reached the WinRT API, but `NetworkInformation.GetConnectionProfiles()` returned “The process has no package identity.” This probe used an unpackaged desktop process on this PC. Profile history and full device coverage remain unverified. The next candidate is a signed identity-enabled test build. No package registration, system changes, or application code changes were made. [Microsoft package identity overview](https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/grant-identity-to-nonpackaged-apps-overview)
+
+Built an isolated x86 .NET 8 test probe with the existing pinned Windows SDK. The build passed with zero warnings and errors, and the compiled unpackaged probe reproduced HRESULT `0x80073D54`. MakeAppx validated the manifest and created the MSIX. SignTool signed the package, and verification reported the self-signed certificate as untrusted on this PC. The signed package and public certificate are in `artifacts/windows-usage-identity`. Packaged execution still requires an authorized test environment that trusts the signer and registers the package. No production files or RAM limits were changed.
+
+## Battery widget and popup navigation
+
+The Battery card displays charge, status, and available health and power readings, and it can be pinned to the desktop. Settings uses the Windows Settings glyph. The four-square icon in each popup opens that module's page in the Dashboard. [Microsoft icon reference](https://learn.microsoft.com/en-us/windows/apps/design/iconography/segoe-ui-symbol-font)
+
+Release built with zero warnings and errors. Three focused x86 tests passed, including the popup action and Battery pin restoration. Widgets and the Battery popup rendered with live data in both themes at 100% and 150%. No new five-minute RAM or CPU run was performed. The preview is under `src/IsletMonitor/bin/battery-widget`.
+
+## Sidebar icons and GPU temperature
+
+Added distinct icons for the Dashboard navigation and footer actions. The GPU popup queries the installed display driver through the Windows graphics adapter performance API by adapter LUID. Only valid readings are shown, and the unit follows Tidlet's temperature setting. The CPU popup identifies the optional helper requirement for CPU package temperature. [Microsoft adapter performance data](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk/ns-d3dkmthk-_d3dkmt_adapter_perfdata)
+
+Release built with zero warnings and errors and two focused x86 tests passed. The Dashboard and GPU popup rendered in light and dark modes at 100% and 150%. The GTX 1650 reported 47.4 °C and the Iris Xe returned no reading. Five-minute RAM and CPU usage were not remeasured. The preview is under `src/IsletMonitor/bin/sidebar-icons`.
+
+## On-demand diagnostics and battery trends
+
+Added one-shot Wi-Fi router, IPv4 endpoint, and Windows DNS checks. The Disk page shows Windows physical drive health on request and marks volumes at or below 10% free. The Disk and Widgets pages link to Windows Storage cleanup for user review. Battery shows a rolling two-minute charge chart and compares up to 31 days of locally recorded full-charge capacity for the same reported design capacity. [Microsoft physical disk health](https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-physicaldisk) · [Windows Settings links](https://learn.microsoft.com/windows/uwp/launch-resume/launch-settings-app)
+
+The final Release build completed with zero warnings and errors, and all 151 x86 tests passed. Dashboard render probes for Network, Disk, Battery, and Widgets completed at 100% and 150%. The final read-only Windows health provider reported the test NVMe as Healthy, and the Battery probe stored 42.196 Wh full-charge capacity. Wi-Fi and cleanup actions were tested with mocks. No live outbound checks or file removal were exercised. No new five-minute resource trial was performed. The preview is under `src/IsletMonitor/bin/system-diagnostics`.
+
+## In-app temp cleanup and CPU sensor follow-up
+
+Disk and the Storage cleanup card now open a Tidlet page with a read-only scan, a logical size estimate, explicit permanent-delete confirmation, and a result with removed and skipped files plus observed drive free-space change. The final Release build and three focused x86 tests passed. The page rendered in both themes at 100% and 150%. The live scan hit the 5,000-file cap after reading 522,372,455 bytes and found zero eligible files. Deletion was exercised only through mocks. Five-minute RAM and CPU were not remeasured. The preview is under `src/IsletMonitor/bin/temp-cleanup`.
+
+The .NET IoT CPU temperature binding's Windows source tries OpenHardwareMonitor and falls back to WMI. Read-only probes on this PC returned access denied for ACPI thermal zones, invalid class for `Win32_TemperatureProbe` in `root/WMI`, and no OpenHardwareMonitor namespace. [Upstream Windows implementation](https://github.com/dotnet/iot/blob/main/src/devices/CpuTemperature/CpuTemperature.cs)
+
+## Per-module strip styles
+
+Every module page now has a row of clickable strip style previews. Tidlet saves the chosen style per module. The previews use the strip renderer with example values. Percentage-based modules support meters, Network supports up/down rates, and Disk and Sensors use text and icon variants. When a strip is too narrow for meters, the layout uses compact text while retaining the saved choices and order.
+
+The Release build and all 154 x86 tests passed. Tests selected and restored a style on all seven module pages. Live strip and Dashboard probes passed in both themes and produced 100% and 150% Dashboard renders. Five-minute resource usage was not remeasured. The preview is under `src/IsletMonitor/bin/strip-styles`.
+
+## Gaming Mode FPS feasibility
+
+Verified the official PresentMon 2.6.0 standalone x64 executable against its published SHA-256 and ran its help command. A bounded five-second capture probe returned access denied and exit code 6 both inside the sandbox and with the normal user token outside it. No frames were collected. No live capture budget could be measured. No application build, integration, or system setting changes were made.

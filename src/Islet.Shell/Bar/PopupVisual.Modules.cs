@@ -106,10 +106,28 @@ internal sealed partial class PopupVisual
         double y=55;
         foreach(var adapter in gpu.Adapters)
         {
-            Hero(d,y-6,adapter.Usage.HasValue?132:88);
-            Text(d,adapter.Name,24,y+4,12,TextBrush,bold:true,maxWidth:272);y+=43;
-            if(adapter.Usage is{}usage){Ring(d,160,y+35,32,usage,Percent(usage));y+=86;}
-            else{Text(d,IsMeasuring?"Measuring engine usage":"Engine usage unavailable",160,y+8,11,Dim,center:true);y+=48;}
+            var usage=adapter.Usage is >=0 and <=100 ? adapter.Usage : null;
+            Hero(d,y-6,usage.HasValue?125:88);
+            Text(d,adapter.Name,24,y+4,12,TextBrush,bold:true,maxWidth:272);
+            if(usage is{}value)
+            {
+                Ring(d,65,y+69,31,value,Percent(value));
+                Text(d,"Busiest engine",113,y+32,12,TextBrush,bold:true);
+                var history=_gpuHistory.GetValueOrDefault(adapter.Luid);
+                var average=history is{Count:>=2}?history.Average(_now,120):default;
+                if(average.Percent is{}mean)
+                    MetricBar(d,average.Complete?"2-minute average":"Recent average",Percent(mean),mean,y+59,_chart.Accent);
+                else
+                    Text(d,"Collecting usage average…",113,y+62,10.5,Dim,maxWidth:181);
+                DrawGpuTemperature(d,adapter,y+91);
+                y+=130;
+            }
+            else
+            {
+                Text(d,IsMeasuring?"Measuring engine usage":"Engine usage unavailable",160,y+51,11,Dim,center:true);
+                DrawGpuTemperature(d,adapter,y+66);
+                y+=91;
+            }
             if(IsMeasuring||adapter.Usage.HasValue)
             {
                 Section(d,"BUSIEST ENGINE HISTORY",ref y);
@@ -119,6 +137,14 @@ internal sealed partial class PopupVisual
             Text(d,adapter.Explanation,15,y+4,9,Dim,maxWidth:288);y+=48;
         }
         _contentBottom=y+12;
+    }
+    private void DrawGpuTemperature(DrawingContext drawing,GpuActivity adapter,double y)
+    {
+        if(adapter.TemperatureCelsius is not (>0 and <=150))return;
+        var degrees=adapter.TemperatureCelsius.Value;
+        var value=Fahrenheit?$"{degrees*1.8+32:0} °F":$"{degrees:0} °C";
+        Text(drawing,"Temperature",113,y,10.5,Dim);
+        Text(drawing,value,294,y,10.5,TextBrush,bold:true,right:true);
     }
     private void Pill(DrawingContext d,string name,string value,Brush color,ref double y)
     {Text(d,name,15,y,11.5,TextBrush);d.DrawRoundedRectangle(color,null,new Rect(257,y-1,48,18),5,5);Text(d,value,281,y,10,Brushes.White,bold:true,center:true);y+=25;}

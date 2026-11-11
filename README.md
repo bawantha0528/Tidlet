@@ -73,9 +73,13 @@ On startup, the strip shows **Measuring** for readings that need more time. Popu
 | Choose a placement mode | Use **Overlay** to float above the desktop or **Reserve** to request space from Windows. |
 | Switch themes | Open **Settings → Theme** and pick **Dark**, **Light**, or **System**. System reads the Windows app theme when Tidlet applies its appearance. |
 | Choose or reorder readings | Toggle a module from its page or under **Settings → Modules**. Use **Move earlier in strip** to reorder it. Re-enabled items return to their saved position. |
+| Pick a strip style | Open a module page and click a preview under **Monitor strip**. Available styles depend on the reading and include text, icons, circles, bars, sparklines, and network up/down rates. Tidlet saves each module's choice separately. |
 | View live widgets | Open **Widgets** in the app sidebar for CPU, GPU, RAM, disk, network, and a combined card. Click an individual card for its full module page. The Widgets page refreshes every three seconds while open. |
 | Place widgets on the desktop | In **Widgets**, choose **+** on a card. Drag the card by its title and use **×** to remove it. Tidlet remembers the positions in its local data folder and restores the cards on launch. |
 | Check data usage | Open **Widgets → Data usage** and choose **Day**, **Week**, or **Month**. Totals combine uploads and downloads across monitored physical adapters, including local network traffic. The week starts Monday. Tidlet keeps daily totals locally and only records traffic while monitoring is running. |
+| Diagnose Wi-Fi | Open **Network → Run checks**. Tidlet tests the local router, a public HTTPS port over the Wi-Fi IPv4 address, and Windows DNS separately. These checks run only when requested. |
+| Check or clean up storage | Use **Disk → Check health** for physical drive status reported by Windows. Open **Review cleanup** from Disk or the Storage cleanup card in Widgets. Scan to see the amount inspected and the estimated reclaimable space. Review and explicitly confirm before permanently deleting eligible files. |
+| Review battery trends | The **Battery** page shows a rolling two-minute charge chart and up to 31 days of daily full-charge capacity readings when the battery reports capacity. |
 | Change Windows power mode | In **Dashboard → Battery**, choose a mode for the displayed power source. **Windows settings** opens the system page when needed. |
 | Set an 80% charge limit | In **Dashboard → Battery**, open **80% charge limit** for setup steps. The manufacturer's utility applies the limit on supported models. |
 | Pause or quit | Use the tray menu. Settings remain accessible while paused. |

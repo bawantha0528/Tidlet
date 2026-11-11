@@ -21,6 +21,7 @@ public sealed class PopupCoordinator:IDisposable
     public int Opens{get;private set;}public int Closes{get;private set;}public int OutstandingWorkers=>Volatile.Read(ref _workers);
     public bool IsOpen=>_window is not null;public BarModule? Module=>_window?.Module;
     public PopupSample? LastSample{get;private set;}
+    public event Action<BarModule>? DashboardRequested;
     public PopupCoordinator(Func<IPopupSource> factory,Action<nint,BarRect,bool> position,Action taskManager,string? capture=null,bool holdInput=false,Func<BarSettings>? settings=null,RecentSampleCache? recent=null)
     {_factory=factory;_position=position;_taskManager=taskManager;_capture=capture;_holdInput=holdInput;_settings=settings;_recent=recent??new();}
     public void Toggle(BarModule module,BarRect item,BarDisplay display,double scale,bool activate=true)
@@ -34,7 +35,8 @@ public sealed class PopupCoordinator:IDisposable
         Close();Opens++;if(Events.Count<64)Events.Add(new{Action="Open",Module=module.ToString(),Seconds=_lifetime.Elapsed.TotalSeconds});
         _window=new PopupWindow(module,item,display,scale,activate,_factory,_position,_taskManager,
             ()=>{_lastModule=module;_lastDismiss=Stopwatch.GetTimestamp();Close();},
-            (sample,allocated)=>{LastSample=sample;Frames++;PresentationAllocatedBytes+=allocated;_recent.Store(module,sample);},()=>Reads++,CanRead,delta=>Interlocked.Add(ref _workers,delta),_holdInput,settings?.Preference(module).UpdateSeconds??1,settings?.UseBits??false,WindowsAppTheme.Resolve(settings?.Theme??BarTheme.Dark),_recent);
+            DashboardRequested is null?null:()=>{Close();DashboardRequested?.Invoke(module);},
+            (sample,allocated)=>{LastSample=sample;Frames++;PresentationAllocatedBytes+=allocated;_recent.Store(module,sample);},()=>Reads++,CanRead,delta=>Interlocked.Add(ref _workers,delta),_holdInput,settings?.Preference(module).UpdateSeconds??1,settings?.UseBits??false,WindowsAppTheme.Resolve(settings?.Theme??BarTheme.Dark),_recent,settings?.Fahrenheit??false);
     }
     private bool CanRead()
     {
@@ -59,13 +61,14 @@ public sealed class PopupCoordinator:IDisposable
         private readonly double _scale;private readonly double _height;
         private readonly RecentSampleCache _recent;
         public PopupWindow(BarModule module,BarRect item,BarDisplay display,double scale,bool activate,Func<IPopupSource> factory,
-            Action<nint,BarRect,bool> position,Action taskManager,Action dismiss,Action<PopupSample,long> frame,Action readStarted,Func<bool> canRead,Action<int> workerDelta,bool holdInput,int intervalSeconds,bool useBits,BarTheme theme,RecentSampleCache recent)
+            Action<nint,BarRect,bool> position,Action taskManager,Action dismiss,Action? openDashboard,Action<PopupSample,long> frame,Action readStarted,Func<bool> canRead,Action<int> workerDelta,bool holdInput,int intervalSeconds,bool useBits,BarTheme theme,RecentSampleCache recent,bool fahrenheit)
         {
             Module=module;_factory=factory;_readStarted=readStarted;_frame=frame;_scale=scale;_canRead=canRead;_workerDelta=workerDelta;_recent=recent;
             var contentHeight=module switch{BarModule.Cpu=>684,BarModule.Ram=>660,BarModule.Network=>600,BarModule.Battery=>460,BarModule.Disk=>520,BarModule.Sensors=>300,_=>680};var bounds=BarLayout.Popup(item,display.Work,(int)Math.Ceiling(320*scale),(int)Math.Ceiling(contentHeight*scale),item.Top<display.Bounds.Top+display.Bounds.Height/2?BarEdge.Top:BarEdge.Bottom);
             _height=bounds.Height/scale;
             Action inputDismiss=holdInput?()=>{}:dismiss;Action inputTask=holdInput?()=>{}:taskManager;
-            _visual=new PopupVisual(module,_height,scale,inputTask,inputDismiss,holdInput,theme);
+            _visual=new PopupVisual(module,_height,scale,inputTask,inputDismiss,holdInput,theme,holdInput&&openDashboard is not null?()=>{}:openDashboard)
+                { Fahrenheit=fahrenheit };
             _visual.SetUnits(useBits);
             if(recent.TryGet(module,out var previous))_visual.ShowPrevious(previous!);
             _source=new(new HwndSourceParameters("Tidlet "+module+" details"){PositionX=bounds.Left,PositionY=bounds.Top,Width=bounds.Width,Height=bounds.Height,

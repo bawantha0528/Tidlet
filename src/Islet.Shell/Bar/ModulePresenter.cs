@@ -58,12 +58,14 @@ internal sealed class ModulePresenter:UIElement,IDisposable
             else _visual.ShowMeasuring(sample);
         }
         if(_pendingDetails!=_visual.Details)sample=sample with{Cores=Enumerable.Repeat(double.NaN,sample.Cores.Length).ToArray(),Processes=[]};
-        var value=_module==BarModule.Cpu?sample.Cpu:sample.Memory?.UsedPercent;if(value is{}v){_history.Push(now,v);_averages.Push(now,v);}
+        var value=_module switch{BarModule.Cpu=>sample.Cpu,BarModule.Battery=>sample.Battery?.Reading.Percent,_=>sample.Memory?.UsedPercent};
+        if(value is{}v){_history.Push(now,v);if(_module==BarModule.Cpu)_averages.Push(now,v);}
         _recent?.Store(_module,sample);_visual.Update(sample,_history,_averages,now);Frames++;
         if(_module==BarModule.Sensors)_timer.Stop();
     }
     public void Redraw(double scale)=>_visual.Redraw(scale);
     public void SetUnits(bool useBits)=>_visual.SetUnits(useBits);
+    public void SetBatteryCapacity(Func<string>? capacity)=>_visual.BatteryCapacity=capacity;
     public void Dispose()
     {
         if(_closed)return;_closed=true;_timer.Stop();_timer.Tick-=Tick;

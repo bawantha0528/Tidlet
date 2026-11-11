@@ -9,7 +9,7 @@ public sealed record DiskActivity(string Name,double? Read,double? Write,double?
 public sealed record VolumeCapacity(string Name,ulong Total,ulong Free)
 {public bool Valid=>Total>0&&Free<=Total;public double UsedPercent=>Valid?100.0*(Total-Free)/Total:double.NaN;}
 public sealed record DiskDetails(DiskActivity[] Disks,VolumeCapacity[] Volumes,string Explanation);
-public sealed record GpuActivity(ulong Luid,string Name,double? Usage,ulong DedicatedMemory,string Explanation);
+public sealed record GpuActivity(ulong Luid,string Name,double? Usage,ulong DedicatedMemory,string Explanation,double? TemperatureCelsius=null);
 public sealed record GpuDetails(GpuActivity[] Adapters,string Explanation);
 
 /// <summary>Fixed two-series history. Invalid values and non-monotonic times cannot poison scales.</summary>

@@ -17,7 +17,11 @@ public sealed partial class WindowsPopupSource : IPopupSource,IPopupDetailSource
     private readonly Action<string,bool>? _phase;
     private PopupDetails _details=PopupDetails.All;private BarModule? _probedModule;
     internal bool ProcessCountersEnabled {get;}
-    public WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network=null):this(network,true,null){}
+    private readonly bool _includeGpuTemperature;
+    public WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network=null,bool includeGpuTemperature=false):this(network,true,null)
+    {
+        _includeGpuTemperature=includeGpuTemperature;
+    }
     internal WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network,bool processCounters,Action<string,bool>? phase)
     {
         ProcessCountersEnabled=processCounters;_phase=phase;

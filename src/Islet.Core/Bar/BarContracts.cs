@@ -7,7 +7,44 @@ public enum BarAlignment { Left, Center, Right }
 public enum MonitorSelection { Primary, All, Selected }
 public enum BarModule { Cpu, Ram, Network, Battery, Gpu, Disk, Sensors }
 public enum BarTheme { Dark, Light, System }
-public enum BarItemStyle { Auto, TwoLine, Speed, Battery }
+public enum BarItemStyle { Auto, TwoLine, Speed, Battery, Ring, Bar, Sparkline, IconWithText, IconOnly }
+
+public static class BarStyles
+{
+    private static readonly IReadOnlyList<BarItemStyle> Meters=Array.AsReadOnly(new[]
+    {
+        BarItemStyle.Auto,BarItemStyle.TwoLine,BarItemStyle.Ring,BarItemStyle.Bar,BarItemStyle.Sparkline,BarItemStyle.IconWithText,BarItemStyle.IconOnly
+    });
+    private static readonly IReadOnlyList<BarItemStyle> Battery=Array.AsReadOnly(new[]
+    {
+        BarItemStyle.Auto,BarItemStyle.TwoLine,BarItemStyle.Battery,BarItemStyle.Ring,BarItemStyle.Bar,BarItemStyle.IconOnly
+    });
+    private static readonly IReadOnlyList<BarItemStyle> Network=Array.AsReadOnly(new[]
+    {
+        BarItemStyle.Auto,BarItemStyle.TwoLine,BarItemStyle.Speed,BarItemStyle.IconWithText,BarItemStyle.IconOnly
+    });
+    private static readonly IReadOnlyList<BarItemStyle> Details=Array.AsReadOnly(new[]
+    {
+        BarItemStyle.Auto,BarItemStyle.TwoLine,BarItemStyle.IconWithText,BarItemStyle.IconOnly
+    });
+    public static IReadOnlyList<BarItemStyle> Options(BarModule module)=>module switch
+    {
+        BarModule.Network=>Network,BarModule.Battery=>Battery,
+        BarModule.Cpu or BarModule.Gpu or BarModule.Ram=>Meters,_=>Details
+    };
+
+    public static BarItemStyle Resolve(BarModule module,BarItemStyle requested,bool withMeters=true)
+    {
+        if(!Options(module).Contains(requested))requested=BarItemStyle.Auto;
+        var style=requested==BarItemStyle.Auto?module switch
+        {
+            BarModule.Cpu=>BarItemStyle.Ring,BarModule.Gpu=>BarItemStyle.Sparkline,BarModule.Ram=>BarItemStyle.Bar,
+            BarModule.Network=>BarItemStyle.Speed,BarModule.Battery=>BarItemStyle.Battery,_=>BarItemStyle.TwoLine
+        }:requested;
+        return !withMeters&&style is BarItemStyle.Ring or BarItemStyle.Bar or BarItemStyle.Sparkline
+            ?BarItemStyle.TwoLine:style;
+    }
+}
 public sealed record ModulePreference
 {
     public bool PopupEnabled{get;init;}=true;
@@ -102,8 +139,17 @@ public static class BarLayout
 {
     public static double HeightDip(BarEdge edge)=>edge==BarEdge.Bottom?34:24;
     public static double HeightDip(BarSettings settings)=>settings.TopReveal?34:HeightDip(settings.Edge);
-    private static double Size(BarSettings settings,BarModule module,bool withMeters)=>module switch
-    {BarModule.Network=>112,BarModule.Battery=>74,BarModule.Cpu or BarModule.Gpu or BarModule.Ram when withMeters&&settings.Preference(module).Style!=BarItemStyle.TwoLine=>84,_=>54};
+    private static double Size(BarSettings settings,BarModule module,bool withMeters)=>BarStyles.Resolve(module,settings.Preference(module).Style,withMeters) switch
+    {
+        BarItemStyle.Ring or BarItemStyle.Bar or BarItemStyle.Sparkline=>84,
+        BarItemStyle.Speed=>112,
+        BarItemStyle.Battery=>74,
+        BarItemStyle.IconOnly=>32,
+        BarItemStyle.IconWithText when module==BarModule.Network=>105,
+        BarItemStyle.IconWithText=>84,
+        _ when module==BarModule.Network=>88,
+        _=>54
+    };
     public static BarRect BottomOverlay(BarDisplay display,BarSettings settings,double scale)=>CompactOverlay(display,settings,scale,BarEdge.Bottom);
     public static BarRect CompactOverlay(BarDisplay display,BarSettings settings,double scale,BarEdge edge)
     {

@@ -48,6 +48,15 @@ public sealed class PopupDrawingTests
                     update.Invoke(visual,[original,history,averages,29.0]);var after=Pixels(visual);
                     CollectionAssert.AreEqual(before,after,$"{module} retained stale drawing content after data/DPI changes");
                 }
+                var dashboardOpened=false;
+                var popupWithDashboard=(UIElement)Activator.CreateInstance(type,BindingFlags.Instance|BindingFlags.NonPublic,null,
+                    [BarModule.Battery,460.0,1.0,(Action)(()=>{}),(Action)(()=>{}),false,BarTheme.Dark,(Action)(()=>dashboardOpened=true)],null)!;
+                var dashboardButton=(UIElement)VisualTreeHelper.GetChild(popupWithDashboard,3);
+                var dashboardPeer=System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(dashboardButton)!;
+                Assert.AreEqual("Open Dashboard",dashboardPeer.GetName());
+                ((System.Windows.Automation.Provider.IInvokeProvider)dashboardPeer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke)!).Invoke();
+                popupWithDashboard.Dispatcher.Invoke(()=>{},System.Windows.Threading.DispatcherPriority.Background);
+                Assert.IsTrue(dashboardOpened);
             }
             catch(Exception ex){failure=ex;}
         });

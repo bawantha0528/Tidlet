@@ -31,6 +31,16 @@ public sealed class MonitorBarHost : IDisposable
     public event Action? DashboardRequested;public event Action? SettingsRequested;public event Action? SettingsChanged;
     public Func<string?>? PopupDisplay{get;set;}
     public BarSettings CurrentSettings=>_settings;
+    internal static Drawing PreviewItem(BarModule module,BarItemStyle style,bool light,double scale)
+    {
+        var item=new ItemVisual(module,()=>{},false,style,true,light);
+        var sample=new BarSnapshot(62,74,83,"","","","",38400,12600,Gpu:54);
+        if(BarStyles.Resolve(module,style)==BarItemStyle.Sparkline)
+            foreach(var value in new[]{26.0,44,34,68,51,60,40,72,54})
+                item.Update(sample with{Cpu=value,Ram=value,Gpu=value},scale,24,null,true,false);
+        item.Update(sample,scale,24,null,true,false);
+        return item.PreviewDrawing;
+    }
     public void ApplySettings(BarSettings settings){settings.Validate();_save(settings);_settings=settings;Rebuild();SettingsChanged?.Invoke();}
     public void ActivateModule(BarModule module)
     {
@@ -308,6 +318,15 @@ public sealed class MonitorBarHost : IDisposable
     private sealed class ItemVisual: UIElement
     {
         private readonly DrawingVisual _visual=new();private readonly BarModule _module;private readonly Action _invoke;
+        internal Drawing PreviewDrawing
+        {
+            get
+            {
+                var drawing=_visual.Drawing;
+                drawing.Freeze();
+                return drawing;
+            }
+        }
         private static readonly Typeface Face=new(new FontFamily("Segoe UI Variable, Segoe UI"),FontStyles.Normal,FontWeights.Normal,FontStretches.Normal);
         private static readonly Typeface Bold=new(new FontFamily("Segoe UI Variable, Segoe UI"),FontStyles.Normal,FontWeights.SemiBold,FontStretches.Normal);
         private static readonly Brush BatteryGreen=BatteryBrush(48,209,88),BatteryLow=BatteryBrush(255,159,10);
@@ -315,10 +334,9 @@ public sealed class MonitorBarHost : IDisposable
         private string _name="Waiting for reading";private string _help="";
         private readonly bool _useBits;
         private readonly BarItemStyle _style;
-        private readonly bool _wide;
         private readonly bool _light;
-        private readonly double[]? _gpuHistory;
-        private int _gpuCount,_gpuNext;
+        private readonly double[]? _meterHistory;
+        private int _historyCount,_historyNext;
         private static readonly Brush TrafficUp=BatteryBrush(241,74,71),TrafficDown=BatteryBrush(44,153,234);
         private static readonly Brush LabelBrush=BatteryBrush(177,177,177),MeterTrack=BatteryBrush(57,60,64);
         private static readonly Brush LightText=BatteryBrush(23,32,43),LightLabel=BatteryBrush(66,77,91),LightTrack=BatteryBrush(199,209,220);
@@ -335,7 +353,11 @@ public sealed class MonitorBarHost : IDisposable
             return brush;
         }
         public ItemVisual(BarModule module,Action invoke,bool useBits,BarItemStyle style,bool wide,bool light)
-        {_module=module;_invoke=invoke;_useBits=useBits;_style=style;_wide=wide;_light=light;if(wide&&module==BarModule.Gpu)_gpuHistory=new double[20];Focusable=true;AddVisualChild(_visual);}
+        {
+            _module=module;_invoke=invoke;_useBits=useBits;_style=BarStyles.Resolve(module,style,wide);_light=light;
+            if(_style==BarItemStyle.Sparkline)_meterHistory=new double[20];
+            Focusable=true;AddVisualChild(_visual);
+        }
         
         protected override int VisualChildrenCount=>1;protected override Visual GetVisualChild(int i)=>i==0?_visual:throw new ArgumentOutOfRangeException(nameof(i));
         protected override AutomationPeer OnCreateAutomationPeer()=>new ItemPeer(this);
@@ -362,7 +384,7 @@ public sealed class MonitorBarHost : IDisposable
                     _help=s.NetworkReason;
                     if(s.Loading||s.NetworkLoading){label="NETWORK";value="Measuring";break;}
                     _name=$"Network, download {Rate(s.Download)}, upload {Rate(s.Upload)}";
-                    if(_style==BarItemStyle.TwoLine){label="NET ↓";value=Rate(s.Download);break;}
+                    if(_style!=BarItemStyle.Speed){label="NET ↓";value=Rate(s.Download);break;}
                     if(s.NetworkRefreshing)
                     {
                         Text(d,"NET · UPDATING",0,center-11,8,false,scale);
@@ -374,7 +396,7 @@ public sealed class MonitorBarHost : IDisposable
                     Text(d,Rate(s.Download),13,center,10,true,scale);return;
             }
             _name=$"{label} {value}";if(notice is not null)_help+=" "+notice;
-            if(_module==BarModule.Battery&&_style!=BarItemStyle.TwoLine)
+            if(_style==BarItemStyle.Battery)
             {
                 d.DrawRoundedRectangle(null,_light?LightBatteryOutline:BatteryOutline,new Rect(0,center-5,18,10),2,2);
                 d.DrawRectangle(_light?LightLabel:LabelBrush,null,new Rect(19,center-2,2,4));
@@ -384,26 +406,37 @@ public sealed class MonitorBarHost : IDisposable
             }
             else
             {
+                if(_style is BarItemStyle.IconOnly or BarItemStyle.IconWithText)
+                {
+                    var icon=_module is BarModule.Cpu or BarModule.Gpu or BarModule.Ram?label:_module.ToString();
+                    DashboardIcons.Draw(d,icon,new Point(9,center),_light?LightText:Brushes.White);
+                    if(_style==BarItemStyle.IconOnly)return;
+                }
+                var x=_style==BarItemStyle.IconWithText?22:0;
                 var refreshing=_module==BarModule.Cpu&&s.CpuRefreshing||_module==BarModule.Gpu&&s.GpuRefreshing||_module==BarModule.Network&&s.NetworkRefreshing;
-                Text(d,refreshing?label+" · ↻":label,0,center-11,8,false,scale);
-                Text(d,value,0,center-1,value is "Measuring" or "Unavailable"?9:11,true,scale);
+                Text(d,refreshing?label+" · ↻":label,x,center-11,8,false,scale);
+                Text(d,value,x,center-1,value is "Measuring" or "Unavailable"?9:11,true,scale);
                 if(refreshing||value is "Measuring" or "Unavailable")return;
             }
-            if(!_wide)return;
-            if(_module==BarModule.Cpu)DrawCpuRing(d,center,s.Loading||s.CpuLoading?null:s.Cpu);
-            if(_gpuHistory is not null&&!s.Loading&&!s.GpuLoading&&s.Gpu is{}gpu&&ValidPercent(gpu))DrawGpuHistory(d,center,gpu,appendHistory);
-            if(_module==BarModule.Ram)
+            var metric=_module switch{BarModule.Cpu=>s.Cpu,BarModule.Gpu=>s.Gpu,BarModule.Ram=>s.Ram,BarModule.Battery=>s.Battery,_=>null};
+            if(metric is not{}percentValue||!ValidPercent(percentValue))return;
+            if(_style==BarItemStyle.Ring)DrawRing(d,center,percentValue);
+            if(_style==BarItemStyle.Sparkline)DrawHistory(d,center,percentValue,appendHistory);
+            if(_style==BarItemStyle.Bar)
             {
                 d.DrawRoundedRectangle(_light?LightTrack:MeterTrack,null,new Rect(39,center-5.5,40,11),2,2);
-                if(!s.Loading&&s.Ram is{}ram&&ValidPercent(ram)&&ram>0)
-                    d.DrawRoundedRectangle(RamFill,null,new Rect(39,center-5.5,40*ram/100,11),2,2);
+                if(percentValue>0)
+                {
+                    var fill=_module switch{BarModule.Ram=>RamFill,BarModule.Battery=>percentValue<=15?BatteryLow:BatteryGreen,_=>TrafficDown};
+                    d.DrawRoundedRectangle(fill,null,new Rect(39,center-5.5,40*percentValue/100,11),2,2);
+                }
             }
         }
-        private void DrawCpuRing(DrawingContext d,double center,double? sample)
+        private void DrawRing(DrawingContext d,double center,double percent)
         {
             const double x=48,radius=8.5;
             d.DrawEllipse(null,_light?LightCpuTrack:CpuTrack,new Point(x,center),radius,radius);
-            if(sample is not{}percent||!ValidPercent(percent)||percent==0)return;
+            if(percent==0)return;
             if(percent==100){d.DrawEllipse(null,CpuArc,new Point(x,center),radius,radius);return;}
             var radians=percent*Math.Tau/100;
             var end=new Point(x+radius*Math.Sin(radians),center-radius*Math.Cos(radians));
@@ -415,15 +448,15 @@ public sealed class MonitorBarHost : IDisposable
             }
             arc.Freeze();d.DrawGeometry(null,CpuArc,arc);
         }
-        private void DrawGpuHistory(DrawingContext d,double center,double sample,bool appendHistory)
+        private void DrawHistory(DrawingContext d,double center,double sample,bool appendHistory)
         {
-            var samples=_gpuHistory!;
-            if(appendHistory){samples[_gpuNext]=sample;_gpuNext=(_gpuNext+1)%samples.Length;_gpuCount=Math.Min(samples.Length,_gpuCount+1);}
-            if(_gpuCount<2)return;
+            var samples=_meterHistory!;
+            if(appendHistory){samples[_historyNext]=sample;_historyNext=(_historyNext+1)%samples.Length;_historyCount=Math.Min(samples.Length,_historyCount+1);}
+            if(_historyCount<2)return;
             var geometry=new StreamGeometry();using(var c=geometry.Open())
             {
-                var start=(_gpuNext-_gpuCount+samples.Length)%samples.Length;
-                for(int i=0;i<_gpuCount;i++){var point=new Point(78-2.0*(_gpuCount-1-i),center+7-14*samples[(start+i)%samples.Length]/100);if(i==0)c.BeginFigure(point,false,false);else c.LineTo(point,true,false);}
+                var start=(_historyNext-_historyCount+samples.Length)%samples.Length;
+                for(int i=0;i<_historyCount;i++){var point=new Point(78-2.0*(_historyCount-1-i),center+7-14*samples[(start+i)%samples.Length]/100);if(i==0)c.BeginFigure(point,false,false);else c.LineTo(point,true,false);}
             }
             geometry.Freeze();d.DrawGeometry(null,GpuTrace,geometry);
         }

@@ -125,14 +125,7 @@ public sealed partial class DashboardHost
             y += 26;
             Dropdown(drawing, "Details refresh", preference.UpdateSeconds, RefreshIntervals, Seconds,
                 value => Preference(module, p => p with { UpdateSeconds = value }, $"Details refresh set to {Seconds(value)}. Saved."), ref y);
-            BarItemStyle[] styles = module switch
-            {
-                BarModule.Network => [BarItemStyle.Auto, BarItemStyle.Speed, BarItemStyle.TwoLine],
-                BarModule.Battery => [BarItemStyle.Auto, BarItemStyle.Battery, BarItemStyle.TwoLine],
-                _ => [BarItemStyle.Auto, BarItemStyle.TwoLine]
-            };
-            Dropdown(drawing, "Bar style", preference.Style, styles,
-                value => value switch { BarItemStyle.Auto => "Automatic", BarItemStyle.TwoLine => "Two lines", _ => value.ToString() },
+            Dropdown(drawing, "Bar style", preference.Style, BarStyles.Options(module), StyleName,
                 value => Preference(module, p => p with { Style = value }, "Bar style saved."), ref y);
             Toggle(drawing, "Open popup on click", preference.PopupEnabled, ref y,
                 () => Preference(module, p => p with { PopupEnabled = !p.PopupEnabled }, preference.PopupEnabled ? "Click-to-open popup disabled. Saved." : "Click-to-open popup enabled. Saved."));

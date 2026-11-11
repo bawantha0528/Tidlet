@@ -25,7 +25,7 @@ internal static class BarApplication
                 case "--dashboard-capture-scale":if(++i>=args.Length||!int.TryParse(args[i],out var scalePercent)||scalePercent is not(100 or 150))return 2;capturePercent=scalePercent;break;
                 case "--close-dashboard-after":if(++i>=args.Length||!int.TryParse(args[i],out var dc)||dc is<1 or>300)return 2;closeDashboardAfter=dc;break;
                 case "--dashboard-cycle-seconds":if(++i>=args.Length||!int.TryParse(args[i],out var cycle)||cycle is<1 or>60)return 2;dashboardCycle=cycle;break;
-                case "--dashboard-page":if(++i>=args.Length||args[i] is not("Dashboard" or "CPU" or "GPU" or "RAM" or "Disk" or "Network" or "Battery" or "Sensors" or "Widgets" or "Settings" or "About" or DashboardHost.BatteryOptimizationPage))return 2;dashboardPage=args[i];break;
+                case "--dashboard-page":if(++i>=args.Length||args[i] is not("Dashboard" or "CPU" or "GPU" or "RAM" or "Disk" or "Network" or "Battery" or "Sensors" or "Widgets" or "Settings" or "About" or DashboardHost.BatteryOptimizationPage or DashboardHost.TempCleanupPage))return 2;dashboardPage=args[i];break;
                 case "--popup-module":if(++i>=args.Length||!Enum.TryParse<BarModule>(args[i],true,out var module)||!Enum.IsDefined(module))return 2;popupModule=module;break;
                 case "--close-popup-after":if(++i>=args.Length||!int.TryParse(args[i],out var close)||close is<1 or>300)return 2;closePopupAfter=close;break;case "--reserve":reserve=true;break;case "--bottom":bottom=true;break;case "--all-monitors":all=true;break;
                 case "--exit-after-seconds":if(++i>=args.Length||!int.TryParse(args[i],out var n)||n is <1 or >3600)return 2;seconds=n;break;
@@ -48,6 +48,7 @@ internal static class BarApplication
         RenderOptions.ProcessRenderMode=RenderMode.SoftwareOnly;
         var cpu=new SystemCpuProvider(new NativeSystemCpuSource());var ram=new SystemRamProvider(new NativeSystemRamSource());
         var usagePath=Path.Combine(Path.GetDirectoryName(settingsFile)!,"data-usage.json");
+        var capacityHistory=new BatteryCapacityHistory(Path.Combine(Path.GetDirectoryName(settingsFile)!,"battery-capacity.json"));
         static DateOnly LocalDay()=>DateOnly.FromDateTime(DateTime.Now);
         var usage=DataUsage.Load(usagePath,LocalDay());
         UsageSnapshot CurrentUsage()=>usage.Read(LocalDay());
@@ -63,7 +64,7 @@ internal static class BarApplication
         BarSnapshot Read()
         {
             reads++;var c=cpu.Sample();var r=ram.Sample();var b=battery.Sample();var net=network.Sample();
-            usage.Save(usagePath);refreshUsage?.Invoke();
+            usage.Save(usagePath);refreshUsage?.Invoke();capacityHistory.Record(LocalDay(),b);
             var graphics=gpu.Sample(settings.Items.Contains(BarModule.Gpu)&&!settings.Pause);
             var now=sampleClock.Elapsed.TotalSeconds;
             var priorCpu=c.State==CpuReadingState.WarmingUp&&now-cpuAt<=120&&last?.Cpu is not null;
@@ -89,7 +90,7 @@ internal static class BarApplication
         BarRect? measuredPopupBounds=null;
         void PositionPopup(nint hwnd,BarRect bounds,bool activate)
         {Islet.Windows.Popups.PopupActions.Position(hwnd,bounds,activate);if(probe)measuredPopupBounds=Islet.Windows.Popups.PopupActions.Bounds(hwnd);}
-        using var popups=new PopupCoordinator(()=>new Islet.Windows.Popups.WindowsPopupSource(network),PositionPopup,Islet.Windows.Popups.PopupActions.TaskManager,capture is null?null:Path.ChangeExtension(capture,"popup.png"),probe&&popupModule.HasValue,()=>host.CurrentSettings,recent);
+        using var popups=new PopupCoordinator(()=>new Islet.Windows.Popups.WindowsPopupSource(network,includeGpuTemperature:true),PositionPopup,Islet.Windows.Popups.PopupActions.TaskManager,capture is null?null:Path.ChangeExtension(capture,"popup.png"),probe&&popupModule.HasValue,()=>host.CurrentSettings,recent);
         string Export()
         {
             var path=Path.Combine(Path.GetDirectoryName(settingsFile)!,"Exports","Tidlet-settings-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+".json");
@@ -111,10 +112,19 @@ internal static class BarApplication
             ()=>host.CurrentSettings,ApplicationMetrics,recent,desktop.Displays,Islet.Windows.Popups.PopupActions.Bounds,Islet.Windows.Popups.PopupActions.DesktopWidgetPosition,
             CurrentUsage,SelectUsage);
         refreshUsage=desktopWidgets.RefreshUsage;
+        var tempCleanup=new WindowsTempCleanup();
         using var dashboard=new DashboardHost(()=>host.CurrentSettings,s=>{popups.Close();host.ApplySettings(s);},DeviceOverviewSource.Read,ApplicationMetrics,()=>desktop.Displays().First(x=>x.Primary),
             new(Islet.Windows.Popups.PopupActions.DashboardPosition,Islet.Windows.Popups.PopupActions.TaskManager,host.Dispose,ClipboardText.Read,Import,Export,Compatibility,()=>{},Islet.Windows.Popups.PopupActions.Bounds,new WindowsPowerModeControl(probe),desktopWidgets.Pin,
-                CurrentUsage,SelectUsage,desktopWidgets.PinUsage),probe&&dashboardPage is not null,phase,recent);
+                CurrentUsage,SelectUsage,desktopWidgets.PinUsage,SystemDiagnostics.CheckWifi,
+                token=>Task.FromResult(SystemDiagnostics.ReadStorageHealth(token)),SystemDiagnostics.OpenStorageCleanup,capacityHistory.Describe,
+                tempCleanup.Scan,tempCleanup.Clean),
+            probe&&dashboardPage is not null,phase,recent);
         host.SettingsChanged+=()=>{popups.Close();dashboard.RefreshSettings();desktopWidgets.Refresh();};
+        popups.DashboardRequested+=module=>
+        {
+            if(!probe)dashboard.Open(module is BarModule.Cpu or BarModule.Ram or BarModule.Gpu
+                ? module.ToString().ToUpperInvariant() : module.ToString());
+        };
         host.EnvironmentVisibilityChanged+=desktopWidgets.SetHidden;
         host.Stopping+=desktopWidgets.Dispose;
         desktopWidgets.Restore();

@@ -104,7 +104,8 @@ public sealed partial class WindowsPopupSource
             var explanation=available?"Busiest Windows engine; process samples sharing an engine are combined.":
                 collected&&!ready?"Windows is collecting the next engine counter sample.":
                 "Windows did not provide a valid engine sample for this adapter.";
-            return adapter with{Usage=available?percent:null,Explanation=explanation};
+            var temperature=_includeGpuTemperature?GpuTemperature.Read(adapter.Luid):null;
+            return adapter with{Usage=available?percent:null,Explanation=explanation,TemperatureCelsius=temperature};
         }).ToArray();
         return new(null,null,null,null,null,null,uptime,null,[],[],[],reason,_capabilities,Gpu:new(gpu,gpu.Length>0?"Adapters are shown separately. Memory is dedicated hardware capacity, not current allocation.":reason),WarmingUp:collected&&!ready);
     }
