@@ -49,18 +49,25 @@ public interface ISystemPhysicalNetworkSource{bool TryRead(out PhysicalCounter[]
 public sealed record PhysicalNetworkSnapshot(NetworkReading Reading,PhysicalCounter[] Adapters,ulong RecordedReceived,ulong RecordedSent);
 public sealed class PhysicalNetworkProvider(ISystemPhysicalNetworkSource source,Action<ulong,ulong>? recordUsage=null)
 {
-    private PhysicalCounter[] _previous=[];private long _timestamp;
+    private PhysicalCounter[] _previous=[];private long _timestamp;private bool _rateGap;
     private readonly object _gate=new();private ulong _recordedReceived,_recordedSent;
     public int Reads{get;private set;}
     public Islet.Core.Capabilities.CapabilityProbeResult Probe()=>source.TryRead(out _,out var reason)?Islet.Core.Capabilities.CapabilityProbeResult.Supported:Islet.Core.Capabilities.CapabilityProbeResult.Unsupported("network.no-physical",reason);
-    public void Reset(){lock(_gate){_previous=[];_timestamp=0;}}
+    public void Reset(){lock(_gate){_previous=[];_timestamp=0;_rateGap=false;}}
+    public void MarkRateGap(){lock(_gate)_rateGap=true;}
+    public void StartUsageBaseline()
+    {
+        lock(_gate)
+            if(_timestamp==0&&source.TryRead(out var counters,out _))
+            {_previous=counters;_timestamp=Stopwatch.GetTimestamp();_rateGap=true;}
+    }
     public NetworkReading Sample(){lock(_gate)return SampleUnlocked();}
     public PhysicalNetworkSnapshot Snapshot(){lock(_gate){var reading=SampleUnlocked();return new(reading,_previous,_recordedReceived,_recordedSent);}}
     private NetworkReading SampleUnlocked()
     {
         Reads++;if(!source.TryRead(out var now,out var reason)){Reset();return NetworkReading.Missing(NetworkReadingState.Unavailable,reason);}
         var time=Stopwatch.GetTimestamp();var elapsed=(time-_timestamp)/(double)Stopwatch.Frequency;
-        var valid=_timestamp!=0&&elapsed>0&&now.Length==_previous.Length;double down=0,up=0;
+        var valid=!_rateGap&&_timestamp!=0&&elapsed>0&&now.Length==_previous.Length;_rateGap=false;double down=0,up=0;
         ulong received=0,sent=0;var matched=false;
         foreach(var row in now)
         {

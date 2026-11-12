@@ -18,7 +18,7 @@ public sealed record DashboardActions(Action<nint,BarRect,bool> Position,Action 
     Func<UsageSnapshot>? Usage=null,Action<UsagePeriod>? SelectUsage=null,Func<string>? PinUsage=null,
     Func<CancellationToken,Task<string>>? WifiDiagnostics=null,Func<CancellationToken,Task<string>>? StorageHealth=null,
     Func<string>? StorageCleanup=null,Func<string>? BatteryCapacity=null,
-    Func<CancellationToken,TempCleanupScan>? TempScan=null,Func<TempCleanupScan,CancellationToken,TempCleanupResult>? TempClean=null,
+    Func<CancellationToken,Action<TempCleanupProgress>,TempCleanupScan>? TempScan=null,Func<TempCleanupScan,CancellationToken,Action<TempCleanupProgress>,TempCleanupResult>? TempClean=null,
     Action<bool>? SetGamingMode=null,Func<Task<string>>? ReadCpuTemperature=null,Func<double?>? LastCpuTemperature=null,Func<string?>? CpuTemperatureStatus=null,Func<IPopupSource>? WidgetMetrics=null);
 public sealed record DashboardEvent(string Action,string Page,double Seconds,int Reads,int Frames);
 public sealed record DashboardCapture(string Path,int Percent,int Width,int Height,double StartedSeconds,double CompletedSeconds);
@@ -220,7 +220,13 @@ public sealed partial class DashboardHost:IDisposable
                         var temperature=_settings().Fahrenheit?$"{celsius*1.8+32:0.0} °F":$"{celsius:0.0} °C";
                         label=temperature+" · Check again";
                     }
-                    DrawPageButton(d,label,new Rect(Width-294,19,139,27),false,()=>_ = ReadCpuTemperature());
+                    var bounds = new Rect(Width-294,19,139,27);
+                    if (_readingCpuTemperature)
+                    {
+                        Label(d, label, bounds.Left, bounds.Top + 2, 11, _text, width: bounds.Width);
+                        WorkProgress.Draw(d, new Rect(bounds.Left, bounds.Bottom - 5, bounds.Width, 4), _palette.Metrics.Track, _blue);
+                    }
+                    else DrawPageButton(d,label,bounds,false,()=>_ = ReadCpuTemperature());
                 }
                 SettingsButton(d,"Settings for "+_page,new Rect(Width-82,16,28,28),()=>OpenModuleSettings(current));
                 var enabled=_settings().Items.Contains(current);var toggle=new Rect(Width-132,23,36,20);
@@ -356,7 +362,9 @@ public sealed partial class DashboardHost:IDisposable
             if(_device is null)
             {
                 d.DrawRoundedRectangle(_surface,_palette.CardBorder,new Rect(230,top,contentWidth,50),11,11);
-                Label(d,"Preparing device details…",245,top+14,13,_dim);y=top+50;
+                Label(d,"Reading processor, memory, graphics and storage…",245,top+9,12,_dim,width:contentWidth-30);
+                WorkProgress.Draw(d, new Rect(245, top + 34, contentWidth - 30, 4), _palette.Metrics.Track, _blue);
+                y=top+50;
             }
             y+=16;
             foreach(var limit in _device?.Limitations??[]){Label(d,limit,240,y,11,_dim,false,Width-270);y+=40;}_bottom=y;
@@ -479,8 +487,26 @@ public sealed partial class DashboardHost:IDisposable
             Hit(name,rect,action);
         }
         public void Dispose(){_inspectionCancellation?.Cancel();ResetTempCleanup();StopWidgets();if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();Cleanup.Add(_presenter.Cleanup);RemoveVisualChild(_presenter);_presenter=null;}}
+        private string ActivityDescription()
+        {
+            if (_page == TempCleanupPage)
+            {
+                if (_tempOperation is not null) return TempActivity + " " + TempProgressDetail;
+                if (_tempResult is { } result) return $"Removed {result.Removed:N0} files and skipped {result.Skipped:N0}.";
+                if (_tempScan is { } scan) return scan.Error ?? $"Scan complete. {scan.TotalFiles:N0} files checked. {scan.Eligible.Count:N0} qualify for removal.";
+                return _tempMessage ?? "";
+            }
+            if (ShowsInspection) return _inspectionResult ?? "";
+            if (_page == "CPU") return _readingCpuTemperature
+                ? "Checking CPU temperature. Windows may ask for permission."
+                : _status;
+            if (_page != "Dashboard") return "";
+            if (_settings().GamingMode) return "Gaming Mode on";
+            return _device is null ? "Reading device details" : "";
+        }
+
         private sealed class DashboardPeer(DashboardVisual owner):UIElementAutomationPeer(owner)
-        {protected override string GetNameCore()=>"Tidlet "+owner._page;protected override string GetHelpTextCore()=>owner._page=="Dashboard"&&owner._settings().GamingMode?"Gaming Mode on":"";protected override string GetClassNameCore()=>"TidletDashboard";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Window;}
+        {protected override string GetNameCore()=>"Tidlet "+owner._page;protected override string GetHelpTextCore()=>owner.ActivityDescription();protected override string GetClassNameCore()=>"TidletDashboard";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Window;}
     }
     private sealed class SurfaceAction:UIElement
     {

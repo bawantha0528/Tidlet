@@ -11,7 +11,6 @@ public sealed partial class DashboardHost
     private sealed partial class DashboardVisual
     {
         private static readonly int[] RefreshIntervals = [1, 2, 3, 5];
-        private static readonly int[] OpacityLevels = [20, 30, 40, 50, 60, 70, 80, 90, 100];
         private static readonly int[] FpsTargets = [30, 60, 120, 144, 165, 240, 360];
         private static readonly int[] ThresholdLevels = [70, 75, 80, 85, 90, 95];
         private static readonly string[] PositionLabels = ["Top", "Bottom", "Top · reveal on hover"];
@@ -70,24 +69,16 @@ public sealed partial class DashboardHost
                 Change(s => s with
                 {
                     Edge = value == PositionLabels[1] ? BarEdge.Bottom : BarEdge.Top,
-                    RevealAtTop = value == PositionLabels[2],
-                    Mode = value == PositionLabels[2] ? BarMode.Overlay : s.Mode
+                    RevealAtTop = value == PositionLabels[2]
                 }, $"Position set to {value}. Saved."), ref y);
-            Dropdown(drawing, "Mode", settings.TopReveal ? BarMode.Overlay : settings.Mode, Enum.GetValues<BarMode>(),
-                value => value.ToString(), value => Change(s => s with
-                {
-                    Mode = value,
-                    RevealAtTop = value == BarMode.Overlay && s.RevealAtTop
-                }, value == BarMode.Reserve && settings.TopReveal
-                    ? "Reserve mode enabled. Top hover reveal turned off. Saved."
-                    : $"Mode set to {value}. Saved."), ref y);
+            if (settings.Edge == BarEdge.Bottom)
+                Dropdown(drawing, "Mode", settings.Mode, Enum.GetValues<BarMode>(), value => value.ToString(),
+                    value => Change(s => s with { Mode = value }, $"Mode set to {value}. Saved."), ref y);
             Dropdown(drawing, "Alignment", settings.Alignment, Enum.GetValues<BarAlignment>(), value => value.ToString(),
                 value => Change(s => s with { Alignment = value }, $"Alignment set to {value}. Saved."), ref y);
             Dropdown(drawing, "Monitors", settings.Monitors, new[] { MonitorSelection.Primary, MonitorSelection.All },
                 value => value switch { MonitorSelection.Primary => "Primary monitor", MonitorSelection.All => "All monitors", _ => "Selected monitor" },
                 value => Change(s => s with { Monitors = value }, "Monitor selection saved."), ref y);
-            Dropdown(drawing, "Opacity", (int)Math.Round(settings.Opacity * 100), OpacityLevels, value => $"{value}%",
-                value => Change(s => s with { Opacity = value / 100.0 }, $"Opacity set to {value}%. Saved."), ref y);
             Dropdown(drawing, "Bar refresh", settings.IntervalSeconds, RefreshIntervals, Seconds,
                 value => Change(s => s with { IntervalSeconds = value }, $"Bar refresh set to {Seconds(value)}. Saved."), ref y);
 

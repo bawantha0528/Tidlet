@@ -18,8 +18,8 @@ public sealed partial class WindowsPopupSource : IPopupSource,IPopupDetailSource
     private PopupDetails _details=PopupDetails.All;private BarModule? _probedModule;
     internal bool ProcessCountersEnabled {get;}
     private readonly bool _includeGpuTemperature;
-    private readonly Func<(double? Celsius, bool Automatic, bool Measuring)>? _cpuTemperature;
-    public WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network=null,bool includeGpuTemperature=false,Func<(double? Celsius, bool Automatic, bool Measuring)>? cpuTemperature=null):this(network,processCounters:true,phase:null)
+    private readonly Func<(double? Celsius, bool Automatic, bool Measuring, DateTimeOffset? SampledAt)>? _cpuTemperature;
+    public WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network=null,bool includeGpuTemperature=false,Func<(double? Celsius, bool Automatic, bool Measuring, DateTimeOffset? SampledAt)>? cpuTemperature=null):this(network,processCounters:true,phase:null)
     {
         _includeGpuTemperature=includeGpuTemperature;
         _cpuTemperature=cpuTemperature;
@@ -128,7 +128,7 @@ public sealed partial class WindowsPopupSource : IPopupSource,IPopupDetailSource
         return new(cpu.State==CpuReadingState.Available?cpu.Percent:null,cpu.SystemPercent,cpu.UserPercent,cpu.IdlePercent,frequency.Item1,frequency.Item2,
             TimeSpan.FromMilliseconds(Environment.TickCount64),memory is{Valid:true}?memory:null,cores,_classes,processes,
             _counterReason.Length>0?_counterReason:processes.Length==0?"Measuring processes; protected or exited processes are skipped.":"Protected or exited processes are skipped. Windows reported metrics.",_capabilities,WarmingUp:cpu.State==CpuReadingState.WarmingUp,
-            LastCpuPackageCelsius:temperature?.Celsius,CpuTemperatureAutomatic:temperature?.Automatic==true,CpuTemperatureMeasuring:temperature?.Measuring==true);
+            LastCpuPackageCelsius:temperature?.Celsius,CpuTemperatureAutomatic:temperature?.Automatic==true,CpuTemperatureMeasuring:temperature?.Measuring==true,CpuTemperatureSampledAt:temperature?.SampledAt);
     }
     private Dictionary<string,double> ReadArray(nint counter)
     {

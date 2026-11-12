@@ -20,7 +20,7 @@ public sealed partial class DashboardHost
             var card = new Rect(230, 65, Width - 255, 85);
             drawing.DrawRoundedRectangle(_surface, _palette.CardBorder, card, 8, 8);
             Label(drawing, wifi ? "Wi-Fi diagnostics" : "Storage health", 244, 74, 14, _text, true);
-            if (check is not null)
+            if (check is not null && _inspectionCancellation is null)
                 DrawPageButton(drawing, wifi ? "Run checks" : "Check health", new Rect(card.Right - 123, 70, 109, 26),
                     false, () => _ = Inspect(check));
             if (!wifi && CanOpenCleanup)
@@ -28,7 +28,9 @@ public sealed partial class DashboardHost
             var detail = _inspectionResult ?? (wifi
                 ? "On demand · pings the router, checks 1.1.1.1:443 and resolves example.com."
                 : "Check physical drive status or review temporary files.");
-            Label(drawing, detail, 244, 107, 11, _dim, width: card.Width - 28);
+            Label(drawing, detail, 244, 101, 11, _dim, width: card.Width - 28);
+            if (_inspectionCancellation is { IsCancellationRequested: false })
+                WorkProgress.Draw(drawing, new Rect(244, 134, card.Width - 28, 4), _palette.Metrics.Track, _blue);
         }
 
         private async Task Inspect(Func<CancellationToken,Task<string>> check)
@@ -36,7 +38,7 @@ public sealed partial class DashboardHost
             if (_inspectionTask is { IsCompleted: false }) return;
             using var cancellation = new CancellationTokenSource();
             _inspectionCancellation = cancellation;
-            _inspectionResult = "Checking…";
+            _inspectionResult = _page == "Network" ? "Checking the router, internet endpoint, and DNS…" : "Waiting for Windows to report drive health…";
             Draw(_scale);
             var token = cancellation.Token;
             _inspectionTask = Task.Run(() => check(token), token);
@@ -50,16 +52,15 @@ public sealed partial class DashboardHost
             {
                 cancellation.Cancel();
                 _inspectionResult = "Windows is taking too long to respond.";
-                Draw(_scale);
             }
             catch (Exception error) when (error is not OutOfMemoryException and not AccessViolationException)
             {
-                _inspectionResult = "Windows could not complete this check.";
+                if (!cancellation.IsCancellationRequested) _inspectionResult = "Windows could not complete this check.";
             }
             finally
             {
                 if (ReferenceEquals(_inspectionCancellation, cancellation)) _inspectionCancellation = null;
-                if (!cancellation.IsCancellationRequested) Draw(_scale);
+                if (IsVisible && ShowsInspection) Draw(_scale);
             }
         }
     }

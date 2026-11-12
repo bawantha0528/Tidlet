@@ -74,17 +74,22 @@ public sealed class ApplicationPageTests
     {
         var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
         var scans=0;var deletes=0;
+        using var finishScan = new ManualResetEventSlim();
+        using var finishCleanup = new ManualResetEventSlim();
         var plan=new TempCleanupScan(2048,3,[new("stale.tmp",1024,1,1,1)],false);
         using var host=new DashboardHost(()=>new BarSettings{Pause=true},_=>{},()=>new DeviceOverview("Mock","Windows",[],[]),
             ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
-                TempScan:_=>{Interlocked.Increment(ref scans);return plan;},
-                TempClean:(confirmed,_)=>{Assert.AreSame(plan,confirmed);Interlocked.Increment(ref deletes);return new(1,0,1024,1024);}));
+                TempScan:(token,report)=>{Interlocked.Increment(ref scans);report(new(3,2048,EligibleOrRemoved:1));Assert.IsTrue(finishScan.Wait(TimeSpan.FromSeconds(8),token));return plan;},
+                TempClean:(confirmed,token,report)=>{Assert.AreSame(plan,confirmed);Interlocked.Increment(ref deletes);report(new(1,1024,1,1));Assert.IsTrue(finishCleanup.Wait(TimeSpan.FromSeconds(8),token));return new(1,0,1024,1024);}));
         host.Open("Disk");
         Invoke(new Point(620,82),"Review cleanup");
         PumpUntil(()=>host.PageHistory.LastOrDefault()==DashboardHost.TempCleanupPage);
         Assert.AreEqual(0,scans);
         Assert.AreEqual(0,deletes);
         Invoke(new Point(270,170),"Scan temp files");
+        PumpUntil(()=>Status().Contains("3 files checked"));
+        Assert.AreEqual("Cancel scan",NameAt(new Point(275,350)));
+        finishScan.Set();
         PumpUntil(()=>NameAt(new Point(270,358))=="Review removal");
         Assert.AreEqual(1,scans);
         Invoke(new Point(270,358),"Review removal");
@@ -96,14 +101,19 @@ public sealed class ApplicationPageTests
         Invoke(new Point(270,358),"Review removal");
         PumpUntil(()=>NameAt(new Point(270,392))=="Delete permanently (current)");
         Invoke(new Point(270,392),"Delete permanently (current)");
-        PumpUntil(()=>Volatile.Read(ref deletes)==1);
+        PumpUntil(()=>Status().Contains("1 of 1 checked"));
+        Assert.AreEqual(1,deletes);
+        finishCleanup.Set();
+        PumpUntil(()=>NameAt(new Point(270,170))=="Scan temp files");
 
-        AutomationPeer? PeerAt(Point point)
+        UIElement Visual()
         {
             var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
             var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
-            return visual.InputHitTest(point) is UIElement hit ? UIElementAutomationPeer.CreatePeerForElement(hit) : null;
+            return visual;
         }
+        string Status() => UIElementAutomationPeer.CreatePeerForElement(Visual())!.GetHelpText();
+        AutomationPeer? PeerAt(Point point) => Visual().InputHitTest(point) is UIElement hit ? UIElementAutomationPeer.CreatePeerForElement(hit) : null;
         string? NameAt(Point point)=>PeerAt(point)?.GetName();
         void Invoke(Point point,string expected)
         {
@@ -750,7 +760,7 @@ public sealed class ApplicationPageTests
             nint At(double x,double y){var px=(short)(int)Math.Round(x);var py=(short)(int)Math.Round(y);return (nint)(int)((ushort)px|((uint)(ushort)py<<16));}
             Assert.AreEqual((nint)2,(nint)nativeHit.Invoke(window,[bounds,At(width-80,30),1.0])!);
             var peer=UIElementAutomationPeer.CreatePeerForElement(visual)!;
-            Assert.AreEqual("",peer.GetHelpText());
+            PumpUntil(()=>peer.GetHelpText()=="");
             Assert.IsNull(Find("Gaming Mode: Off"));
             settings=settings with{GamingMode=true};
             host.RefreshSettings();

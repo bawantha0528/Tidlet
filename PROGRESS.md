@@ -1,6 +1,41 @@
 # Tidlet Monitor — progress
 
-Updated: 30 October 2026 (Asia/Colombo).
+Updated: 12 November 2026 (Asia/Colombo).
+
+## 12 November 2026 — hover overlay correction
+
+- Per user clarification, only the fixed top strip reserves work area. Top hover reveal overlays the desktop regardless of the saved bottom-strip mode.
+- Release build and three focused tests passed. A short Windows probe held the hover strip open and verified the work area stayed identical before, during, and after the session. The prior five-minute measurement is for the previous build with the fixed top strip visible.
+
+## 12 November 2026 — reserved top strip and matte finish
+
+- Fixed and revealed top strips use the Windows AppBar reservation while visible. The hover strip releases the reservation when it hides. Bottom Overlay and Reserve remain selectable. A top-edge taskbar or failed registration uses the existing overlay fallback.
+- All live strips and the Settings strip preview use opaque matte black. Legacy opacity settings still load, and the obsolete opacity control was removed.
+- Release x86 build passed with zero warnings or errors. All 179 tests passed, including placement policy. Windows probes verified that maximized windows start below the fixed and revealed top strips and the work area restores after exit. Rendered pixels from the fixed, hover, and bottom strips measured alpha 255 and RGB 20/20/20, including a Light theme configuration with saved opacity of 20%.
+- Five-minute fixed top strip with GPU enabled passed at 78.61 MB peak working set and 0.059% average machine-normalized CPU. Physical mixed-DPI and pointer-driven hover transitions were not exercised by these probes.
+- API reference: [Windows AppBar positioning](https://learn.microsoft.com/en-us/windows/desktop/shell/application-desktop-toolbars).
+
+## 12 November 2026 — loading feedback and temp cleanup
+
+- Cleanup uses themed scan, review, removal, and result states. Scans show observed files and bytes with an unknown total, and can be cancelled. Removal uses the reviewed candidate count as its total and reports files removed and skipped. The existing permanent-deletion confirmation remains in place.
+- Dashboard device inventory, Wi-Fi and storage checks, manual CPU temperature, metric pages, popups, and widget startup use an activity indicator while waiting for readings. The strip retains its compact measuring and refreshing labels.
+- Scan and removal progress reports are rate-limited to one per 150 ms. Unknown-duration indicators need no new polling or animation timers. Feedback ends when real results arrive.
+- Release x86 build succeeded with zero warnings or errors. All 178 tests passed. The Dashboard cleanup test verified running progress through UI Automation with held mock executors. The test did not delete real files.
+- The five-minute Dashboard navigation run passed. The working set peaked at 89.62 MB during observation and 93.08 MB over the full session, including its capture tail, against the 100 MB application limit. Machine-normalized CPU averaged 0.173%. Evidence is in `artifacts/progress-preview-performance`.
+- The cleanup landing page rendered in both themes at 100% and 150% capture scales. The progress and confirmation flow was tested through mocks. Narrator and physical mixed-DPI verification remain pending.
+
+## 12 November 2026 — pre-release corrections
+
+- Narrow strip layouts first compact meters to text, then scale the items and their hit targets to fit. Narrow popup work areas scale the popup and its controls together.
+- Gaming Mode retains its selected foreground process when focus changes. Fullscreen hiding still pauses capture. Toggle Gaming Mode to select a new target.
+- Physical adapter deltas survive hidden strip intervals and are collected on normal exit. The first speed reading after a gap warms up. The Network popup directs users to Dashboard diagnostics in place of an empty connectivity grid.
+- CPU and Combined widgets label the age of the last CPU temperature. Popup and module page UI Automation descriptions include available readings and CPU/RAM history ranges.
+- Verification: Release x86 build with zero warnings or errors. VSTest passed 178 tests (95 Core, 51 Shell, 32 Windows), including narrow-strip geometry and hidden-interval network counter fixtures.
+- UI smoke: 48 checks passed across light and dark themes. Popup and page render buffers were captured at 100% and 150%. Evidence is under `artifacts/pre-release-fixes-ui`.
+- Seven-widget benchmark: passed with GPU strip sampling and seven restored pins. Over 300.997 seconds, working set averaged 77.76 MB and peaked at 87.27 MB for both observation and whole-process lifetime. Average CPU was 0.149% across eight logical processors. Popup chart and process work were zero. Evidence is under `artifacts/pre-release-fixes-seven-widgets`.
+- Gaps: physical narrow/mixed-DPI verification, Narrator verification and individually navigable readings/charts, successful PresentMon and elevated CPU-helper aggregate measurements. Hidden counter deltas are assigned to the day of the next observation. Adapter disconnects or counter resets can prevent reconstruction.
+- API references: [Windows interface counters](https://learn.microsoft.com/en-us/windows/win32/api/netioapi/ns-netioapi-mib_if_row2), [WPF custom UI Automation](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/controls/ui-automation-of-a-wpf-custom-control).
+
 
 ## M3 — Customization, persistence/recovery, export/import, profiles, alerts and edge layout implemented; STOP at M3 for review
 

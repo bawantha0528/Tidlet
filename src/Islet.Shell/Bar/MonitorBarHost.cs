@@ -13,6 +13,8 @@ namespace Islet.Shell.Bar;
 
 public sealed class MonitorBarHost : IDisposable
 {
+    internal static readonly Brush StripBackground=PopupPalette.Solid(0x141414);
+    internal static readonly Pen StripBorder=PopupPalette.Stroke(PopupPalette.Solid(0x343434),1);
     private readonly IBarDesktop _desktop;private readonly Func<BarSnapshot> _read;private readonly Action _reset;
     private readonly Action<BarSettings> _save;private readonly List<BarWindow> _windows=[];
     private readonly DispatcherTimer _samples,_visibility;private readonly DispatcherTimer? _exit;
@@ -113,7 +115,7 @@ public sealed class MonitorBarHost : IDisposable
             case 12:next=next with{Edge=BarEdge.Top,RevealAtTop=false};break;case 13:next=next with{Edge=BarEdge.Bottom,RevealAtTop=false};break;
             case 14:next=next with{Alignment=BarAlignment.Left};break;case 15:next=next with{Alignment=BarAlignment.Center};break;case 16:next=next with{Alignment=BarAlignment.Right};break;
             case 17:next=next with{Monitors=MonitorSelection.Primary};break;case 18:next=next with{Monitors=MonitorSelection.All};break;
-            case 19:next=next with{Edge=BarEdge.Top,RevealAtTop=true,Mode=BarMode.Overlay};break;
+            case 19:next=next with{Edge=BarEdge.Top,RevealAtTop=true};break;
             case 20:next=next with{GamingMode=!next.GamingMode};_suppressAutoGaming=!next.GamingMode&&_windows.Any(w=>w.Surface.IsFullScreenForeground);break;
             case 21:next=next with{GamingModeAuto=!next.GamingModeAuto};if(next.GamingModeAuto)_suppressAutoGaming=false;break;
             case 99:Dispose();return;
@@ -264,25 +266,16 @@ public sealed class MonitorBarHost : IDisposable
         private double _width=240,_height=24,_scale=1;private int _focus;
         private BarSnapshot? _snapshot;
         private double? _gamingIndicatorX;
+        private double _gamingIndicatorFit=1;
         private static readonly Typeface GamingStatusFace=new(new FontFamily("Segoe UI Variable, Segoe UI"),FontStyles.Normal,FontWeights.SemiBold,FontStretches.Normal);
         private static readonly Brush GamingStatusDark=PopupPalette.Solid(0x83C7FF);
-        private static readonly Brush GamingStatusLight=PopupPalette.Solid(0x135C97);
-        private readonly Brush _stripBackground;
-        private readonly Pen _stripBorder;
         private readonly bool _floating;
-        private readonly bool _light;
-        private static readonly Pen DarkBorder=CreateBorder(Color.FromRgb(68,68,68));
-        private static readonly Pen LightBorder=CreateBorder(Color.FromRgb(179,192,205));
         public string? Notice{get;set;}public BarItemLayout[] Items{get;private set;}=[];
         public event Action<BarModule?>? MenuRequested;public event Action<BarModule>? Clicked;
         public BarVisual(BarSettings settings)
         {
             _settings=settings;Focusable=true;AddVisualChild(_background);
             _floating=settings.Edge==BarEdge.Bottom||settings.TopReveal;
-            var light=_light=WindowsAppTheme.Resolve(settings.Theme)==BarTheme.Light;
-            var background=new LinearGradientBrush(light?Color.FromRgb(250,252,254):Color.FromRgb(39,39,39),
-                light?Color.FromRgb(231,237,244):Color.FromRgb(28,28,28),90){Opacity=settings.Opacity};
-            background.Freeze();_stripBackground=background;_stripBorder=light?LightBorder:DarkBorder;
             MouseLeftButtonUp+=(_,e)=>{Focus();if(BarLayout.Hit(Items,e.GetPosition(this).X)is{}m)Clicked?.Invoke(m);};
             MouseRightButtonUp+=(_,e)=>{MenuRequested?.Invoke(BarLayout.Hit(Items,e.GetPosition(this).X));e.Handled=true;};
             KeyDown+=(_,e)=>
@@ -302,24 +295,25 @@ public sealed class MonitorBarHost : IDisposable
             if(_snapshot is{} snapshot)DrawItems(snapshot,false);
             DrawBackground();
         }
-        private static Pen CreateBorder(Color color){var brush=new SolidColorBrush(color);brush.Freeze();var pen=new Pen(brush,1);pen.Freeze();return pen;}
         private void DrawBackground()
         {
             using var d=_background.RenderOpen();
-            if(_floating)d.DrawRoundedRectangle(_stripBackground,_stripBorder,new Rect(.5,.5,Math.Max(0,_width-1),Math.Max(0,_height-1)),4,4);
+            if(_floating)d.DrawRoundedRectangle(StripBackground,StripBorder,new Rect(.5,.5,Math.Max(0,_width-1),Math.Max(0,_height-1)),4,4);
             else
             {
-                d.DrawRectangle(_stripBackground,null,new Rect(0,0,_width,_height));
-                d.DrawLine(_stripBorder,new Point(0,_height-.5),new Point(_width,_height-.5));
+                d.DrawRectangle(StripBackground,null,new Rect(0,0,_width,_height));
+                d.DrawLine(StripBorder,new Point(0,_height-.5),new Point(_width,_height-.5));
             }
             if(_gamingIndicatorX is double x)
             {
                 var center=_height/2;
-                var accent=_light?GamingStatusLight:GamingStatusDark;
-                d.DrawRoundedRectangle(null,_stripBorder,new Rect(x,center-9,BarLayout.GamingIndicatorWidth,18),5,5);
+                var accent=GamingStatusDark;
+                d.PushTransform(new MatrixTransform(_gamingIndicatorFit,0,0,1,x*(1-_gamingIndicatorFit),0));
+                d.DrawRoundedRectangle(null,StripBorder,new Rect(x,center-9,BarLayout.GamingIndicatorWidth,18),5,5);
                 DashboardIcons.Draw(d,"Gaming",new Point(x+12,center),accent);
                 var text=MonitorText.Format("Gaming On",GamingStatusFace,9,accent,_scale);
                 d.DrawText(text,new Point(x+24,center-text.Height/2));
+                d.Pop();
             }
         }
         public void Update(BarSnapshot snapshot)
@@ -330,24 +324,27 @@ public sealed class MonitorBarHost : IDisposable
         private void DrawItems(BarSnapshot snapshot,bool appendHistory)
         {
             var items=BarLayout.Items(_settings,_width,snapshot.Battery.HasValue,out var gamingIndicatorX);
-            if(_gamingIndicatorX!=gamingIndicatorX)
+            var badgeFit=items.Length>0?items[0].Fit:Math.Min(1,_width/(BarLayout.GamingIndicatorWidth+24));
+            if(_gamingIndicatorX!=gamingIndicatorX||_gamingIndicatorFit!=badgeFit)
             {
-                _gamingIndicatorX=gamingIndicatorX;
+                _gamingIndicatorX=gamingIndicatorX;_gamingIndicatorFit=badgeFit;
                 if(appendHistory)DrawBackground();
             }
             var layoutChanged=!items.SequenceEqual(Items);
             if(layoutChanged)
             {
                 foreach(var c in _children)RemoveVisualChild(c);_children.Clear();Items=items;
-                foreach(var item in Items){var c=new ItemVisual(item.Module,()=>Clicked?.Invoke(item.Module),_settings.UseBits,_settings.Preference(item.Module).Style,item.Width>=84,_light);_children.Add(c);AddVisualChild(c);}
+                foreach(var item in Items){var c=new ItemVisual(item.Module,()=>Clicked?.Invoke(item.Module),_settings.UseBits,_settings.Preference(item.Module).Style,item.Width>=84*item.Fit,false);_children.Add(c);AddVisualChild(c);}
             }
             for(var index=0;index<_children.Count;index++)
             {
                 var child=_children[index];var item=Items[index];
                 if(layoutChanged||!appendHistory)
                 {
-                    child.Measure(new Size(item.Width,_height));
-                    child.Arrange(new Rect(item.X,0,item.Width,_height));
+                    var width=item.Fit>0?item.Width/item.Fit:item.Width;
+                    child.RenderTransform=item.Fit==1?Transform.Identity:new ScaleTransform(item.Fit,1);
+                    child.Measure(new Size(width,_height));
+                    child.Arrange(new Rect(item.X,0,width,_height));
                 }
                 child.Update(snapshot,_scale,_height,Notice,appendHistory,_settings.Pause,_settings.ThresholdPercent,_settings.FpsTarget,_settings.Fahrenheit);
             }

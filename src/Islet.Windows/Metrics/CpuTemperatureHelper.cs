@@ -15,11 +15,14 @@ public sealed class CpuTemperatureHelper
     private const int ReadFailed = 12;
     private const int TimedOut = 13;
     private int _tenthsCelsius;
+    private long _sampledAtUtcTicks;
     private int _active;
     private long _nextAutomaticCheck;
     private readonly Lazy<bool> _automatic = new(IsElevated);
     private string? _lastStatus;
     public string? LastStatus => Volatile.Read(ref _lastStatus);
+
+    public DateTimeOffset? SampledAt=>Volatile.Read(ref _sampledAtUtcTicks) is >0 and var ticks?new DateTimeOffset(ticks,TimeSpan.Zero):null;
 
     public double? LastCelsius
     {
@@ -56,14 +59,14 @@ public sealed class CpuTemperatureHelper
     internal static double? Decode(int code) => code is > ReadingBase and <= ReadingBase + 1500
         ? (code - ReadingBase) / 10.0 : null;
 
-    public (double? Celsius, bool Automatic, bool Measuring) ReadForView()
+    public (double? Celsius, bool Automatic, bool Measuring, DateTimeOffset? SampledAt) ReadForView()
     {
         var automatic = _automatic.Value;
         if (automatic && Volatile.Read(ref _active) == 0
             && TryScheduleAutomatic(ref _nextAutomaticCheck, Environment.TickCount64))
             _ = ReadOnceAsync(requestElevation: false);
 
-        return (LastCelsius, automatic, Volatile.Read(ref _active) != 0);
+        return (LastCelsius, automatic, Volatile.Read(ref _active) != 0, SampledAt);
     }
 
     internal static bool TryScheduleAutomatic(ref long next, long now)
@@ -116,6 +119,7 @@ public sealed class CpuTemperatureHelper
             await worker.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
             if (Decode(worker.ExitCode).HasValue)
             {
+                Volatile.Write(ref _sampledAtUtcTicks, DateTime.UtcNow.Ticks);
                 Volatile.Write(ref _tenthsCelsius, worker.ExitCode - ReadingBase);
                 return "CPU package temperature checked. The CPU popup and page show the last sample.";
             }

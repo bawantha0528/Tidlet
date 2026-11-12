@@ -89,6 +89,22 @@ public sealed class BarPolicyTests
         Assert.AreEqual(BarModule.Ram,BarLayout.Hit(items,items[1].X+1));
     }
     [TestMethod]
+    public void NarrowStripKeepsEveryItemAndHitTargetInsideTheWindow()
+    {
+        var settings = new BarSettings { Items = [BarModule.Cpu, BarModule.Gpu, BarModule.Ram, BarModule.Network, BarModule.Battery] };
+        foreach (var alignment in Enum.GetValues<BarAlignment>())
+        {
+            var items = BarLayout.Items(settings with { Alignment = alignment }, 144, true);
+            CollectionAssert.AreEqual(settings.Items, items.Select(item => item.Module).ToArray());
+            foreach (var item in items)
+            {
+                Assert.IsTrue(item.X >= 0 && item.X + item.Width <= 144.001);
+                Assert.AreEqual(item.Module, BarLayout.Hit(items, item.X + item.Width / 2));
+            }
+        }
+    }
+
+    [TestMethod]
     public void TopStripFitsMetersWhenSpaceAllowsAndFallsBackInTheSameOrder()
     {
         var settings=new BarSettings{Items=[BarModule.Cpu,BarModule.Gpu,BarModule.Ram,BarModule.Network,BarModule.Battery]};

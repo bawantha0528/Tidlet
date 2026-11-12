@@ -16,7 +16,7 @@ public readonly record struct PopupProcess(int Id,string Name,double? CpuPercent
 public sealed record PopupSample(double? Cpu,double? System,double? User,double? Idle,double? FrequencyGhz,double? MaxGhz,
     TimeSpan Uptime,PopupMemory? Memory,double[] Cores,int[] Classes,PopupProcess[] Processes,string Explanation,
     IReadOnlyDictionary<string,CapabilityProbeResult>? Capabilities=null,NetworkDetails? Network=null,
-    BatteryDetails? Battery=null,DiskDetails? Disk=null,GpuDetails? Gpu=null,bool WarmingUp=false,SensorDetails? Sensors=null,double? LastCpuPackageCelsius=null,bool CpuTemperatureAutomatic=false,bool CpuTemperatureMeasuring=false);
+    BatteryDetails? Battery=null,DiskDetails? Disk=null,GpuDetails? Gpu=null,bool WarmingUp=false,SensorDetails? Sensors=null,double? LastCpuPackageCelsius=null,bool CpuTemperatureAutomatic=false,bool CpuTemperatureMeasuring=false,DateTimeOffset? CpuTemperatureSampledAt=null);
 public interface IPopupSource:IDisposable
 {
     CapabilityProbeResult Probe(BarModule module);

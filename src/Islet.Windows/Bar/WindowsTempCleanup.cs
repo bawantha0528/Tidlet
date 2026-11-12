@@ -13,12 +13,13 @@ public sealed class WindowsTempCleanup
         FileAttributes.System | FileAttributes.Hidden | FileAttributes.Offline | FileAttributes.Device;
     private readonly string _root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp");
 
-    public TempCleanupScan Scan(CancellationToken cancellation)
+    public TempCleanupScan Scan(CancellationToken cancellation, Action<TempCleanupProgress> progress)
     {
         long bytes = 0;
         var files = 0;
         var limited = false;
         var candidates = new List<TempCleanupFile>();
+        var nextReport = 0L;
         try
         {
             if (!UsableRoot()) return new(0, 0, [], false, "The local user Temp folder is unavailable.");
@@ -47,6 +48,7 @@ public sealed class WindowsTempCleanup
                     if (TryRead(handle, file, cutoff, out var candidate)) candidates.Add(candidate);
                 }
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException) { limited = true; }
+                finally { ReportProgress(progress, ref nextReport, new(files, bytes, EligibleOrRemoved: candidates.Count)); }
             }
             return new(bytes, files, candidates.ToArray(), limited);
         }
@@ -54,10 +56,12 @@ public sealed class WindowsTempCleanup
         { return new(bytes, files, [], true, "Windows could not finish reading the local user Temp folder."); }
     }
 
-    public TempCleanupResult Clean(TempCleanupScan scan, CancellationToken cancellation)
+    public TempCleanupResult Clean(TempCleanupScan scan, CancellationToken cancellation, Action<TempCleanupProgress> progress)
     {
         var removed = 0;
         long bytes = 0;
+        var processed = 0;
+        var nextReport = 0L;
         var before = FreeSpace();
         var cutoff = DateTime.UtcNow.Subtract(MinimumAge).ToFileTimeUtc();
         if (scan.Error is null && UsableRoot())
@@ -65,18 +69,34 @@ public sealed class WindowsTempCleanup
             foreach (var candidate in scan.Eligible)
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (!EligibleName(candidate.Name)) continue;
-                var file = Path.Combine(_root, candidate.Name);
-                using var handle = Open(file, delete: true);
-                if (!TryRead(handle, file, cutoff, out var current) || current != candidate) continue;
-                byte disposition = 1;
-                if (!SetFileInformationByHandle(handle, 4, ref disposition, sizeof(byte))) continue;
-                removed++;
-                bytes += current.Bytes;
+                try
+                {
+                    if (!EligibleName(candidate.Name)) continue;
+                    var file = Path.Combine(_root, candidate.Name);
+                    using var handle = Open(file, delete: true);
+                    if (!TryRead(handle, file, cutoff, out var current) || current != candidate) continue;
+                    byte disposition = 1;
+                    if (!SetFileInformationByHandle(handle, 4, ref disposition, sizeof(byte))) continue;
+                    removed++;
+                    bytes += current.Bytes;
+                }
+                finally
+                {
+                    processed++;
+                    ReportProgress(progress, ref nextReport, new(processed, bytes, scan.Eligible.Count, removed));
+                }
             }
         }
         var after = FreeSpace();
         return new(removed, scan.Eligible.Count - removed, bytes, before.HasValue && after.HasValue ? after - before : null);
+    }
+
+    private static void ReportProgress(Action<TempCleanupProgress> report, ref long nextReport, TempCleanupProgress progress)
+    {
+        var now = Environment.TickCount64;
+        if (now < nextReport) return;
+        nextReport = now + 150;
+        report(progress);
     }
 
     private bool UsableRoot()

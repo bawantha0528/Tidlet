@@ -192,6 +192,7 @@ internal sealed partial class PopupVisual:UIElement
         Hero(d,49,116);
         Text(d,title,27,69,15,TextBrush,bold:true,maxWidth:266);
         Text(d,detail,27,102,11,Dim,maxWidth:266);
+        WorkProgress.Draw(d, new Rect(27, 143, 266, 5), _palette.Track, Blue);
         _contentBottom=177;
         if(_module is BarModule.Cpu or BarModule.Ram or BarModule.Gpu or BarModule.Disk or BarModule.Network)
         {
@@ -380,7 +381,7 @@ internal sealed partial class PopupVisual:UIElement
     private static string Bytes(ulong? bytes)=>bytes is{}v?(v>=1073741824?$"{v/1073741824.0:0.00} GiB":v>=1048576?$"{v/1048576.0:0.0} MiB":$"{v/1024.0:0} KiB"):"—";
     private sealed class PopupPeer(PopupVisual owner):UIElementAutomationPeer(owner)
     {
-        protected override string GetNameCore()=>owner._accessible;protected override string GetClassNameCore()=>"TidletMetricDetails";
+        protected override string GetNameCore()=>owner._accessible;protected override string GetHelpTextCore()=>MetricAccessibility.Describe(owner._module,owner._sample,owner._history,owner._previous);protected override string GetClassNameCore()=>"TidletMetricDetails";
         protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Pane;
     }
     private sealed class HeaderAction(string name,Action action):UIElement

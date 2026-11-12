@@ -45,8 +45,8 @@ internal sealed partial class PopupVisual
             Section(d,"USAGE HISTORY",ref y);TransferChart(d,y);y+=98;
         }
         Section(d,"CONNECTIVITY",ref y);
-        for(int i=0;i<40;i++)d.DrawRoundedRectangle(Gray,null,new Rect(16+i%20*14.5,y+i/20*10,11,7),2,2);
-        y+=30;Text(d,"Internet checks are off · no requests are sent",16,y,9.5,Dim);y+=27;
+        Text(d,"Open Network in Dashboard to run connectivity checks.",16,y,10,Dim,maxWidth:288);
+        y+=35;
         Section(d,"RECORDED TRANSFER",ref y);Row(d,"Download",Bytes(net.RecordedDownload),Blue,ref y);Row(d,"Upload",Bytes(net.RecordedUpload),Red,ref y);
         Text(d,"Activity while monitoring is paused is excluded.",16,y,9,Dim);y+=28;
         for(int i=0;i<net.Adapters.Length;i++)

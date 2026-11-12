@@ -32,7 +32,7 @@ If Tidlet is already running, choose **Exit Tidlet** from the tray before openin
 
 ![Light bottom strip with the same monitor items](docs/screenshots/bottom-strip.png)
 
-- Choose **Top**, **Bottom**, or **Top · reveal on hover**. Use **Overlay** or **Reserve** placement, and choose alignment and monitors in Settings.
+- Choose **Top**, **Bottom**, or **Top · reveal on hover**. The fixed top strip reserves space. The hover strip drops over open windows. The bottom strip offers **Overlay** or **Reserve**. Choose alignment and monitors in Settings. All strips use an opaque matte-black finish.
 - Click a strip item to open its popup. Right-click the strip or tray icon for quick controls.
 - Enable items on their module pages and pick a style from the previews. Depending on the module, styles include text, rings, bars, sparklines, or icons.
 - Open **Settings → Monitor strip** to preview your layout with sample readings and move items left or right. Battery is last by default. Your chosen order survives hiding and re-enabling items.
@@ -70,9 +70,9 @@ Missing readings depend on device, firmware, and permissions. Tidlet marks readi
 
 Open **Widgets** in the sidebar for CPU, GPU, RAM, Disk, Network, Battery, Combined, and Data usage. Select **+** to pin a card to the desktop. Drag it by its title and use **×** to remove it. Tidlet remembers the desktop positions.
 
-CPU, GPU, and Battery cards show temperatures where reported and follow **Settings → Temperature**. The CPU widget uses the most recent CPU package sample from the current session. The GPU widget shows the highest reported adapter temperature. Combined shows CPU and GPU temperatures when available.
+CPU, GPU, and Battery cards show temperatures where reported and follow **Settings → Temperature**. The CPU and Combined widgets show the age of the most recent CPU package temperature from the current session. The GPU widget shows the highest reported adapter temperature. Combined shows CPU and GPU temperatures when available.
 
-The **Data usage** card supports **Day**, **Week**, and **Month**. It records traffic from eligible physical adapters while Tidlet is running. Totals include local traffic, and weeks start Monday.
+The **Data usage** card supports **Day**, **Week**, and **Month**. It records traffic from eligible physical adapters while Tidlet is running. Traffic while the strip is hidden is counted when Tidlet next reads the adapter counters or exits normally. Hidden intervals that cross midnight are assigned to the day of that next read. Totals include local traffic, and weeks start Monday.
 
 ## Gaming Mode
 
@@ -80,7 +80,7 @@ The **Data usage** card supports **Day**, **Week**, and **Month**. It records tr
 
 Use **Dashboard → Gaming** or the tray menu to switch layouts on the existing strip. The Gaming page controls auto activation, the FPS target, warning threshold, refresh interval, and which items appear.
 
-FPS requires the official **PresentMon 2.6.0 x64 standalone executable** next to Tidlet. Tidlet verifies its release hash before launching it. Frame tracing requires Windows permission, so click **FPS** for details if it shows **Unavailable**. The strip follows its usual fullscreen hiding policy. [PresentMon release assets](https://github.com/GameTechDev/PresentMon/releases/expanded_assets/v2.6.0)
+FPS requires the official **PresentMon 2.6.0 x64 standalone executable** next to Tidlet. Tidlet verifies its release hash before launching it. Frame tracing requires Windows permission, so click **FPS** for details if it shows **Unavailable**. FPS follows the window selected when Gaming Mode starts. Switching away pauses capture until you return. Turn Gaming Mode off and on to select another window. Fullscreen hiding pauses the strip and FPS capture. [PresentMon release assets](https://github.com/GameTechDev/PresentMon/releases/expanded_assets/v2.6.0)
 
 ## Privacy and compatibility
 

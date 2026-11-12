@@ -69,6 +69,23 @@ public sealed class BarNativeTests
         Assert.AreEqual(300UL,upload);
     }
     [TestMethod]
+    public void HiddenNetworkIntervalKeepsTotalsWithoutReportingAnAveragedLiveRate()
+    {
+        var source = new Fake();
+        var provider = new PhysicalNetworkProvider(source);
+        provider.StartUsageBaseline();
+        provider.MarkRateGap();
+        source.Rows = [new(1, 225, 175, "Physical A")];
+
+        var resumed = provider.Snapshot();
+
+        Assert.AreEqual(Islet.Core.Metrics.NetworkReadingState.WarmingUp, resumed.Reading.State);
+        Assert.AreEqual(125UL, resumed.RecordedReceived);
+        Assert.AreEqual(75UL, resumed.RecordedSent);
+        Assert.AreEqual(125UL, provider.Snapshot().RecordedReceived);
+    }
+
+    [TestMethod]
     public void PresentMonCaptureReportsMissingExecutableCleanlyAndDrains()
     {
         var missing=Path.Combine(Path.GetTempPath(),"missing-presentmon-"+Guid.NewGuid()+".exe");

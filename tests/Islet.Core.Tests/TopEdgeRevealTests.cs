@@ -5,6 +5,21 @@ namespace Islet.Core.Tests;
 public sealed class TopEdgeRevealTests
 {
     [TestMethod]
+    public void OnlyFixedTopStripReservesSpace()
+    {
+        var top = new BarSettings { Mode = BarMode.Overlay };
+        var hover = top with { RevealAtTop = true };
+        Assert.IsTrue(BarLayout.RequestsReservation(top, hidden: false));
+        Assert.IsFalse(BarLayout.RequestsReservation(hover, hidden: false));
+        Assert.IsFalse(BarLayout.RequestsReservation(hover with { Mode = BarMode.Reserve }, hidden: false));
+        Assert.IsFalse(BarLayout.RequestsReservation(top, hidden: true));
+        Assert.IsFalse(BarLayout.RequestsReservation(top with { Items = [] }, hidden: false));
+        var bottom = top with { Edge = BarEdge.Bottom };
+        Assert.IsFalse(BarLayout.RequestsReservation(bottom, hidden: false));
+        Assert.IsTrue(BarLayout.RequestsReservation(bottom with { Mode = BarMode.Reserve }, hidden: false));
+    }
+
+    [TestMethod]
     public void RevealUsesPhysicalMonitorEdgeAndStaysOpenAcrossTheGapAndPopup()
     {
         var monitor=new BarRect(-1920,-400,0,680);

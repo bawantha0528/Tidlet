@@ -6,3 +6,4 @@ public sealed record TempCleanupScan(long TotalBytes, int TotalFiles, IReadOnlyL
     public long EligibleBytes => Eligible.Sum(file => file.Bytes);
 }
 public sealed record TempCleanupResult(int Removed, int Skipped, long RemovedBytes, long? FreeSpaceChange);
+public readonly record struct TempCleanupProgress(int Processed, long Bytes, int? Total = null, int EligibleOrRemoved = 0);

@@ -120,7 +120,7 @@ public sealed class WindowsBarDesktop(string recoveryDirectory) : IBarDesktop
             {
                 var scale=Math.Max(1,GetDpiForWindow(_window))/96.0;var b=_display.Bounds;int height=(int)Math.Ceiling(BarLayout.HeightDip(_settings)*scale);
                 var rect=new Rect{Left=b.Left,Right=b.Right,Top=_settings.Edge==BarEdge.Top?b.Top:b.Bottom-height,Bottom=_settings.Edge==BarEdge.Top?b.Top+height:b.Bottom};
-                string? notice=null;var reserve=_settings.Mode==BarMode.Reserve&&!_settings.TopReveal&&!_hidden&&_settings.VisibleItems.Count>0;
+                string? notice=null;var reserve=BarLayout.RequestsReservation(_settings,_hidden);
                 if(reserve&&_settings.Edge==BarEdge.Top&&TopTaskbar(b)){reserve=false;notice="A taskbar is already at the top; using Overlay.";}
                 if(reserve)
                 {
@@ -141,13 +141,13 @@ public sealed class WindowsBarDesktop(string recoveryDirectory) : IBarDesktop
                     else{notice="Windows could not reserve the bar; using Overlay.";File.Delete(_journal);}
                 }
                 else Release();
-                if(!_reserved&&(_settings.Edge==BarEdge.Bottom||_settings.TopReveal))
+                if(!_reserved&&(_settings.Edge==BarEdge.Bottom||_settings.TopReveal||notice is not null))
                 {
                     var display=_display;
                     var info=new MonitorInfoEx{Size=(uint)Marshal.SizeOf<MonitorInfoEx>()};
                     if(GetMonitorInfoExW(VisualHostPlacement.MonitorFromWindow(_window,2),ref info))display=display with{Bounds=ToRect(info.Monitor),Work=ToRect(info.Work)};
-                    var bottom=BarLayout.CompactOverlay(display,_settings,scale,_settings.Edge);
-                    rect=new Rect{Left=bottom.Left,Top=bottom.Top,Right=bottom.Right,Bottom=bottom.Bottom};
+                    var overlay=BarLayout.CompactOverlay(display,_settings,scale,_settings.Edge);
+                    rect=new Rect{Left=overlay.Left,Top=overlay.Top,Right=overlay.Right,Bottom=overlay.Bottom};
                 }
                                 if(!GetWindowRect(_window,out var old)||old.Left!=rect.Left||old.Top!=rect.Top||old.Right!=rect.Right||old.Bottom!=rect.Bottom)
                     if(!SetWindowPos(_window,new nint(-1),rect.Left,rect.Top,rect.Right-rect.Left,rect.Bottom-rect.Top,0x0010|(_hidden?0u:0x0040u)))throw new Win32Exception(Marshal.GetLastPInvokeError());
@@ -197,7 +197,7 @@ public sealed class WindowsBarDesktop(string recoveryDirectory) : IBarDesktop
                 Add(1,paused?"Resume monitoring":"Pause monitoring");if(!_settings.GamingMode){if(module is not null)Add(2,$"Hide {module}");Add(3,"Restore default items");}
                 Add(20,"Gaming Mode",_settings.GamingMode);
                 Add(21,"Auto Gaming Mode",_settings.GamingModeAuto);
-                Add(10,"Overlay mode",_settings.Mode==BarMode.Overlay);Add(11,"Reserve work area",_settings.Mode==BarMode.Reserve);
+                if(_settings.Edge==BarEdge.Bottom){Add(10,"Overlay mode",_settings.Mode==BarMode.Overlay);Add(11,"Reserve work area",_settings.Mode==BarMode.Reserve);}
                 Add(12,"Top edge",_settings.Edge==BarEdge.Top&&!_settings.TopReveal);Add(19,"Top · reveal on hover",_settings.TopReveal);Add(13,"Bottom · above taskbar",_settings.Edge==BarEdge.Bottom);
                 Add(14,"Align left",_settings.Alignment==BarAlignment.Left);Add(15,"Align center",_settings.Alignment==BarAlignment.Center);Add(16,"Align right",_settings.Alignment==BarAlignment.Right);
                 Add(17,"Primary monitor",_settings.Monitors==MonitorSelection.Primary);Add(18,"All monitors",_settings.Monitors==MonitorSelection.All);

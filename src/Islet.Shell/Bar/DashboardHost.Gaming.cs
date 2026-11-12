@@ -28,7 +28,7 @@ public sealed partial class DashboardHost
                 value => Change(s => s with { FpsTarget = value }, $"FPS target set to {value} fps. Saved."), ref y);
             Dropdown(drawing, "Warning threshold", settings.ThresholdPercent, ThresholdLevels, value => $"{value}%",
                 value => Change(s => s with { ThresholdPercent = value }, $"Usage warning set to {value}%. Applies to both layouts."), ref y);
-            Label(drawing, "PresentMon measures FPS for the foreground app when the strip is visible.", 247, y, 11, _dim, width: Width - 285);
+            Label(drawing, "FPS follows the selected game while the strip is visible. Fullscreen and switching apps pause capture.", 247, y, 11, _dim, width: Width - 285);
             y += 32;
 
             Heading(drawing, "GAMING STRIP ITEMS", ref y);

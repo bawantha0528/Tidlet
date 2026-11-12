@@ -25,10 +25,17 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
         drawing.DrawRoundedRectangle(_palette.Card, _palette.CardBorder, card, 15, 15);
         if (module is not { } item)
         {
-            CombinedWidget(drawing, card);
+            if (!paused && DashboardWidgetReader.CombinedModules.All(module => !_samples.ContainsKey(module)))
+                LoadingWidget(drawing, card, "Combined", "Waiting for system readings…");
+            else CombinedWidget(drawing, card);
             return;
         }
         var sample = _samples.GetValueOrDefault(item);
+        if (!paused && (sample is null || sample.WarmingUp && !WidgetAvailable(item, sample)) && !_previous.Contains(item))
+        {
+            LoadingWidget(drawing, card, WidgetName(item), MetricLoading.For(item).Title + "…");
+            return;
+        }
         WidgetTitle(drawing, WidgetName(item), card);
         if (item == BarModule.Network) NetworkWidget(drawing, card, sample?.Network);
         else GaugeWidget(drawing, card, item, sample);
@@ -53,6 +60,13 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
         drawing.DrawText(text, MonitorText.PixelAligned(x, y, _scale));
     }
 
+    private void LoadingWidget(DrawingContext drawing, Rect card, string title, string status)
+    {
+        WidgetTitle(drawing, title, card);
+        Label(drawing, status, card.Left + 12, card.Top + 67, 12, _dim, width: card.Width - 24, center: true);
+        WorkProgress.Draw(drawing, new Rect(card.Left + 20, card.Top + 108, card.Width - 40, 4), _palette.Metrics.Track, _blue);
+    }
+
     private void WidgetTitle(DrawingContext drawing, string title, Rect card) =>
         Label(drawing, title, card.Left + 12, card.Top + 10, 12, _text, true, card.Width - 24);
 
@@ -71,7 +85,7 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
             case BarModule.Cpu:
                 WidgetRow(drawing, card, "System", WidgetPercentText(system), row, _palette.Metrics.Cyan);
                 WidgetRow(drawing, card, "User", WidgetPercentText(ValidWidgetPercent(sample?.User)), row + 21, _blue);
-                TemperatureRow(drawing, card, "CPU temp", sample?.LastCpuPackageCelsius, row + 42);
+                TemperatureRow(drawing, card, "CPU temp · "+TemperatureAge(sample?.CpuTemperatureSampledAt), sample?.LastCpuPackageCelsius, row + 42);
                 break;
             case BarModule.Gpu:
                 var adapter = BusiestGpu(sample);
@@ -143,10 +157,19 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
             var temperature = module == BarModule.Cpu ? sample?.LastCpuPackageCelsius
                 : module == BarModule.Gpu ? PeakGpuTemperature(sample) : null;
             var label = MonitorText.Format(temperature is > 0 and <= 150
-                ? WidgetName(module) + " · " + FormatTemperature(temperature.Value, 0) : WidgetName(module), Face, 10,
+                ? WidgetName(module) + " · " + FormatTemperature(temperature.Value, 0) + (module == BarModule.Cpu ? " · "+TemperatureAge(sample?.CpuTemperatureSampledAt) : "") : WidgetName(module), Face, 10,
                 temperature is > 0 and <= 150 ? _palette.Metrics.Status(BarThresholds.TemperatureLevel(temperature), _dim) : _dim, _scale);
             drawing.DrawText(label, MonitorText.Centered(label, new Point(x, y + 35), _scale));
         }
+    }
+
+    private static string TemperatureAge(DateTimeOffset? sampledAt)
+    {
+        if (sampledAt is null) return "cached";
+        var age=DateTimeOffset.UtcNow-sampledAt.Value;
+        if(age.TotalSeconds<60)return "just now";
+        if(age.TotalHours<1)return $"{(int)age.TotalMinutes}m ago";
+        return $"{(int)age.TotalHours}h ago";
     }
 
     private static double? PeakGpuTemperature(PopupSample? sample) =>

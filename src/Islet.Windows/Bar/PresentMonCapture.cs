@@ -18,29 +18,21 @@ public sealed class PresentMonCapture(string executable) : IDisposable
 
     public FrameReading Read(uint? diagnosticTarget = null)
     {
-        var window = BarNative.GetForegroundWindow();
-        uint pid = 0;
-        if (diagnosticTarget is uint requested)
-            pid = requested;
-        else if (window != 0 && window != BarNative.GetShellWindow() && window != BarNative.GetDesktopWindow())
-            BarNative.GetWindowThreadProcessId(window, out pid);
+        var pid = diagnosticTarget ?? ForegroundTarget();
 
         lock (_gate)
         {
             if (_unavailable is not null)
                 return new(null, _unavailable, true);
 
-            if (diagnosticTarget is null && pid == Environment.ProcessId)
-                pid = _target;
-            if (pid != _target)
+            if (_target == 0) _target = pid;
+            if (pid == 0 || pid != _target)
             {
                 StopLocked();
-                _target = pid;
+                return new(null, _target == 0
+                    ? "Focus a windowed game to select it for FPS."
+                    : "FPS paused. Return to the selected game. Toggle Gaming Mode to select another target.");
             }
-
-            if (pid == 0)
-                return new(null, "Switch to a windowed game to start measuring displayed frames.");
-
             if (_worker is null || _worker.IsCompleted)
             {
                 _capture?.Dispose();
@@ -56,6 +48,20 @@ public sealed class PresentMonCapture(string executable) : IDisposable
                 ? $"Displayed frames for process {pid}. Frame time is the mean for the most active swap chain since the last strip update."
                 : $"Waiting for displayed frames from process {pid}.");
         }
+    }
+
+    private static uint ForegroundTarget()
+    {
+        var window = BarNative.GetForegroundWindow();
+        if (window == 0 || window == BarNative.GetShellWindow() || window == BarNative.GetDesktopWindow()) return 0;
+        BarNative.GetWindowThreadProcessId(window, out var pid);
+        return pid == Environment.ProcessId ? 0 : pid;
+    }
+
+    public void PinForeground()
+    {
+        lock (_gate)
+            if (_target == 0) _target = ForegroundTarget();
     }
 
     private async Task Capture(uint pid, PresentMonFrames samples, CancellationToken token)
@@ -158,7 +164,7 @@ public sealed class PresentMonCapture(string executable) : IDisposable
     {
         _capture?.Cancel();
         _samples = null;
-        _target = 0;
+
     }
 
     public void Stop()
@@ -172,6 +178,7 @@ public sealed class PresentMonCapture(string executable) : IDisposable
         lock (_gate)
         {
             StopLocked();
+            _target = 0;
             _unavailable = null;
         }
     }

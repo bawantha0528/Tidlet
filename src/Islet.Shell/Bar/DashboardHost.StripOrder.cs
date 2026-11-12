@@ -17,7 +17,7 @@ public sealed partial class DashboardHost
             if (strip.Bottom > 66 + _scroll && strip.Top < Height - 54 + _scroll)
             {
                 Label(drawing, "Strip preview · sample readings", strip.Left, y, 10, _dim, true);
-                drawing.DrawRoundedRectangle(_palette.Metrics.Surface, _palette.CardBorder, strip, 6, 6);
+                drawing.DrawRoundedRectangle(MonitorBarHost.StripBackground, MonitorBarHost.StripBorder, strip, 6, 6);
                 var appearance = (_palette, _scale);
                 if (_orderPreviewAppearance != appearance)
                 {
@@ -26,20 +26,20 @@ public sealed partial class DashboardHost
                 }
 
                 var normal = settings with { GamingMode = false };
-                var light = _palette == DashboardPalette.For(BarTheme.Light);
+
                 var fullSize = BarLayout.Items(normal with { Alignment = BarAlignment.Left }, double.PositiveInfinity, batteryAvailable: true);
                 var logicalWidth = fullSize.Length == 0 ? strip.Width : Math.Max(strip.Width, fullSize[^1].X + fullSize[^1].Width + 12);
                 var factor = strip.Width / logicalWidth;
                 var items = BarLayout.Items(normal, logicalWidth, batteryAvailable: true);
                 drawing.PushClip(new RectangleGeometry(strip));
                 if (items.Length == 0)
-                    Label(drawing, "No strip items enabled", strip.Left, strip.Top + 11, 11, _dim, width: strip.Width, center: true);
+                    Label(drawing, "No strip items enabled", strip.Left, strip.Top + 11, 11, Brushes.LightGray, width: strip.Width, center: true);
                 foreach (var item in items)
                 {
                     var style = BarStyles.Resolve(item.Module, normal.Preference(item.Module).Style, item.Width >= 84);
                     var key = (item.Module, style);
                     if (!_orderPreviews.TryGetValue(key, out var preview))
-                        _orderPreviews[key] = preview = MonitorBarHost.PreviewItem(item.Module, style, light, _scale);
+                        _orderPreviews[key] = preview = MonitorBarHost.PreviewItem(item.Module, style, false, _scale);
                     drawing.PushTransform(new MatrixTransform(factor, 0, 0, factor, strip.Left + item.X * factor, strip.Top + (strip.Height - 24 * factor) / 2));
                     drawing.DrawDrawing(preview);
                     drawing.Pop();

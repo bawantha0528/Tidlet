@@ -65,7 +65,8 @@ public sealed class PopupCoordinator:IDisposable
         {
             Module=module;_factory=factory;_readStarted=readStarted;_frame=frame;_scale=scale;_canRead=canRead;_workerDelta=workerDelta;_recent=recent;
             var contentHeight=module switch{BarModule.Cpu=>684,BarModule.Ram=>660,BarModule.Network=>600,BarModule.Battery=>460,BarModule.Disk=>520,BarModule.Sensors=>520,_=>680};var bounds=BarLayout.Popup(item,display.Work,(int)Math.Ceiling(320*scale),(int)Math.Ceiling(contentHeight*scale),item.Top<display.Bounds.Top+display.Bounds.Height/2?BarEdge.Top:BarEdge.Bottom);
-            _height=bounds.Height/scale;
+            var fit=Math.Min(1,Math.Max(1,bounds.Width)/(320*scale));
+            _height=bounds.Height/(scale*fit);
             Action inputDismiss=holdInput?()=>{}:dismiss;Action inputTask=holdInput?()=>{}:taskManager;
             _visual=new PopupVisual(module,_height,scale,inputTask,inputDismiss,holdInput,theme,holdInput&&openDashboard is not null?()=>{}:openDashboard)
                 { Fahrenheit=fahrenheit,ThresholdPercent=thresholdPercent };
@@ -73,6 +74,7 @@ public sealed class PopupCoordinator:IDisposable
             if(recent.TryGet(module,out var previous))_visual.ShowPrevious(previous!);
             _source=new(new HwndSourceParameters("Tidlet "+module+" details"){PositionX=bounds.Left,PositionY=bounds.Top,Width=bounds.Width,Height=bounds.Height,
                 WindowStyle=unchecked((int)0x80000000),ExtendedWindowStyle=0x80,UsesPerPixelOpacity=true});
+            if(fit<1)_visual.RenderTransform=new ScaleTransform(fit,fit);
             _source.RootVisual=_visual;_source.AddHook(Message);_visual.Measure(new Size(320,_height));_visual.Arrange(new Rect(0,0,320,_height));
             _visual.KeyDown+=(_,e)=>{if(e.Key==Key.Escape){inputDismiss();e.Handled=true;}};
             _timer=new DispatcherTimer(DispatcherPriority.Background){Interval=TimeSpan.FromSeconds(intervalSeconds)};_timer.Tick+=Tick;

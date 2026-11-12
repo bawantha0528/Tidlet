@@ -180,10 +180,13 @@ public sealed record BarSnapshot(double? Cpu,double? Ram,double? Battery,string 
     double? Download,double? Upload,bool Loading=false,bool CpuLoading=false,bool NetworkLoading=false,double? Gpu=null,string GpuReason="GPU readings are not enabled.",bool GpuLoading=false,
     bool CpuRefreshing=false,bool NetworkRefreshing=false,bool GpuRefreshing=false,FrameReading Frames=default,
     double? SensorTemp=null,string SensorReason="Sensors are not enabled.",bool SensorLoading=false);
-public readonly record struct BarItemLayout(BarModule Module,double X,double Width);
+public readonly record struct BarItemLayout(BarModule Module,double X,double Width,double Fit=1);
 public static class BarLayout
 {
     public const double GamingIndicatorWidth=78;
+    public static bool RequestsReservation(BarSettings settings, bool hidden) =>
+        !hidden && !settings.TopReveal && settings.VisibleItems.Count > 0 &&
+        (settings.Edge == BarEdge.Top || settings.Mode == BarMode.Reserve);
     public static double HeightDip(BarEdge edge)=>edge==BarEdge.Bottom?34:24;
     public static double HeightDip(BarSettings settings)=>settings.TopReveal?34:HeightDip(settings.Edge);
     private static double Size(BarSettings settings,BarModule module,bool withMeters)=>BarStyles.Resolve(module,settings.Preference(module).Style,withMeters) switch
@@ -205,7 +208,7 @@ public static class BarLayout
         if(right<=left||bottom<=top){left=b.Left;right=b.Right;top=b.Top;bottom=b.Bottom;}
         var inset=Math.Min((int)Math.Ceiling(8*scale),Math.Max(0,(right-left-1)/2));
         var gap=Math.Min((int)Math.Ceiling(4*scale),Math.Max(0,bottom-top-1));
-        var height=Math.Min((int)Math.Ceiling(HeightDip(BarEdge.Bottom)*scale),bottom-top-gap);
+        var height=Math.Min((int)Math.Ceiling((edge==BarEdge.Top?HeightDip(settings):HeightDip(edge))*scale),bottom-top-gap);
         var requested=24+(settings.GamingMode?GamingIndicatorWidth+10:0)+settings.VisibleItems.Sum(module=>Size(settings,module,true))+Math.Max(0,settings.VisibleItems.Count-1)*10;
         var width=Math.Min(right-left-inset*2,(int)Math.Ceiling(requested*scale));
         var x=settings.Alignment switch{BarAlignment.Left=>left+inset,BarAlignment.Right=>right-inset-width,_=>left+(right-left-width)/2};
@@ -220,10 +223,13 @@ public static class BarLayout
         var gamingLead=settings.GamingMode?GamingIndicatorWidth+(modules.Length>0?10:0):0;
         var withMeters=modules.Sum(module=>Size(settings,module,true))+spacing+gamingLead+24<=width+.01;
         var total=modules.Sum(module=>Size(settings,module,withMeters))+spacing+gamingLead;
-        var start=settings.Alignment switch{BarAlignment.Left=>12,BarAlignment.Right=>Math.Max(12,width-total-12),_=>Math.Max(12,(width-total)/2)};
+        var inset=Math.Min(12,Math.Max(0,width/8));
+        var fit=total>0?Math.Clamp((width-2*inset)/total,0,1):1;
+        var fittedTotal=total*fit;
+        var start=settings.Alignment switch{BarAlignment.Left=>inset,BarAlignment.Right=>Math.Max(inset,width-fittedTotal-inset),_=>Math.Max(inset,(width-fittedTotal)/2)};
         gamingIndicatorX=settings.GamingMode?start:null;
-        start+=gamingLead;
-        var result=new BarItemLayout[modules.Length];for(var i=0;i<result.Length;i++){var itemWidth=Size(settings,modules[i],withMeters);result[i]=new(modules[i],start,itemWidth);start+=itemWidth+10;}return result;
+        start+=gamingLead*fit;
+        var result=new BarItemLayout[modules.Length];for(var i=0;i<result.Length;i++){var itemWidth=Size(settings,modules[i],withMeters);result[i]=new(modules[i],start,itemWidth*fit,fit);start+=(itemWidth+10)*fit;}return result;
     }
     public static BarModule? Hit(BarItemLayout[] items,double x)=>items.Cast<BarItemLayout?>().FirstOrDefault(i=>x>=i!.Value.X&&x<i.Value.X+i.Value.Width)?.Module;
     public static BarRect Popup(BarRect item,BarRect work,int width,int height,BarEdge edge)

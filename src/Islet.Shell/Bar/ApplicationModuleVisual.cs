@@ -88,6 +88,7 @@ internal sealed partial class ApplicationModuleVisual:UIElement
         CardAt(d,0,132);
         Label(d,title,20,24,17,Text,true);
         Label(d,detail,20,60,12,Dim);
+        WorkProgress.Draw(d, new Rect(20, 104, _width - 43, 5), _palette.Metrics.Track, _palette.Accent);
         _bottom=147;
         if(_module is BarModule.Cpu or BarModule.Ram or BarModule.Gpu or BarModule.Disk or BarModule.Network)
         {
@@ -229,5 +230,5 @@ internal sealed partial class ApplicationModuleVisual:UIElement
         d.DrawText(cached.Item2,origin);
     }
     private sealed class PagePeer(ApplicationModuleVisual owner):UIElementAutomationPeer(owner)
-    {protected override string GetNameCore()=>owner._module+" application page. "+(owner._previous?MetricLoading.Previous:owner.IsMeasuring||owner._sample is null?MetricLoading.For(owner._module).Title:owner._sample.Explanation);protected override string GetClassNameCore()=>"TidletModulePage";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Pane;}
+    {protected override string GetNameCore()=>owner._module+" application page. "+(owner._previous?MetricLoading.Previous:owner.IsMeasuring||owner._sample is null?MetricLoading.For(owner._module).Title:owner._sample.Explanation);protected override string GetClassNameCore()=>"TidletModulePage";protected override string GetHelpTextCore()=>MetricAccessibility.Describe(owner._module,owner._sample,owner._history,owner._previous);protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Pane;}
 }
