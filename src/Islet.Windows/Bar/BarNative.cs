@@ -39,6 +39,8 @@ internal static partial class BarNative
 
     [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool EnumDisplayMonitors(nint dc, nint clip, MonitorEnum callback, nint data);
     [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW", ExactSpelling = true, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool GetMonitorInfoExW(nint monitor, ref MonitorInfoEx info);
+    [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)] internal static extern nint GetWindowLongPtrW(nint hwnd, int index);
+    [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)] internal static extern int GetWindowLongW(nint hwnd, int index);
     [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)] internal static extern nint SetWindowLongPtrW(nint hwnd, int index, nint value);
     [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)] internal static extern int SetWindowLongW(nint hwnd, int index, int value);
     [DllImport("shell32.dll", ExactSpelling = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool Shell_NotifyIconW(uint message, ref NotifyIcon data);

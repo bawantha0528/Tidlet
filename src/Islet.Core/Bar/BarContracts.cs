@@ -65,10 +65,33 @@ public sealed record BarSettings
     public int IntervalSeconds {get;init;}=3;
     public BarModule[] Items {get;init;}=[BarModule.Cpu,BarModule.Ram,BarModule.Network,BarModule.Battery];
     public BarModule[] ItemOrder {get;init;}=[];
+    public bool StripOrderCustomized {get;init;}
     [JsonIgnore] public bool GamingMode {get;init;}
-    private static readonly IReadOnlyList<BarModule> GamingItems=Array.AsReadOnly(new[]{BarModule.FrameRate,BarModule.Gpu,BarModule.Cpu,BarModule.Ram,BarModule.Battery});
+    private static readonly IReadOnlyList<BarModule> DefaultGamingItems=Array.AsReadOnly(new[]{BarModule.FrameRate,BarModule.Gpu,BarModule.Cpu,BarModule.Ram,BarModule.Battery});
+    private static readonly IReadOnlyList<BarModule> GamingItemsWithSensors=Array.AsReadOnly(DefaultGamingItems.Where(item=>item!=BarModule.Battery).Append(BarModule.Sensors).Append(BarModule.Battery).ToArray());
     public static IEnumerable<BarModule> ConfigurableModules=>Enum.GetValues<BarModule>().Where(x=>x!=BarModule.FrameRate);
-    [JsonIgnore] public IReadOnlyList<BarModule> VisibleItems=>GamingMode?GamingItems:Items;
+    /// <summary>Auto-enter gaming mode when a full-screen non-shell window is detected on the bar's monitor.</summary>
+    public bool GamingModeAuto{get;init;}
+    /// <summary>Target FPS for gaming-mode color coding (green ≥ target, amber ≥ half, red below half). Range 30–360.</summary>
+    public int FpsTarget{get;init;}=60;
+    /// <summary>Percent threshold above which CPU/GPU/RAM items turn amber; ≥ 95% turns red. Range 50–100.</summary>
+    public int ThresholdPercent{get;init;}=85;
+    public static IReadOnlyList<BarModule> GamingModules=>GamingItemsWithSensors;
+    public BarModule[]? GamingStripItems {get;init;}
+    public int? GamingRefreshSeconds {get;init;}
+    [JsonIgnore] public IReadOnlyList<BarModule> GamingItems=>GamingStripItems is { } items
+        ?items:Items.Contains(BarModule.Sensors)?GamingItemsWithSensors:DefaultGamingItems;
+    [JsonIgnore] public BarModule[] NormalItems=>StripOrderCustomized||Items.Length==0||Items[^1]==BarModule.Battery||!Items.Contains(BarModule.Battery)
+        ?Items:Items.Where(item=>item!=BarModule.Battery).Append(BarModule.Battery).ToArray();
+    [JsonIgnore] public IReadOnlyList<BarModule> VisibleItems=>GamingMode?GamingItems:NormalItems;
+    [JsonIgnore] public int ActiveIntervalSeconds=>GamingMode?GamingRefreshSeconds??IntervalSeconds:IntervalSeconds;
+
+    public BarSettings WithGamingItemVisibility(BarModule module,bool enabled)
+    {
+        if(!GamingModules.Contains(module))throw new ArgumentOutOfRangeException(nameof(module));
+        var items=GamingModules.Where(item=>item==module?enabled:GamingItems.Contains(item)).ToArray();
+        return items.Length==0?this:this with{GamingStripItems=items};
+    }
     public bool Pause {get;init;}
     public BarTheme Theme{get;init;}=BarTheme.Dark;
     public string Accent{get;init;}="#0A84FF";
@@ -86,14 +109,28 @@ public sealed record BarSettings
         var order=RememberedOrder();
         return this with{ItemOrder=order,Items=order.Where(item=>item==module?enabled:Items.Contains(item)).ToArray()};
     }
-    private BarModule[] RememberedOrder()=>ItemOrder.Concat(Items).Concat(ConfigurableModules).Distinct().ToArray();
-    public BarSettings MoveItemEarlier(BarModule module)
+    private BarModule[] RememberedOrder()
     {
-        Validate();if(!ConfigurableModules.Contains(module))throw new ArgumentOutOfRangeException(nameof(module));
-        var visible=Array.IndexOf(Items,module);if(visible<=0)return this;
-        var order=RememberedOrder();var index=Array.IndexOf(order,module);var previous=Array.IndexOf(order,Items[visible-1]);
-        (order[index],order[previous])=(order[previous],order[index]);
-        return this with{ItemOrder=order,Items=order.Where(Items.Contains).ToArray()};
+        var order=ItemOrder.Concat(Items).Concat(ConfigurableModules).Distinct();
+        return (StripOrderCustomized?order:order.Where(item=>item!=BarModule.Battery).Append(BarModule.Battery)).ToArray();
+    }
+
+    public BarSettings MoveItemEarlier(BarModule module)=>MoveItem(module,-1);
+    public BarSettings MoveItemLater(BarModule module)=>MoveItem(module,1);
+
+    private BarSettings MoveItem(BarModule module,int direction)
+    {
+        Validate();
+        if(!ConfigurableModules.Contains(module))throw new ArgumentOutOfRangeException(nameof(module));
+        var visibleItems=NormalItems;
+        var visible=Array.IndexOf(visibleItems,module);
+        var neighbor=visible+direction;
+        if(visible<0||neighbor<0||neighbor>=visibleItems.Length)return this;
+        var order=RememberedOrder();
+        var index=Array.IndexOf(order,module);
+        var other=Array.IndexOf(order,visibleItems[neighbor]);
+        (order[index],order[other])=(order[other],order[index]);
+        return this with{StripOrderCustomized=true,ItemOrder=order,Items=order.Where(Items.Contains).ToArray()};
     }
     public BarSettings Validate()
     {
@@ -104,7 +141,11 @@ public sealed record BarSettings
             throw new InvalidDataException("Bar settings contain an unsupported value.");
         if(!Enum.IsDefined(Theme)||Accent is null||Accent.Length!=7||Accent[0]!='#'||Accent.Skip(1).Any(c=>!Uri.IsHexDigit(c))
             ||PingTarget is null||PingTarget.Length>253||PingTarget.Any(c=>char.IsWhiteSpace(c)||c is '/' or '\\')||Modules is null||Modules.Count>7
-            ||Modules.Any(p=>!ConfigurableModules.Contains(p.Key)||p.Value is null||!Enum.IsDefined(p.Value.Style)||p.Value.UpdateSeconds is not(1 or 2 or 3 or 5)))
+            ||Modules.Any(p=>!ConfigurableModules.Contains(p.Key)||p.Value is null||!Enum.IsDefined(p.Value.Style)||p.Value.UpdateSeconds is not(1 or 2 or 3 or 5))
+        ||GamingRefreshSeconds is not (null or 1 or 2 or 3 or 5)
+        ||(GamingStripItems is { } gaming && (gaming.Length==0||gaming.Length>GamingModules.Count
+            ||gaming.Any(item=>!GamingModules.Contains(item))||gaming.Distinct().Count()!=gaming.Length))
+        ||FpsTarget is <30 or >360||ThresholdPercent is <50 or >100)
             throw new InvalidDataException("Theme or module settings contain an unsupported value.");
         return this;
     }
@@ -137,10 +178,12 @@ public sealed record BarDisplay(string Id,bool Primary,BarRect Bounds,BarRect Wo
 public readonly record struct BarPlacement(BarRect Pixels,double Scale,BarMode ActualMode,string? Notice);
 public sealed record BarSnapshot(double? Cpu,double? Ram,double? Battery,string CpuReason,string RamReason,string NetworkReason,string BatteryReason,
     double? Download,double? Upload,bool Loading=false,bool CpuLoading=false,bool NetworkLoading=false,double? Gpu=null,string GpuReason="GPU readings are not enabled.",bool GpuLoading=false,
-    bool CpuRefreshing=false,bool NetworkRefreshing=false,bool GpuRefreshing=false,FrameReading Frames=default);
+    bool CpuRefreshing=false,bool NetworkRefreshing=false,bool GpuRefreshing=false,FrameReading Frames=default,
+    double? SensorTemp=null,string SensorReason="Sensors are not enabled.",bool SensorLoading=false);
 public readonly record struct BarItemLayout(BarModule Module,double X,double Width);
 public static class BarLayout
 {
+    public const double GamingIndicatorWidth=78;
     public static double HeightDip(BarEdge edge)=>edge==BarEdge.Bottom?34:24;
     public static double HeightDip(BarSettings settings)=>settings.TopReveal?34:HeightDip(settings.Edge);
     private static double Size(BarSettings settings,BarModule module,bool withMeters)=>BarStyles.Resolve(module,settings.Preference(module).Style,withMeters) switch
@@ -163,19 +206,23 @@ public static class BarLayout
         var inset=Math.Min((int)Math.Ceiling(8*scale),Math.Max(0,(right-left-1)/2));
         var gap=Math.Min((int)Math.Ceiling(4*scale),Math.Max(0,bottom-top-1));
         var height=Math.Min((int)Math.Ceiling(HeightDip(BarEdge.Bottom)*scale),bottom-top-gap);
-        var requested=24+settings.VisibleItems.Sum(module=>Size(settings,module,true))+Math.Max(0,settings.VisibleItems.Count-1)*10;
+        var requested=24+(settings.GamingMode?GamingIndicatorWidth+10:0)+settings.VisibleItems.Sum(module=>Size(settings,module,true))+Math.Max(0,settings.VisibleItems.Count-1)*10;
         var width=Math.Min(right-left-inset*2,(int)Math.Ceiling(requested*scale));
         var x=settings.Alignment switch{BarAlignment.Left=>left+inset,BarAlignment.Right=>right-inset-width,_=>left+(right-left-width)/2};
         var y=edge==BarEdge.Bottom?bottom-gap-height:top+gap;
         return new(x,y,x+width,y+height);
     }
-    public static BarItemLayout[] Items(BarSettings settings,double width,bool batteryAvailable)
+    public static BarItemLayout[] Items(BarSettings settings,double width,bool batteryAvailable)=>Items(settings,width,batteryAvailable,out _);
+    public static BarItemLayout[] Items(BarSettings settings,double width,bool batteryAvailable,out double? gamingIndicatorX)
     {
         var modules=settings.VisibleItems.Where(x=>x!=BarModule.Battery||batteryAvailable).ToArray();
         var spacing=Math.Max(0,modules.Length-1)*10;
-        var withMeters=modules.Sum(module=>Size(settings,module,true))+spacing+24<=width+.01;
-        var total=modules.Sum(module=>Size(settings,module,withMeters))+spacing;
+        var gamingLead=settings.GamingMode?GamingIndicatorWidth+(modules.Length>0?10:0):0;
+        var withMeters=modules.Sum(module=>Size(settings,module,true))+spacing+gamingLead+24<=width+.01;
+        var total=modules.Sum(module=>Size(settings,module,withMeters))+spacing+gamingLead;
         var start=settings.Alignment switch{BarAlignment.Left=>12,BarAlignment.Right=>Math.Max(12,width-total-12),_=>Math.Max(12,(width-total)/2)};
+        gamingIndicatorX=settings.GamingMode?start:null;
+        start+=gamingLead;
         var result=new BarItemLayout[modules.Length];for(var i=0;i<result.Length;i++){var itemWidth=Size(settings,modules[i],withMeters);result[i]=new(modules[i],start,itemWidth);start+=itemWidth+10;}return result;
     }
     public static BarModule? Hit(BarItemLayout[] items,double x)=>items.Cast<BarItemLayout?>().FirstOrDefault(i=>x>=i!.Value.X&&x<i.Value.X+i.Value.Width)?.Module;
@@ -199,6 +246,8 @@ public interface IBarSurface:IDisposable
     bool ShouldHide{get;}
     bool TrayPresent{get;}
     bool SlowPolling=>false;
+    /// <summary>True when the foreground window covers this bar's monitor and belongs to a non-shell process. Used for auto gaming-mode detection; never blocks the bar.</summary>
+    bool IsFullScreenForeground=>false;
     void SetHidden(bool hidden);
     void Reposition();
     int Menu(string? module,bool paused);

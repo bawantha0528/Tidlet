@@ -18,9 +18,11 @@ public sealed partial class WindowsPopupSource : IPopupSource,IPopupDetailSource
     private PopupDetails _details=PopupDetails.All;private BarModule? _probedModule;
     internal bool ProcessCountersEnabled {get;}
     private readonly bool _includeGpuTemperature;
-    public WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network=null,bool includeGpuTemperature=false):this(network,true,null)
+    private readonly Func<(double? Celsius, bool Automatic, bool Measuring)>? _cpuTemperature;
+    public WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network=null,bool includeGpuTemperature=false,Func<(double? Celsius, bool Automatic, bool Measuring)>? cpuTemperature=null):this(network,processCounters:true,phase:null)
     {
         _includeGpuTemperature=includeGpuTemperature;
+        _cpuTemperature=cpuTemperature;
     }
     internal WindowsPopupSource(Islet.Windows.Bar.PhysicalNetworkProvider? network,bool processCounters,Action<string,bool>? phase)
     {
@@ -122,9 +124,11 @@ public sealed partial class WindowsPopupSource : IPopupSource,IPopupDetailSource
             }
             _primed=true;
         }
+        var temperature=module==BarModule.Cpu?_cpuTemperature?.Invoke():null;
         return new(cpu.State==CpuReadingState.Available?cpu.Percent:null,cpu.SystemPercent,cpu.UserPercent,cpu.IdlePercent,frequency.Item1,frequency.Item2,
             TimeSpan.FromMilliseconds(Environment.TickCount64),memory is{Valid:true}?memory:null,cores,_classes,processes,
-            _counterReason.Length>0?_counterReason:processes.Length==0?"Measuring processes; protected or exited processes are skipped.":"Protected or exited processes are skipped. Windows reported metrics.",_capabilities,WarmingUp:cpu.State==CpuReadingState.WarmingUp);
+            _counterReason.Length>0?_counterReason:processes.Length==0?"Measuring processes; protected or exited processes are skipped.":"Protected or exited processes are skipped. Windows reported metrics.",_capabilities,WarmingUp:cpu.State==CpuReadingState.WarmingUp,
+            LastCpuPackageCelsius:temperature?.Celsius,CpuTemperatureAutomatic:temperature?.Automatic==true,CpuTemperatureMeasuring:temperature?.Measuring==true);
     }
     private Dictionary<string,double> ReadArray(nint counter)
     {
@@ -141,7 +145,7 @@ public sealed partial class WindowsPopupSource : IPopupSource,IPopupDetailSource
         }
         return result;
     }
-    public void Dispose(){if(_disposed)return;_disposed=true;CloseCounters();}
+    public void Dispose(){if(_disposed)return;_disposed=true;_sensors?.Dispose();_sensors=null;CloseCounters();}
     [StructLayout(LayoutKind.Explicit,Size=16)]internal struct CounterValue{[FieldOffset(0)]public uint Status;[FieldOffset(8)]public double Value;}
     [StructLayout(LayoutKind.Sequential)]internal struct CounterItem{public nint Name;public CounterValue Value;}
     [DllImport("pdh.dll",CharSet=CharSet.Unicode,ExactSpelling=true)]private static extern uint PdhOpenQueryW(string? source,nuint user,out nint query);

@@ -31,7 +31,7 @@ internal sealed class ModulePresenter:UIElement,IDisposable
     private void Tick(object? sender,EventArgs e)
     {
         if(_closed||!_predecessor.IsCompleted)return;
-        PresentCompleted();if(_module==BarModule.Sensors&&Frames>0)return;
+        PresentCompleted();if(_module==BarModule.Sensors&&!_timer.IsEnabled)return;
         if(_pending is null)
         {
             var details=_visual.Details;
@@ -61,10 +61,12 @@ internal sealed class ModulePresenter:UIElement,IDisposable
         var value=_module switch{BarModule.Cpu=>sample.Cpu,BarModule.Battery=>sample.Battery?.Reading.Percent,_=>sample.Memory?.UsedPercent};
         if(value is{}v){_history.Push(now,v);if(_module==BarModule.Cpu)_averages.Push(now,v);}
         _recent?.Store(_module,sample);_visual.Update(sample,_history,_averages,now);Frames++;
-        if(_module==BarModule.Sensors)_timer.Stop();
+        if(_module==BarModule.Sensors&&sample.Sensors is not{Items.Length:>0})_timer.Stop();
     }
     public void Redraw(double scale)=>_visual.Redraw(scale);
     public void SetUnits(bool useBits)=>_visual.SetUnits(useBits);
+    public void SetWarningThreshold(int percent)=>_visual.SetWarningThreshold(percent);
+    public void SetTemperatureUnit(bool fahrenheit)=>_visual.SetTemperatureUnit(fahrenheit);
     public void SetBatteryCapacity(Func<string>? capacity)=>_visual.BatteryCapacity=capacity;
     public void Dispose()
     {

@@ -78,11 +78,48 @@ public sealed class PopupLifetimeTests
         thread.SetApartmentState(ApartmentState.STA);thread.Start();Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)));
         if(failure is not null)throw new AssertFailedException("Popup lifetime failed",failure);
     }
+    [TestMethod]
+    public void LiveSensorsPopupContinuesPollingUntilClosed()
+    {
+        Exception? failure=null;
+        var thread=new Thread(()=>
+        {
+            try
+            {
+                var fake=new LiveSensorSource();
+                using var popup=new PopupCoordinator(()=>fake,(_,_,_)=>{},()=>{});
+                var display=new BarDisplay("mock",true,new(0,0,1000,900),new(0,0,1000,860));
+                popup.Toggle(BarModule.Sensors,new(400,0,454,24),display,1,false);
+                var frame=new DispatcherFrame();var readsAtClose=0;
+                var close=new DispatcherTimer{Interval=TimeSpan.FromSeconds(2.6)};
+                var finish=new DispatcherTimer{Interval=TimeSpan.FromSeconds(3.2)};
+                close.Tick+=(_,_)=>{close.Stop();popup.Close();readsAtClose=popup.Reads;};
+                finish.Tick+=(_,_)=>
+                {
+                    finish.Stop();
+                    try{Assert.IsTrue(readsAtClose>=2,$"Expected live sensors popup to poll; got Reads={readsAtClose}");Assert.IsTrue(popup.Drain(TimeSpan.FromSeconds(1)));Assert.IsTrue(fake.Disposed);}
+                    catch(Exception ex){failure=ex;}finally{frame.Continue=false;}
+                };
+                close.Start();finish.Start();Dispatcher.PushFrame(frame);
+            }
+            catch(Exception ex){failure=ex;}
+        });
+        thread.SetApartmentState(ApartmentState.STA);thread.Start();Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(10)));
+        if(failure is not null)throw new AssertFailedException("Live sensor popup polling failed",failure);
+    }
     private sealed class Source:IPopupSource
     {
         public bool Disposed;
         public CapabilityProbeResult Probe(BarModule module)=>CapabilityProbeResult.Supported;
         public PopupSample Read(BarModule module)=>new(20,5,15,80,2.5,4,TimeSpan.FromHours(1),new(100,50,50,100,20,null,null),[double.NaN,110,-1,25],[0,1,1,0],[],"Fake invalid core values are omitted");
+        public void Dispose()=>Disposed=true;
+    }
+    private sealed class LiveSensorSource:IPopupSource
+    {
+        public bool Disposed;
+        public CapabilityProbeResult Probe(BarModule module)=>CapabilityProbeResult.Supported;
+        public PopupSample Read(BarModule module)=>new(20,5,15,80,2.5,4,TimeSpan.FromHours(1),null,[],[],[],"Live sensors",
+            Sensors:new(61,68,1420,[new("CPU","CPU","Package",SensorKind.Temperature,61,"°C"),new("Fan","Motherboard","CPU Fan",SensorKind.Fan,1420,"RPM")],false,"Live sensors"));
         public void Dispose()=>Disposed=true;
     }
 }

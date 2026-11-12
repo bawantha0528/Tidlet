@@ -22,7 +22,7 @@ public sealed partial class DashboardHost
                 _widgetSamples[module] = sample!;
                 _previousWidgets.Add(module);
             }
-            _widgetReader = new(_metrics, _previous, samples =>
+            _widgetReader = new(_actions.WidgetMetrics??_metrics, _previous, samples =>
             {
                 for (var i = 0; i < samples.Length; i++)
                 {
@@ -59,7 +59,7 @@ public sealed partial class DashboardHost
             var width = (contentWidth - gap * (columns - 1)) / columns;
             var settings = _settings();
             var paused = settings.Pause;
-            var renderer = new WidgetCardRenderer(_palette, _blue, _scale, settings.UseBits, _widgetSamples, _previousWidgets);
+            var renderer = new WidgetCardRenderer(_palette, _blue, _scale, settings.UseBits, _widgetSamples, _previousWidgets, settings.ThresholdPercent, settings.Fahrenheit);
             var hasUsage = _actions.Usage is not null;
             var cleanupIndex = hasUsage ? 1 : 0;
             var hasCleanup = CanOpenCleanup;

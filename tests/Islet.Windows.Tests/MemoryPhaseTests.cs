@@ -25,7 +25,7 @@ public sealed class MemoryPhaseTests
         Assert.IsFalse(ProviderComparison.TryParse(["--provider-comparison","without","relative.json"],out _,out _));
         Assert.IsFalse(ProviderComparison.TryParse(["--provider-comparison","without",report,"--extra"],out _,out _));
         using var normal=new Islet.Windows.Popups.WindowsPopupSource();Assert.IsTrue(normal.ProcessCountersEnabled);
-        using var diagnostic=new Islet.Windows.Popups.WindowsPopupSource(null,false,null);Assert.IsFalse(diagnostic.ProcessCountersEnabled);
+        using var diagnostic=new Islet.Windows.Popups.WindowsPopupSource(null,processCounters:false,phase:null);Assert.IsFalse(diagnostic.ProcessCountersEnabled);
     }
     [TestMethod]
     public void RecorderIsBoundedAndRecordsModuleBasenamesAndDistinctCounters()

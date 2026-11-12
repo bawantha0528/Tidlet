@@ -27,3 +27,23 @@ CI-only dependencies, verified by read-only git ls-remote against their official
 - actions/upload-artifact v7.0.2: cf430e030ddbb5b0abf93d22962f4752f3646cd9 (https://github.com/actions/upload-artifact)
 
 No external workflow has run. GitHub runner image: windows-2022; official image inventory: https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md.
+
+# Runtime Windows sensor dependency (user-approved 11 November 2026)
+
+Added to `src/Islet.Windows/Islet.Windows.csproj` (via `Directory.Packages.props`) with Central Package Management and NuGet lock files (`src/Islet.Windows/packages.lock.json`, `src/IsletMonitor/packages.lock.json`). `Islet.Core` and `Islet.Shell` keep zero NuGet runtime dependencies. `LibreHardwareMonitorLib` 0.9.6 ships `net8.0` managed assemblies for `win-x86` and `win-x64` and replaced WinRing0 with PawnIO since 0.9.5; Tidlet neither bundles nor installs kernel drivers automatically and preserves `asInvoker` execution.
+
+| Package | Locked version | Kind | Declared license |
+|---|---|---|---|
+| LibreHardwareMonitorLib | 0.9.6 | Direct (`Islet.Windows`) | MPL-2.0 |
+| BlackSharp.Core | 1.0.7 | Transitive | MPL-2.0 |
+| DiskInfoToolkit | 1.1.2 | Transitive | MPL-2.0 |
+| HidSharp | 2.6.4 | Transitive | Apache-2.0 |
+| Mono.Posix.NETStandard | 1.0.0 | Transitive | MIT |
+| RAMSPDToolkit-NDD | 1.4.2 | Transitive | MPL-2.0 |
+| System.CodeDom | 10.0.2 | Transitive | MIT |
+| System.IO.Ports | 10.0.3 | Transitive | MIT |
+| runtime.*.runtime.native.System.IO.Ports | 10.0.3 | Transitive | MIT |
+| System.Management | 10.0.2 | Transitive | MIT |
+| System.Threading.AccessControl | 10.0.3 | Transitive | MIT |
+
+The main Tidlet process enables GPU and storage groups for read-only Sensors views. CPU, motherboard and external-controller groups are reserved for a future helper. One shared library session supplies active views. The optional strip item runs device I/O on a worker.

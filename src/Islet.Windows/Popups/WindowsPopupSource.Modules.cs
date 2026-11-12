@@ -13,15 +13,23 @@ namespace Islet.Windows.Popups;
 public sealed partial class WindowsPopupSource
 {
     private readonly PhysicalNetworkProvider _network;
-    private readonly NativeSystemBatterySource _batteryNative=new();
+    private readonly NativeSystemBatterySource _batteryNative=new(includeTemperature:true);
     private SystemBatteryProvider? _battery;private nint _readDisk,_writeDisk,_idleDisk,_gpuEngine;
     private GpuActivity[] _gpuAdapters=[];
+    private LibreHardwareSensorReader? _sensors;
     private CapabilityProbeResult ProbeModule(BarModule module)
     {
         CapabilityProbeResult status;
         if(module==BarModule.Network)status=_network.Probe();
         else if(module==BarModule.Battery){_battery=new(_batteryNative);status=_battery.Probe();}
-        else if(module==BarModule.Sensors)status=CapabilityProbeResult.NeedsHelper("sensors.helper","Temperatures and fans need the optional hardware helper. No helper or driver is installed by Tidlet.");
+        else if(module==BarModule.Sensors)
+        {
+            _sensors??=new();
+            var probed=_sensors.Read();
+            status=probed.Items.Length>0
+                ?CapabilityProbeResult.Supported
+                :CapabilityProbeResult.NeedsHelper("sensors.helper",probed.Explanation);
+        }
         else
         {
             var error=PdhOpenQueryW(null,0,out _query);
@@ -73,9 +81,14 @@ public sealed partial class WindowsPopupSource
         {
             var reading=_battery?.Sample()??BatteryReading.NoBattery();
             bool? ac=_batteryNative.TryRead(out var line,out _,out _,out _,out _)?line switch{0=>false,1=>true,_=>null}:null;
-            return new(null,null,null,null,null,null,uptime,null,[],[],[],reading.Explanation,_capabilities,Battery:new(reading,ac,"First battery reported by Windows · mWh"));
+            return new(null,null,null,null,null,null,uptime,null,[],[],[],reading.Explanation,_capabilities,Battery:new(reading,ac,"First battery reported by Windows · mWh",_batteryNative.TemperatureCelsius));
         }
-        if(module==BarModule.Sensors)return new(null,null,null,null,null,null,uptime,null,[],[],[],reason,_capabilities);
+        if(module==BarModule.Sensors)
+        {
+            _sensors??=new();
+            var sensors=_sensors.Read();
+            return new(null,null,null,null,null,null,uptime,null,[],[],[],sensors.Explanation,_capabilities,Sensors:sensors);
+        }
         var collected=_query!=0&&PdhCollectQueryData(_query)==0;var ready=collected&&_primed;_primed=collected;
         if(module==BarModule.Disk)
         {

@@ -12,6 +12,7 @@ internal static class BarProgram
     [STAThread]
     public static int Main(string[] args)
     {
+        if(args is [CpuTemperatureHelper.Argument])return CpuTemperatureHelper.RunWorker();
         if(args.Length>0&&args[0]=="--provider-comparison")return Islet.Windows.Diagnostics.ProviderComparison.Run(args);
         return RunApplication(args);
     }

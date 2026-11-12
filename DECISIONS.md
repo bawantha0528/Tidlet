@@ -380,3 +380,38 @@ The standalone console ran with the normal user token but could not start its ET
 ## Gaming Mode implementation plan
 
 Keep the existing strip host, theme and placement. A session-only tray/strip switch replaces the displayed items with FPS and frame time, GPU, CPU, RAM and supported battery status while preserving normal settings and styles. When the strip is visible, sample the foreground application and use the separately supplied, hash-verified PresentMon 2.6.0 x64 console to read display-frame intervals. Stop capture on pause, hide, target change or exit. Show permission, availability and warm-up states. Verify the parser with fixtures, build and run the x86 tests and measure the Windows access-denied path separately from live capture. Live capture stays unverified until Windows permits the trace under the current rules.
+
+## Auto Gaming Mode, FPS target, and utilization thresholds — 11 November 2026
+
+Extend `BarSettings` with `GamingModeAuto` (default `false`), `FpsTarget` (default `60`, range `30–360`), and `ThresholdPercent` (default `85`, range `50–100`) without adding dependencies or changing fullscreen suppression (`ShouldHide`). Auto-detection uses existing `SHQueryUserNotificationState` (`QUNS_RUNNING_D3D_FULLSCREEN = 3`) and `GetWindowLongW`/`GetWindowLongPtrW` (`WS_CAPTION` exclusion) + monitor bounds check (`MonitorFromWindow`/`GetMonitorInfoExW`) on the foreground window; manual Gaming Mode off suppresses re-triggering until fullscreen exits. `BarThresholds` evaluates CPU/GPU/RAM warning (`>= ThresholdPercent`) and critical (`>= 95%`) levels and displayed-FPS levels (`>= FpsTarget` green, `>= FpsTarget / 2` amber, `< FpsTarget / 2` red) across Dark and Light strip palettes and styles without extra animation timers. Settings UI exposes all four controls under `GAMING & THRESHOLDS`, and the three pre-existing `Enum.GetValues<BarModule>()` test loops that predated `FrameRate` are aligned to `BarSettings.ConfigurableModules`.
+
+## Dashboard UI Gaming Mode toggle — 11 November 2026
+
+Expose `SetGamingMode` cleanly into `DashboardHost` so users can toggle Gaming Mode directly from the main Dashboard window (top-right header pill across pages, non-drag `HTCLIENT` region, plus a 3-row strip control block on the Overview page with Auto Gaming Mode and a shortcut to `GAMING & THRESHOLDS` Settings). Overview toggles invoke callbacks without instantiating metric sources or starting polling timers.
+
+## LibreHardwareMonitorLib hardware sensor integration — 11 November 2026
+
+- **Purpose**: Provide real hardware temperature, fan speed, clock, power, and voltage telemetry for the `Sensors` module (popup, Dashboard page, and optional bar strip item).
+- **Alternatives rejected**: Windows ACPI thermal zones / WMI `Win32_TemperatureProbe` / `.NET IoT` (`CpuTemperature`), which earlier read-only probes on Windows showed return Access Denied or invalid WMI class; bundling custom kernel drivers or WinRing0 (disallowed).
+- **Selected dependency & verified licenses**: `LibreHardwareMonitorLib` `0.9.6` (`MPL-2.0`), approved by the user after license compatibility review. Locked transitive graph: `BlackSharp.Core` `1.0.7` (`MPL-2.0`), `DiskInfoToolkit` `1.1.2` (`MPL-2.0`), `RAMSPDToolkit-NDD` `1.4.2` (`MPL-2.0`), `HidSharp` `2.6.4` (`Apache-2.0`), `Mono.Posix.NETStandard` `1.0.0` (`MIT`), `System.IO.Ports` `10.0.3` + native packs (`MIT`), `System.Management` `10.0.2` (`MIT`), `System.CodeDom` `10.0.2` (`MIT`), `System.Threading.AccessControl` `10.0.3` (`MIT`). LibreHardwareMonitor replaced WinRing0 with PawnIO since v0.9.5; Tidlet consumes `LibreHardwareMonitorLib` unmodified via NuGet without copying copyleft source code into MIT files, keeping MPL-2.0 file-level boundaries intact.
+- **Lazy activation & privilege boundary**: `Islet.Windows.Metrics.LibreHardwareSensorReader` instantiates `Computer` (`IsCpuEnabled`, `IsGpuEnabled`, `IsMotherboardEnabled`, `IsControllerEnabled`, `IsStorageEnabled`) only when `BarModule.Sensors` is requested by the popup, Dashboard page, or an enabled `Sensors` bar item, and closes/disposes `Computer` immediately on close, pause, suppression, or exit. `IsletMonitor` retains `asInvoker`; standard user sessions display user-mode sensors (e.g., GPU/HID/storage when available) with plain-English guidance that CPU package and motherboard fan sensors require PawnIO + administrator privileges. No driver is bundled or installed automatically.
+
+## LibreHardwareMonitor integration audit plan
+
+Preserve the existing Gaming Mode controls and LibreHardwareMonitorLib 0.9.6 dependency. Verify read-only sensor data, keep library sampling off the WPF dispatcher, and share its process-global session across the strip, popup and Dashboard. Distinguish CPU package from core temperature, and account privileges from sensor capability. Keep privileged CPU and motherboard access deferred to the optional helper. Verify the Release build, active tests and runtime sensor states.
+
+## Gaming Dashboard and temperature displays
+
+The Gaming page groups mode controls, FPS target, shared utilization warning, independent Gaming refresh, and Gaming item visibility. Older settings inherit the normal refresh and the prior Gaming defaults until customized. CPU package temperature stays capability-driven. Battery views request the optional Windows battery temperature value from the same battery interface as capacity, decode tenths of Kelvin, and treat absent or implausible readings as unavailable. The strip does not query battery temperature. [Microsoft battery information levels](https://learn.microsoft.com/en-us/windows/win32/power/battery-query-information-str)
+
+## PawnIO CPU package readout plan
+
+Use the existing LibreHardwareMonitor package and an explicitly requested, read-only sample from a separate elevated process. The user installs PawnIO separately. The child has a fixed command, returns only a validated numeric reading or status through its exit code, and exits without opening the main UI. The Dashboard and CPU popup mark the cached result as a manual sample. Verify the protocol and non-elevated denial without installing a driver or changing system settings. Live elevated readings and helper resource use require a later driver-equipped test.
+
+## Automatic CPU temperature
+
+An already-elevated Tidlet session requests one bounded CPU helper sample at most every 15 seconds, driven by the existing CPU popup and Dashboard sampling loops. Concurrent views share the same reading and request gate. A standard launch still requires the explicit Check CPU temp action. The automatic path inherits the existing token and makes no UAC request. Desktop widgets do not request CPU temperature.
+
+## Meter warning colors
+
+CPU, GPU, RAM, commit and disk activity use the shared configured warning percentage and the 95% critical threshold. Volume space uses 90% and 95% used. Battery charge uses low-side thresholds of 25% and 15%, and reported battery health uses 80% and 60%. Available CPU/GPU temperature and existing hardware thermal indicators use the existing 80/90 °C colors as display hints. Blue and green are the normal meter colors. Network transfer colors distinguish upload from download, and a missing reading does not trigger a warning.

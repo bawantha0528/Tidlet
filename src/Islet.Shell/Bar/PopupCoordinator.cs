@@ -36,7 +36,7 @@ public sealed class PopupCoordinator:IDisposable
         _window=new PopupWindow(module,item,display,scale,activate,_factory,_position,_taskManager,
             ()=>{_lastModule=module;_lastDismiss=Stopwatch.GetTimestamp();Close();},
             DashboardRequested is null?null:()=>{Close();DashboardRequested?.Invoke(module);},
-            (sample,allocated)=>{LastSample=sample;Frames++;PresentationAllocatedBytes+=allocated;_recent.Store(module,sample);},()=>Reads++,CanRead,delta=>Interlocked.Add(ref _workers,delta),_holdInput,settings?.Preference(module).UpdateSeconds??1,settings?.UseBits??false,WindowsAppTheme.Resolve(settings?.Theme??BarTheme.Dark),_recent,settings?.Fahrenheit??false);
+            (sample,allocated)=>{LastSample=sample;Frames++;PresentationAllocatedBytes+=allocated;_recent.Store(module,sample);},()=>Reads++,CanRead,delta=>Interlocked.Add(ref _workers,delta),_holdInput,settings?.Preference(module).UpdateSeconds??1,settings?.UseBits??false,WindowsAppTheme.Resolve(settings?.Theme??BarTheme.Dark),_recent,settings?.Fahrenheit??false,settings?.ThresholdPercent??85);
     }
     private bool CanRead()
     {
@@ -61,14 +61,14 @@ public sealed class PopupCoordinator:IDisposable
         private readonly double _scale;private readonly double _height;
         private readonly RecentSampleCache _recent;
         public PopupWindow(BarModule module,BarRect item,BarDisplay display,double scale,bool activate,Func<IPopupSource> factory,
-            Action<nint,BarRect,bool> position,Action taskManager,Action dismiss,Action? openDashboard,Action<PopupSample,long> frame,Action readStarted,Func<bool> canRead,Action<int> workerDelta,bool holdInput,int intervalSeconds,bool useBits,BarTheme theme,RecentSampleCache recent,bool fahrenheit)
+            Action<nint,BarRect,bool> position,Action taskManager,Action dismiss,Action? openDashboard,Action<PopupSample,long> frame,Action readStarted,Func<bool> canRead,Action<int> workerDelta,bool holdInput,int intervalSeconds,bool useBits,BarTheme theme,RecentSampleCache recent,bool fahrenheit,int thresholdPercent)
         {
             Module=module;_factory=factory;_readStarted=readStarted;_frame=frame;_scale=scale;_canRead=canRead;_workerDelta=workerDelta;_recent=recent;
-            var contentHeight=module switch{BarModule.Cpu=>684,BarModule.Ram=>660,BarModule.Network=>600,BarModule.Battery=>460,BarModule.Disk=>520,BarModule.Sensors=>300,_=>680};var bounds=BarLayout.Popup(item,display.Work,(int)Math.Ceiling(320*scale),(int)Math.Ceiling(contentHeight*scale),item.Top<display.Bounds.Top+display.Bounds.Height/2?BarEdge.Top:BarEdge.Bottom);
+            var contentHeight=module switch{BarModule.Cpu=>684,BarModule.Ram=>660,BarModule.Network=>600,BarModule.Battery=>460,BarModule.Disk=>520,BarModule.Sensors=>520,_=>680};var bounds=BarLayout.Popup(item,display.Work,(int)Math.Ceiling(320*scale),(int)Math.Ceiling(contentHeight*scale),item.Top<display.Bounds.Top+display.Bounds.Height/2?BarEdge.Top:BarEdge.Bottom);
             _height=bounds.Height/scale;
             Action inputDismiss=holdInput?()=>{}:dismiss;Action inputTask=holdInput?()=>{}:taskManager;
             _visual=new PopupVisual(module,_height,scale,inputTask,inputDismiss,holdInput,theme,holdInput&&openDashboard is not null?()=>{}:openDashboard)
-                { Fahrenheit=fahrenheit };
+                { Fahrenheit=fahrenheit,ThresholdPercent=thresholdPercent };
             _visual.SetUnits(useBits);
             if(recent.TryGet(module,out var previous))_visual.ShowPrevious(previous!);
             _source=new(new HwndSourceParameters("Tidlet "+module+" details"){PositionX=bounds.Left,PositionY=bounds.Top,Width=bounds.Width,Height=bounds.Height,
@@ -116,7 +116,7 @@ public sealed class PopupCoordinator:IDisposable
             var value=Module==BarModule.Cpu?sample.Cpu:sample.Memory?.UsedPercent;
             var now=_clock.Elapsed.TotalSeconds;if(value is{}v){_history.Push(now,v);_averages.Push(now,v);}
             var before=GC.GetAllocatedBytesForCurrentThread();_visual.Update(sample,_history,_averages,now);_frame(sample,GC.GetAllocatedBytesForCurrentThread()-before);
-            if(Module==BarModule.Sensors&&!sample.WarmingUp)_timer.Stop();
+            if(Module==BarModule.Sensors&&!sample.WarmingUp&&sample.Sensors is not{Items.Length:>0})_timer.Stop();
         }
         public void Capture(string path)
         {

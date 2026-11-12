@@ -297,7 +297,7 @@ public sealed class DesktopWidgetHost(
             var scale = _source.CompositionTarget.TransformToDevice.M11;
             using var drawing = _visual.Drawing.RenderOpen();
             if (_usage is null)
-                new WidgetCardRenderer(palette, palette.Accent, scale, settings.UseBits, samples, previous)
+                new WidgetCardRenderer(palette, palette.Accent, scale, settings.UseBits, samples, previous, settings.ThresholdPercent, settings.Fahrenheit)
                     .Draw(drawing, CardBounds, _module, settings.Pause, 22);
             else UsageCard.Draw(drawing, CardBounds, palette, scale, _usage());
             var label = MonitorText.Format("×", new Typeface("Segoe UI"), 15, palette.Muted, scale);

@@ -4,7 +4,7 @@ namespace Islet.Core.Popups;
 public sealed record NetworkAdapterDetails(string Name,string? Mac,string? Address,string? Gateway);
 public sealed record NetworkDetails(double? Download,double? Upload,ulong RecordedDownload,ulong RecordedUpload,
     NetworkAdapterDetails[] Adapters,string Explanation,double? Latency=null,double? Jitter=null);
-public sealed record BatteryDetails(BatteryReading Reading,bool? OnAc,string CapacityScope);
+public sealed record BatteryDetails(BatteryReading Reading,bool? OnAc,string CapacityScope,double? TemperatureCelsius=null);
 public sealed record DiskActivity(string Name,double? Read,double? Write,double? Active);
 public sealed record VolumeCapacity(string Name,ulong Total,ulong Free)
 {public bool Valid=>Total>0&&Free<=Total;public double UsedPercent=>Valid?100.0*(Total-Free)/Total:double.NaN;}

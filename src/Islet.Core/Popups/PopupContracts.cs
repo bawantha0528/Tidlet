@@ -9,11 +9,14 @@ public sealed record PopupMemory(ulong Total,ulong Available,ulong? Committed,ul
     public double Pressure=>Valid?Math.Max(UsedPercent,CommitValid?100.0*Committed!.Value/CommitLimit!.Value:0):double.NaN;
     public string PressureName=>!Valid?"Unavailable":Pressure>=95?"Critical":Pressure>=80?"Warning":"Normal";
 }
+public enum SensorKind { Temperature, Fan, Clock, Power, Voltage, Control }
+public readonly record struct SensorItem(string Hardware,string Group,string Name,SensorKind Kind,double Value,string Unit);
+public sealed record SensorDetails(double? CpuPackageCelsius,double? MaxTemperatureCelsius,int? MaxFanRpm,SensorItem[] Items,bool IsElevated,string Explanation);
 public readonly record struct PopupProcess(int Id,string Name,double? CpuPercent,ulong WorkingSet);
 public sealed record PopupSample(double? Cpu,double? System,double? User,double? Idle,double? FrequencyGhz,double? MaxGhz,
     TimeSpan Uptime,PopupMemory? Memory,double[] Cores,int[] Classes,PopupProcess[] Processes,string Explanation,
     IReadOnlyDictionary<string,CapabilityProbeResult>? Capabilities=null,NetworkDetails? Network=null,
-    BatteryDetails? Battery=null,DiskDetails? Disk=null,GpuDetails? Gpu=null,bool WarmingUp=false);
+    BatteryDetails? Battery=null,DiskDetails? Disk=null,GpuDetails? Gpu=null,bool WarmingUp=false,SensorDetails? Sensors=null,double? LastCpuPackageCelsius=null,bool CpuTemperatureAutomatic=false,bool CpuTemperatureMeasuring=false);
 public interface IPopupSource:IDisposable
 {
     CapabilityProbeResult Probe(BarModule module);

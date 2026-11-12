@@ -16,6 +16,8 @@ internal sealed partial class PopupVisual:UIElement
     private string _accessible="Measuring Windows readings";
     private bool _useBits;
     internal bool Fahrenheit { get; init; }
+    internal int ThresholdPercent { get; init; } = 85;
+    private double? _scrollDragOffset;
     private bool _previous;
     private bool IsMeasuring=>_sample?.WarmingUp==true;
     public void ShowPrevious(PopupSample sample){if(_previous&&ReferenceEquals(_sample,sample))return;_sample=sample;_previous=true;_accessible=MetricLoading.Previous;Redraw(_scale);}
@@ -30,7 +32,7 @@ internal sealed partial class PopupVisual:UIElement
     }
     public void SetUnits(bool useBits){if(_useBits==useBits)return;_useBits=useBits;_texts.Clear();Redraw(_scale);}
     // One last text value per drawing position; dynamic values cannot grow the cache.
-    private readonly Dictionary<(double X,double Y,double Size,Brush Color,bool Bold,bool Icons,double? Width), (string Value,FormattedText Text)> _texts=[];
+    private readonly Dictionary<(double X,double Y,double Size,Brush Color,bool Bold,bool Icons,double? Width,int Lines), (string Value,FormattedText Text)> _texts=[];
     private readonly RectangleGeometry _outline,_viewport;
     private readonly PopupPalette _palette;
     private readonly PopupPalette.ChartStyle _chart;
@@ -76,9 +78,23 @@ internal sealed partial class PopupVisual:UIElement
             else if(p.X>=251&&p.X<279)_openDashboard?.Invoke();
         };
         MouseWheel+=(_,e)=>{Scroll(-e.Delta/4.0);e.Handled=true;};
+        PreviewMouseLeftButtonDown+=(_,e)=>
+        {
+            var point=e.GetPosition(this);
+            if(MaxScroll<=0||point.X<309||point.Y<ScrollbarTrack.Top||point.Y>ScrollbarTrack.Bottom)return;
+            var thumb=ScrollbarThumb;
+            _scrollDragOffset=thumb.Contains(point)?point.Y-thumb.Top:thumb.Height/2;
+            if(!CaptureMouse()){_scrollDragOffset=null;return;}
+            DragScrollTo(point.Y);
+            e.Handled=true;
+        };
+        PreviewMouseMove+=(_,e)=>{if(_scrollDragOffset.HasValue){DragScrollTo(e.GetPosition(this).Y);e.Handled=true;}};
+        PreviewMouseLeftButtonUp+=(_,e)=>{if(_scrollDragOffset.HasValue){ReleaseMouseCapture();e.Handled=true;}};
+        LostMouseCapture+=(_,_)=>_scrollDragOffset=null;
         KeyDown+=(_,e)=>
         {
             if(e.Key==Key.Escape){_close();e.Handled=true;}
+            if(e.Key is Key.Home or Key.End){Scroll(e.Key==Key.End?MaxScroll:-MaxScroll);e.Handled=true;}
             if(e.Key is Key.PageDown or Key.PageUp){Scroll(e.Key==Key.PageDown?_height/2:-_height/2);e.Handled=true;}
             if(e.Key==Key.Tab)
             {
@@ -121,6 +137,23 @@ internal sealed partial class PopupVisual:UIElement
         Draw(scale);
     }
     private double MaxScroll=>Math.Max(0,_contentBottom-_viewport.Rect.Bottom);
+    private Rect ScrollbarTrack=>new(312,_viewport.Rect.Top+3,5,Math.Max(1,_viewport.Rect.Height-6));
+    private Rect ScrollbarThumb
+    {
+        get
+        {
+            var track=ScrollbarTrack;
+            var height=Math.Min(track.Height,Math.Max(24,track.Height*_viewport.Rect.Height/(_viewport.Rect.Height+MaxScroll)));
+            var offset=MaxScroll>0?(track.Height-height)*Math.Clamp(_scroll/MaxScroll,0,1):0;
+            return new(track.X,track.Top+offset,track.Width,height);
+        }
+    }
+    private void DragScrollTo(double y)
+    {
+        var travel=ScrollbarTrack.Height-ScrollbarThumb.Height;
+        if(travel<=0||_scrollDragOffset is not double offset)return;
+        Scroll((y-ScrollbarTrack.Top-offset)/travel*MaxScroll-_scroll);
+    }
     private void Scroll(double delta)
     {
         var next=Math.Clamp(_scroll+delta,0,MaxScroll);
@@ -146,7 +179,11 @@ internal sealed partial class PopupVisual:UIElement
         d.PushClip(_viewport);d.PushTransform(new TranslateTransform(0,-_scroll));
         if(_sample is{}s){if(_module==BarModule.Cpu)Cpu(d,s);else if(_module==BarModule.Ram)Ram(d,s);else DrawModule(d,s);}else Loading(d);
         d.Pop();d.Pop();
-        if(MaxScroll>0&&_height>70)d.DrawRoundedRectangle(Dim,null,new Rect(314,47+(_height-70)*Math.Min(1,_scroll/MaxScroll),2,20),1,1);
+        if(MaxScroll>0&&_height>70)
+        {
+            d.DrawRoundedRectangle(Gray,null,ScrollbarTrack,2,2);
+            d.DrawRoundedRectangle(Dim,null,ScrollbarThumb,2,2);
+        }
         d.Pop();
     }
     private void Loading(DrawingContext d)
@@ -166,8 +203,8 @@ internal sealed partial class PopupVisual:UIElement
     private void Cpu(DrawingContext d,PopupSample s)
     {
         if(s.Cpu is not (>=0 and <=100)){Unavailable(d,s.Explanation);return;}
-        Hero(d,49,104);
-        Ring(d,65,101,31,s.Cpu,Percent(s.Cpu));
+        Hero(d,49,124);
+        Ring(d,65,101,31,s.Cpu,Percent(s.Cpu),UsageBrush(BarModule.Cpu,s.Cpu));
         Text(d,"Total CPU usage",113,64,12,TextBrush,bold:true);
         if(s.FrequencyGhz is >0 and <double.PositiveInfinity && s.MaxGhz is >0 and <double.PositiveInfinity)
         {
@@ -178,7 +215,10 @@ internal sealed partial class PopupVisual:UIElement
             MetricBar(d,"System CPU",Percent(s.System),s.System.Value,91,Red);
         else if(s.FrequencyGhz is >0 and <double.PositiveInfinity)
             Text(d,$"Clock speed · {s.FrequencyGhz:0.00} GHz",113,94,10.5,Dim);
-        double y=161;Section(d,"USAGE HISTORY",ref y);Chart(d,y);y+=94;
+        var temperature=s.LastCpuPackageCelsius is double temp?FormatSensorTemp(temp)+(s.CpuTemperatureAutomatic?"":" · last check")
+            :s.CpuTemperatureMeasuring?"Measuring…":s.CpuTemperatureAutomatic?"Unavailable":"Check in Dashboard";
+        Text(d,"CPU temp · "+temperature,113,143,10,s.LastCpuPackageCelsius is double celsius?SensorTempBrush(celsius):TextBrush,maxWidth:181);
+        double y=181;Section(d,"USAGE HISTORY",ref y);Chart(d,y);y+=94;
         if(s.Cores.Any(v=>double.IsFinite(v)&&v is>=0 and<=100))
         {
             var maxClass=s.Classes.Length>0?s.Classes.Max():-1;var hybrid=s.Classes.Length==s.Cores.Length&&s.Classes.All(c=>c>=0)&&s.Classes.Distinct().Count()>1;double width=290.0/s.Cores.Length;
@@ -205,8 +245,6 @@ internal sealed partial class PopupVisual:UIElement
             if(eCount>0)Row(d,"E-cores",Percent(e/eCount),Cyan,ref y);
         }
         Row(d,"Uptime",$"{(int)s.Uptime.TotalDays}d {s.Uptime.Hours}h {s.Uptime.Minutes}m",null,ref y);
-        if(s.Capabilities?.GetValueOrDefault("temperature")?.Availability==Islet.Core.Capabilities.CapabilityAvailability.NeedsHelper)
-            Row(d,"CPU temperature","Sensor helper required",null,ref y);
         y+=6;
         if(_averages is{}averages)
         {
@@ -224,20 +262,24 @@ internal sealed partial class PopupVisual:UIElement
         if(s.Memory is not{Valid:true}m){Text(d,"RAM readings unavailable",160,100,12,Dim,center:true);Text(d,s.Explanation,16,135,11,Dim,maxWidth:288);_contentBottom=200;return;}
         var memoryPanelHeight=m.CommitValid?116:92;
         Hero(d,49,memoryPanelHeight);
-        Ring(d,65,49+memoryPanelHeight/2.0,31,m.UsedPercent,Percent(m.UsedPercent));
+        var usage=UsageBrush(BarModule.Ram,m.UsedPercent);
+        var pressure=BarThresholds.UsageLevel(BarModule.Ram,m.Pressure,ThresholdPercent);
+        var pressureBrush=pressure==ThresholdLevel.Normal?Dim:UsageBrush(BarModule.Ram,m.Pressure);
+        var pressureText=pressure==ThresholdLevel.Critical?"Critical":pressure==ThresholdLevel.Warning?"High":"Normal";
+        Ring(d,65,49+memoryPanelHeight/2.0,31,m.UsedPercent,Percent(m.UsedPercent),usage);
         Text(d,"Physical memory",113,61,12,TextBrush,bold:true);
         Text(d,$"{Bytes(m.Total-m.Available)} used of {Bytes(m.Total)}",113,79,10.5,Dim,maxWidth:181);
-        if(m.CommitValid)
+        double? committedPercent=m.CommitValid?100.0*m.Committed!.Value/m.CommitLimit!.Value:null;
+        if(committedPercent is double committed)
         {
-            var committed=100.0*m.Committed!.Value/m.CommitLimit!.Value;
-            MetricBar(d,"Committed memory",Percent(committed),committed,100,Red);
+            MetricBar(d,"Committed memory",Percent(committed),committed,100,_palette.Status(BarThresholds.UsageLevel(BarModule.Ram,committed,ThresholdPercent),Green));
         }
-        Text(d,"Memory pressure · "+m.PressureName,113,49+memoryPanelHeight-23,10.5,Dim,maxWidth:181);
+        Text(d,"Memory pressure · "+pressureText,113,49+memoryPanelHeight-23,10.5,pressureBrush,bold:pressure!=ThresholdLevel.Normal,maxWidth:181);
         double y=57+memoryPanelHeight;Section(d,"USAGE HISTORY",ref y);Chart(d,y);y+=98;Section(d,"DETAILS",ref y);
-        Row(d,"Used",Bytes(m.Total-m.Available),Blue,ref y);
-        d.DrawRoundedRectangle(Gray,null,new Rect(15,y,290,7),3,3);d.DrawRoundedRectangle(_chart.Accent,null,new Rect(15,y,290*m.UsedPercent/100,7),3,3);y+=20;
+        Row(d,"Used",Bytes(m.Total-m.Available),usage,ref y);
+        d.DrawRoundedRectangle(Gray,null,new Rect(15,y,290,7),3,3);d.DrawRoundedRectangle(usage,null,new Rect(15,y,290*m.UsedPercent/100,7),3,3);y+=20;
         Row(d,"Available",Bytes(m.Available),Gray,ref y);Row(d,"System cache*",Bytes(m.Cache),Cyan,ref y,m.Cache.HasValue);
-        Row(d,"Committed",Bytes(m.Committed),Orange,ref y,m.CommitValid);Row(d,"Commit limit",Bytes(m.CommitLimit),null,ref y,m.CommitValid);
+        Row(d,"Committed",Bytes(m.Committed),_palette.Status(BarThresholds.UsageLevel(BarModule.Ram,committedPercent,ThresholdPercent),Green),ref y,m.CommitValid);Row(d,"Commit limit",Bytes(m.CommitLimit),null,ref y,m.CommitValid);
         Row(d,"Page file in use",Bytes(m.PageFileUsed),null,ref y,m.PageFileUsed.HasValue);Row(d,"Page file total",Bytes(m.PageFileTotal),null,ref y,m.PageFileTotal.HasValue);
         Text(d,"*Cache overlaps Used/Available; it is not added.",15,y+1,9.2,Dim);y+=23;
         Processes(d,s,ref y);_contentBottom=y+12;
@@ -274,10 +316,10 @@ internal sealed partial class PopupVisual:UIElement
         geometry.Freeze();d.DrawGeometry(_chart.Fill,_chart.Line,geometry);
     }
     private void Hero(DrawingContext d,double y,double height)=>d.DrawRoundedRectangle(_palette.Panel,_palette.InsetBorder,new Rect(14,y,292,height),9,9);
-    private void Ring(DrawingContext d,double x,double y,double radius,double? percent,string value)
+    private void Ring(DrawingContext d,double x,double y,double radius,double? percent,string value,Brush? accent=null)
     {
         if(!Intersects(y-radius-4,2*radius+8))return;
-        d.DrawEllipse(_palette.Panel,RingPen,new Point(x,y),radius,radius);if(percent is{}p&&double.IsFinite(p)&&p>0&&p<=100)Arc(d,x,y,radius,-90,Math.Min(359.99,p*3.6),_chart.Accent,7);
+        d.DrawEllipse(_palette.Panel,RingPen,new Point(x,y),radius,radius);if(percent is{}p&&double.IsFinite(p)&&p>0&&p<=100)Arc(d,x,y,radius,-90,Math.Min(359.99,p*3.6),accent??_chart.Accent,7);
         var text=GetText(value,x,y,18,TextBrush,true,false,null);
         if(text.Width>2*radius-14)
             text=GetText(value,x,y,11,TextBrush,true,false,null);
@@ -308,28 +350,29 @@ internal sealed partial class PopupVisual:UIElement
         }
         y+=24;
     }
+    private Brush UsageBrush(BarModule module,double? percent)=>_palette.Status(BarThresholds.UsageLevel(module,percent,ThresholdPercent),_chart.Accent);
     private void Row(DrawingContext d,string name,string value,Brush? dot,ref double y,bool show=true)
     {
         if(!show)return;
         if(Intersects(y,22))
         {
             var x=15.0;if(dot is not null){d.DrawRoundedRectangle(dot,null,new Rect(15,y+4,6,6),2,2);x=28;}
-            Text(d,name,x,y,11.5,TextBrush,maxWidth:142);Text(d,value,305,y,11.5,TextBrush,bold:true,right:true,maxWidth:140);
+            Text(d,name,x,y,11.5,TextBrush,maxWidth:165,maxLines:1);Text(d,value,305,y,11.5,TextBrush,bold:true,right:true,maxWidth:100,maxLines:1);
         }
         y+=22;
     }
-    private void Text(DrawingContext d,string value,double x,double y,double size,Brush color,bool bold=false,bool center=false,bool right=false,bool icons=false,double? maxWidth=null)
+    private void Text(DrawingContext d,string value,double x,double y,double size,Brush color,bool bold=false,bool center=false,bool right=false,bool icons=false,double? maxWidth=null,int maxLines=2)
     {
         if(y>=43&&!Intersects(y,size*3))return;
-        var t=GetText(value,x,y,size,color,bold,icons,maxWidth);
+        var t=GetText(value,x,y,size,color,bold,icons,maxWidth,maxLines);
         d.DrawText(t,MonitorText.PixelAligned(right?x-t.Width:center?x-t.Width/2:x,y,_scale));
     }
-    private FormattedText GetText(string value,double x,double y,double size,Brush color,bool bold,bool icons,double? maxWidth)
+    private FormattedText GetText(string value,double x,double y,double size,Brush color,bool bold,bool icons,double? maxWidth,int maxLines=2)
     {
-        var key=(x,y,size,color,bold,icons,maxWidth);
+        var key=(x,y,size,color,bold,icons,maxWidth,maxLines);
         if(_texts.TryGetValue(key,out var cached)&&cached.Value==value)return cached.Text;
         var text=MonitorText.Format(value,icons?Icons:bold?Bold:Face,size,color,_scale);
-        if(maxWidth is{}width){text.MaxTextWidth=width;text.MaxLineCount=2;text.Trimming=TextTrimming.CharacterEllipsis;}
+        if(maxWidth is{}width){text.MaxTextWidth=width;text.MaxLineCount=maxLines;text.Trimming=TextTrimming.CharacterEllipsis;}
         // Capability changes can move rows. Bound lifetime retention even across every layout.
         if(_texts.Count>=128)_texts.Clear();_texts[key]=(value,text);return text;
     }

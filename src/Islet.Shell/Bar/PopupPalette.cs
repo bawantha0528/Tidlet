@@ -28,7 +28,7 @@ internal sealed class PopupPalette
     internal ChartStyle Download { get; }
     internal ChartStyle Upload { get; }
     private readonly ChartStyle _blueChart, _greenChart;
-    internal ChartStyle Chart(BarModule module) => module is BarModule.Ram or BarModule.Battery ? _greenChart : _blueChart;
+    internal ChartStyle Chart(BarModule module) => module==BarModule.Battery ? _greenChart : _blueChart;
 
     private PopupPalette(BarTheme theme)
     {
@@ -54,6 +54,13 @@ internal sealed class PopupPalette
         _blueChart = new(light ? 0x086BB7 : 0x2896E9, light ? 85 : 198);
         _greenChart = new(light ? 0x187B47 : 0x2CA860, light ? 80 : 198);
     }
+
+    internal Brush Status(ThresholdLevel level, Brush normal) => level switch
+    {
+        ThresholdLevel.Warning => Orange,
+        ThresholdLevel.Critical => Red,
+        _ => normal
+    };
 
     internal sealed class ChartStyle(int rgb, int alpha)
     {

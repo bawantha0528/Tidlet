@@ -7,7 +7,7 @@ using Islet.Core.Popups;
 namespace Islet.Shell.Bar;
 
 internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent, double scale, bool useBits,
-    IReadOnlyDictionary<BarModule, PopupSample> samples, IReadOnlySet<BarModule> previous)
+    IReadOnlyDictionary<BarModule, PopupSample> samples, IReadOnlySet<BarModule> previous, int thresholdPercent, bool fahrenheit)
 {
     private static readonly Typeface Face = new("Segoe UI Variable, Segoe UI");
     private static readonly Typeface Bold = new(Face.FontFamily, FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
@@ -40,13 +40,13 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
     }
 
     private void Label(DrawingContext drawing, string value, double x, double y, double size, Brush brush,
-        bool bold = false, double? width = null, bool center = false, bool right = false)
+        bool bold = false, double? width = null, bool center = false, bool right = false, int maxLines = 2)
     {
         var text = MonitorText.Format(value, bold ? Bold : Face, size, brush, _scale);
         if (width is { } available)
         {
             text.MaxTextWidth = Math.Max(1, available);
-            text.MaxLineCount = 2;
+            text.MaxLineCount = maxLines;
             text.Trimming = TextTrimming.CharacterEllipsis;
             text.TextAlignment = center ? TextAlignment.Center : right ? TextAlignment.Right : TextAlignment.Left;
         }
@@ -59,21 +59,25 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
     private void GaugeWidget(DrawingContext drawing, Rect card, BarModule module, PopupSample? sample)
     {
         var center = new Point(card.Left + card.Width / 2, card.Top + 76);
-        var first = module == BarModule.Cpu ? ValidWidgetPercent(sample?.System) : null;
+        var system = module == BarModule.Cpu ? ValidWidgetPercent(sample?.System) : null;
         var charge = WidgetPercent(module, sample);
-        var accent = module == BarModule.Battery ? charge <= 15 ? _palette.Metrics.Red : _palette.Metrics.BatteryFill : _blue;
+        var level = MeterLevel(module, charge);
+        var accent = _palette.Metrics.Status(level, module == BarModule.Battery ? _palette.Metrics.BatteryFill : _blue);
+        var first = level == ThresholdLevel.Normal ? system : null;
         WidgetRing(drawing, center, 34, charge, first, accent);
         var row = card.Top + 119;
         switch (module)
         {
             case BarModule.Cpu:
-                WidgetRow(drawing, card, "System", WidgetPercentText(first), row, _palette.Metrics.Red);
+                WidgetRow(drawing, card, "System", WidgetPercentText(system), row, _palette.Metrics.Cyan);
                 WidgetRow(drawing, card, "User", WidgetPercentText(ValidWidgetPercent(sample?.User)), row + 21, _blue);
+                TemperatureRow(drawing, card, "CPU temp", sample?.LastCpuPackageCelsius, row + 42);
                 break;
             case BarModule.Gpu:
                 var adapter = BusiestGpu(sample);
                 WidgetRow(drawing, card, "Peak usage", WidgetPercentText(ValidWidgetPercent(adapter?.Usage)), row, _blue);
-                if (adapter is not null) Label(drawing, adapter.Name, card.Left + 12, row + 22, 10, _dim, width: card.Width - 24);
+                if (adapter is not null) Label(drawing, adapter.Name, card.Left + 12, row + 22, 10, _dim, width: card.Width - 24, maxLines: 1);
+                TemperatureRow(drawing, card, "Peak GPU temp", PeakGpuTemperature(sample), row + 42);
                 break;
             case BarModule.Ram:
                 if (sample?.Memory is { Valid: true } memory)
@@ -99,9 +103,10 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
                         ? battery.OnAc switch { true => "Plugged in", false => "On battery", _ => null }
                         : reading.ChargingStatus.ToString();
                     WidgetRow(drawing, card, "Status", status, row, accent);
-                    WidgetRow(drawing, card, "Health", WidgetPercentText(ValidWidgetPercent(reading.HealthPercent)), row + 21);
+                    WidgetRow(drawing, card, "Health", WidgetPercentText(ValidWidgetPercent(reading.HealthPercent)), row + 21, _palette.Metrics.Status(BarThresholds.BatteryHealthLevel(reading.HealthPercent), _palette.Metrics.Green));
                     if (reading.ChargeRateMilliwatts is { } power && double.IsFinite(power))
-                        WidgetRow(drawing, card, "Power", $"{Math.Abs(power) / 1000:0.0} W", row + 42);
+                        WidgetRow(drawing, card, "Power", $"{Math.Abs(power) / 1000:0.0} W", row + 39);
+                    TemperatureRow(drawing, card, "Battery temp", battery.TemperatureCelsius, row + 55, thermalWarning: false);
                 }
                 else if (sample?.Battery?.Reading is { } missing)
                     Label(drawing, missing.Explanation, card.Left + 12, row, 10, _dim, width: card.Width - 24);
@@ -132,10 +137,31 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
             var x = card.Left + card.Width * (index % 2 == 0 ? .26 : .74);
             var y = card.Top + 69 + index / 2 * 72;
             var center = new Point(x, y);
-            WidgetRing(drawing, center, Math.Min(26, card.Width * .18), WidgetPercent(module, _samples.GetValueOrDefault(module)));
-            var label = MonitorText.Format(WidgetName(module), Face, 10, _dim, _scale);
+            var percent = WidgetPercent(module, _samples.GetValueOrDefault(module));
+            WidgetRing(drawing, center, Math.Min(26, card.Width * .18), percent, accent: _palette.Metrics.Status(MeterLevel(module, percent), _blue));
+            var sample = _samples.GetValueOrDefault(module);
+            var temperature = module == BarModule.Cpu ? sample?.LastCpuPackageCelsius
+                : module == BarModule.Gpu ? PeakGpuTemperature(sample) : null;
+            var label = MonitorText.Format(temperature is > 0 and <= 150
+                ? WidgetName(module) + " · " + FormatTemperature(temperature.Value, 0) : WidgetName(module), Face, 10,
+                temperature is > 0 and <= 150 ? _palette.Metrics.Status(BarThresholds.TemperatureLevel(temperature), _dim) : _dim, _scale);
             drawing.DrawText(label, MonitorText.Centered(label, new Point(x, y + 35), _scale));
         }
+    }
+
+    private static double? PeakGpuTemperature(PopupSample? sample) =>
+        sample?.Gpu?.Adapters.Where(adapter => adapter.TemperatureCelsius is > 0 and <= 150)
+            .Select(adapter => adapter.TemperatureCelsius).DefaultIfEmpty().Max();
+
+    private string FormatTemperature(double celsius, int decimals = 1) =>
+        (fahrenheit ? celsius * 1.8 + 32 : celsius).ToString(decimals == 0 ? "0" : "0.0") + (fahrenheit ? " °F" : " °C");
+
+    private void TemperatureRow(DrawingContext drawing, Rect card, string title, double? celsius, double y, bool thermalWarning = true)
+    {
+        var valid = thermalWarning ? celsius is > 0 and <= 150 : celsius is >= -40 and <= 100;
+        if (!valid || celsius is not double value) return;
+        var marker = thermalWarning ? _palette.Metrics.Status(BarThresholds.TemperatureLevel(value), _palette.Metrics.Green) : _blue;
+        WidgetRow(drawing, card, title, FormatTemperature(value), y, marker);
     }
 
     private void WidgetRow(DrawingContext drawing, Rect card, string name, string? value, double y, Brush? marker = null)
@@ -152,6 +178,13 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
         Label(drawing, value, split, y, 10, _text, true, card.Right - split - 12, right: true);
     }
 
+    private ThresholdLevel MeterLevel(BarModule module, double? percent) => module switch
+    {
+        BarModule.Battery => BarThresholds.BatteryChargeLevel(percent),
+        BarModule.Disk => BarThresholds.StorageLevel(percent),
+        _ => BarThresholds.UsageLevel(module, percent, thresholdPercent)
+    };
+
     private void WidgetRing(DrawingContext drawing, Point center, double radius, double? value, double? first = null, Brush? accent = null)
     {
         const double thickness = 6;
@@ -159,7 +192,7 @@ internal sealed class WidgetCardRenderer(DashboardPalette palette, Brush accent,
         if (value is > 0 and <= 100)
         {
             var split = Math.Min(value.Value, first ?? 0);
-            if (split > 0) WidgetArc(drawing, center, radius, -90, split * 3.6, _palette.Metrics.Red);
+            if (split > 0) WidgetArc(drawing, center, radius, -90, split * 3.6, _palette.Metrics.Cyan);
             if (split < value) WidgetArc(drawing, center, radius, -90 + split * 3.6, (value.Value - split) * 3.6, accent ?? _blue);
         }
         var text = MonitorText.Format(WidgetPercentText(value) ?? "—", Bold, radius > 26 ? 20 : 13, _text, _scale);

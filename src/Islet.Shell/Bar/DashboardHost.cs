@@ -18,7 +18,8 @@ public sealed record DashboardActions(Action<nint,BarRect,bool> Position,Action 
     Func<UsageSnapshot>? Usage=null,Action<UsagePeriod>? SelectUsage=null,Func<string>? PinUsage=null,
     Func<CancellationToken,Task<string>>? WifiDiagnostics=null,Func<CancellationToken,Task<string>>? StorageHealth=null,
     Func<string>? StorageCleanup=null,Func<string>? BatteryCapacity=null,
-    Func<CancellationToken,TempCleanupScan>? TempScan=null,Func<TempCleanupScan,CancellationToken,TempCleanupResult>? TempClean=null);
+    Func<CancellationToken,TempCleanupScan>? TempScan=null,Func<TempCleanupScan,CancellationToken,TempCleanupResult>? TempClean=null,
+    Action<bool>? SetGamingMode=null,Func<Task<string>>? ReadCpuTemperature=null,Func<double?>? LastCpuTemperature=null,Func<string?>? CpuTemperatureStatus=null,Func<IPopupSource>? WidgetMetrics=null);
 public sealed record DashboardEvent(string Action,string Page,double Seconds,int Reads,int Frames);
 public sealed record DashboardCapture(string Path,int Percent,int Width,int Height,double StartedSeconds,double CompletedSeconds);
 
@@ -110,7 +111,7 @@ public sealed partial class DashboardHost:IDisposable
 
     private sealed partial class DashboardVisual:UIElement,IDisposable
     {
-        private static readonly string[] Pages=["Dashboard","CPU","GPU","RAM","Disk","Network","Battery","Sensors","Widgets","Settings"];
+        private static readonly string[] Pages=["Dashboard","CPU","GPU","RAM","Disk","Network","Battery","Sensors",GamingPage,"Widgets","Settings"];
         private readonly DrawingVisual _drawing=new();private readonly List<SurfaceAction> _buttons=[];
         private DrawingGroup _backdrop;
         private DashboardPalette _palette;
@@ -163,6 +164,8 @@ public sealed partial class DashboardHost:IDisposable
                 var height=Math.Max(1,Height-top-(ShowsPowerMode?55:30));
                 _presenter=new(module,Width-250,height,_scale,_settings().Preference(module).UpdateSeconds,_metrics,_previous,_palette);AddVisualChild(_presenter);
                 _presenter.SetUnits(_settings().UseBits);
+                _presenter.SetTemperatureUnit(_settings().Fahrenheit);
+                _presenter.SetWarningThreshold(_settings().ThresholdPercent);
                 if(module==BarModule.Battery)_presenter.SetBatteryCapacity(_actions.BatteryCapacity);
                 _presenter.WarmStart(_recent);
                 _presenter.Measure(new Size(Width-250,height));_presenter.Arrange(new Rect(230,top,Width-250,height));
@@ -188,6 +191,8 @@ public sealed partial class DashboardHost:IDisposable
                 return;
             }
             _presenter?.SetUnits(settings.UseBits);
+            _presenter?.SetTemperatureUnit(settings.Fahrenheit);
+            _presenter?.SetWarningThreshold(settings.ThresholdPercent);
             if(_page=="Widgets")
             {
                 if(settings.Pause)StopWidgets();
@@ -207,15 +212,30 @@ public sealed partial class DashboardHost:IDisposable
             if(Enum.TryParse<BarModule>(_page,true,out var selected))
             {
                 var current=selected;
+                if(current==BarModule.Cpu&&_actions.ReadCpuTemperature is not null)
+                {
+                    var label=_readingCpuTemperature?"Checking…":"Check CPU temp";
+                    if(!_readingCpuTemperature&&_actions.LastCpuTemperature?.Invoke() is double celsius)
+                    {
+                        var temperature=_settings().Fahrenheit?$"{celsius*1.8+32:0.0} °F":$"{celsius:0.0} °C";
+                        label=temperature+" · Check again";
+                    }
+                    DrawPageButton(d,label,new Rect(Width-294,19,139,27),false,()=>_ = ReadCpuTemperature());
+                }
                 SettingsButton(d,"Settings for "+_page,new Rect(Width-82,16,28,28),()=>OpenModuleSettings(current));
                 var enabled=_settings().Items.Contains(current);var toggle=new Rect(Width-132,23,36,20);
-                d.DrawRoundedRectangle(enabled?_blue:_palette.Metrics.Track,null,toggle,10,10);
-                d.DrawEllipse(enabled?Brushes.White:_dim,null,new Point(toggle.Left+(enabled?26:10),toggle.Top+10),7,7);
+                DrawTogglePill(d,toggle,enabled,_dim);
                 Hit((enabled?"Hide ":"Show ")+_page+" in bar",toggle,()=>Change(s=>s.WithItemVisibility(current,!s.Items.Contains(current))));
+            }
+            else if(_page=="Dashboard"&&_settings().GamingMode)
+            {
+                var center=new Point(Width-66,30);
+                d.DrawEllipse(_surface,_palette.CardBorder,center,13,13);
+                DashboardIcons.Draw(d,"Gaming",center,_blue);
             }
             for(int i=0;i<Pages.Length;i++)
             {
-                var name=Pages[i];var rect=new Rect(20,85+i*42,175,36);var active=_page==name||name=="Battery"&&_page==BatteryOptimizationPage||name=="Disk"&&_page==TempCleanupPage;
+                var name=Pages[i];var rect=new Rect(20,85+i*38,175,36);var active=_page==name||name=="Battery"&&_page==BatteryOptimizationPage||name=="Disk"&&_page==TempCleanupPage;
                 if(active)DrawSettingsSelection(d,rect);
                 var iconBrush=active?SelectionText:_dim;
                 if(name=="Settings")DrawSettingsGear(d,new Point(38,rect.Top+17),iconBrush,14);
@@ -234,13 +254,13 @@ public sealed partial class DashboardHost:IDisposable
             if(_page==BatteryOptimizationPage)
                 DrawPageButton(d,"Back to Battery",new Rect(Width-195,19,145,27),false,()=>Select("Battery"));
             d.PushClip(new RectangleGeometry(new Rect(220,66,Width-240,Height-120)));d.PushTransform(new TranslateTransform(0,-_scroll));
-            if(_page=="Dashboard")Overview(d);else if(_page=="Settings")Settings(d);else if(_page=="About")About(d);else if(_page=="Widgets")Widgets(d);
+            if(_page=="Dashboard")Overview(d);else if(_page==GamingPage)Gaming(d);else if(_page=="Settings")Settings(d);else if(_page=="About")About(d);else if(_page=="Widgets")Widgets(d);
             else if(_page==BatteryOptimizationPage)DrawBatteryOptimization(d);
             else if(_page==TempCleanupPage)DrawTempCleanup(d);
             else if(_settings().Pause){var y=StripPreviewTop+85;Label(d,"Monitoring is paused",245,y,18,_text,true);Label(d,"Resume monitoring to show live readings.",245,y+40,12,_dim,false,Width-285);_bottom=y+110;}
             d.Pop();d.Pop();
             if(_presenter is null&&_bottom>Height-55){var track=Height-150;var maximum=Math.Max(1,_bottom-Height+55);d.DrawRoundedRectangle(_dim,null,new Rect(Width-10,80+(track-70)*_scroll/maximum,3,70),1.5,1.5);}
-            var status=_status.Length>0?_status:_page=="Settings"?"Changes are saved automatically.":"";
+            var status=_status.Length>0?_status:_page switch{"CPU"=>_actions.CpuTemperatureStatus?.Invoke()??"","Settings" or GamingPage=>"Changes are saved automatically.",_=>""};
             if(status.Length>0)Label(d,status,235,Height-38,11,_status.Length>0?_text:_dim,false,Width-260);
             DrawSettingsMenu(d);
             _presenter?.Redraw(scale);
@@ -333,12 +353,50 @@ public sealed partial class DashboardHost:IDisposable
                 Label(d,fact.Value,Width-40-valueWidth,y+11,13,_text,false,valueWidth,right:true);
                 y+=rowHeight;
             }
-            foreach(var limit in _device?.Limitations??[]){Label(d,limit,240,y,11,_dim,false,Width-270);y+=40;}_bottom=y;
             if(_device is null)
             {
                 d.DrawRoundedRectangle(_surface,_palette.CardBorder,new Rect(230,top,contentWidth,50),11,11);
-                Label(d,"Preparing device details…",245,top+14,13,_dim);_bottom=top+50;
+                Label(d,"Preparing device details…",245,top+14,13,_dim);y=top+50;
             }
+            y+=16;
+            foreach(var limit in _device?.Limitations??[]){Label(d,limit,240,y,11,_dim,false,Width-270);y+=40;}_bottom=y;
+        }
+        private void DrawTogglePill(DrawingContext d,Rect bounds,bool enabled,Brush? offKnob=null)
+        {
+            var radius=bounds.Height/2;
+            var knob=bounds.Height-6;
+            d.DrawRoundedRectangle(enabled?_blue:_palette.Metrics.Track,null,bounds,radius,radius);
+            d.DrawEllipse(enabled?Brushes.White:(offKnob??Brushes.White),null,new Point(bounds.Left+(enabled?bounds.Width-radius:radius),bounds.Top+radius),knob/2,knob/2);
+        }
+        private bool _readingCpuTemperature;
+        private async Task ReadCpuTemperature()
+        {
+            if(_readingCpuTemperature||_actions.ReadCpuTemperature is not { } read)return;
+            _readingCpuTemperature=true;
+            _status="Checking CPU temperature. Windows may ask for permission.";
+            Draw(_scale);
+            try
+            {
+                var result=await read();
+                if(_page=="CPU")_status=result;
+            }
+            finally
+            {
+                _readingCpuTemperature=false;
+                if(IsVisible&&_page=="CPU")Draw(_scale);
+            }
+        }
+
+        private void ToggleGamingMode()
+        {
+            var next=!_settings().GamingMode;
+            if(_actions.SetGamingMode is{}setGamingMode)
+            {
+                setGamingMode(next);
+                _status=next?"Gaming Mode on. The strip uses your Gaming layout.":"Gaming Mode off.";
+                Draw(_scale);
+            }
+            else Change(s=>s with{GamingMode=next},next?"Gaming Mode on.":"Gaming Mode off.");
         }
         private void Choice(DrawingContext d,string name,string value,ref double y,Action action)
         {
@@ -422,7 +480,7 @@ public sealed partial class DashboardHost:IDisposable
         }
         public void Dispose(){_inspectionCancellation?.Cancel();ResetTempCleanup();StopWidgets();if(_presenter is not null){Reads+=_presenter.Reads;Frames+=_presenter.Frames;_coreDetailRequests+=_presenter.CoreDetailRequests;_processDetailRequests+=_presenter.ProcessDetailRequests;_presenter.Dispose();Cleanup.Add(_presenter.Cleanup);RemoveVisualChild(_presenter);_presenter=null;}}
         private sealed class DashboardPeer(DashboardVisual owner):UIElementAutomationPeer(owner)
-        {protected override string GetNameCore()=>"Tidlet "+owner._page;protected override string GetClassNameCore()=>"TidletDashboard";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Window;}
+        {protected override string GetNameCore()=>"Tidlet "+owner._page;protected override string GetHelpTextCore()=>owner._page=="Dashboard"&&owner._settings().GamingMode?"Gaming Mode on":"";protected override string GetClassNameCore()=>"TidletDashboard";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Window;}
     }
     private sealed class SurfaceAction:UIElement
     {

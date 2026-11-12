@@ -26,6 +26,23 @@ public sealed class BarPolicyTests
         }
     }
     [TestMethod]
+    public void BatteryStaysLastUntilTheUserChoosesADifferentOrder()
+    {
+        var settings=new BarSettings{Items=[BarModule.Cpu,BarModule.Battery,BarModule.Ram]};
+        CollectionAssert.AreEqual(new[]{BarModule.Cpu,BarModule.Ram,BarModule.Battery},settings.NormalItems);
+        settings=settings.WithItemVisibility(BarModule.Gpu,true);
+        Assert.AreEqual(BarModule.Battery,settings.NormalItems[^1]);
+        settings=settings.MoveItemEarlier(BarModule.Battery);
+        var ordered=settings.NormalItems.ToArray();
+        Assert.AreNotEqual(BarModule.Battery,ordered[^1]);
+        settings=BarSettingsFile.Import(BarSettingsFile.Export(settings));
+        settings=settings.WithItemVisibility(BarModule.Battery,false).WithItemVisibility(BarModule.Battery,true);
+        CollectionAssert.AreEqual(ordered,settings.NormalItems);
+        Assert.AreEqual(BarModule.Battery,settings.MoveItemLater(BarModule.Battery).NormalItems[^1]);
+        Assert.AreEqual(BarModule.Battery,(settings with { GamingMode=true }).VisibleItems[^1]);
+    }
+
+    [TestMethod]
     public void ExplicitReorderingIsRememberedBySubsequentToggles()
     {
         var settings=new BarSettings{Items=[BarModule.Cpu,BarModule.Gpu,BarModule.Ram]};
@@ -40,7 +57,7 @@ public sealed class BarPolicyTests
     [TestMethod]
     public void EveryItemCanBeSwitchedOffAndEmptyLayoutSurvivesExportImport()
     {
-        foreach(var module in Enum.GetValues<BarModule>())
+        foreach(var module in BarSettings.ConfigurableModules)
         {
             var settings=new BarSettings{Items=[module]}.WithItemVisibility(module,false);Assert.AreEqual(0,settings.Items.Length);
             var restored=BarSettingsFile.Import(BarSettingsFile.Export(settings));Assert.AreEqual(0,restored.Items.Length);Assert.AreEqual(0,BarLayout.Items(restored,1200,true).Length);

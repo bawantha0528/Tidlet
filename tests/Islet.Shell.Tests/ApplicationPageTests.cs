@@ -15,13 +15,43 @@ namespace Islet.Shell.Tests;
 public sealed class ApplicationPageTests
 {
     [TestMethod]
+    public void CpuTemperatureActionShowsTheReadingImmediatelyAndAfterReopen()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        double? reading=null;
+        using var host=new DashboardHost(()=>new BarSettings{Pause=true},_=>{},()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
+                ReadCpuTemperature:()=>{reading=49;return Task.FromResult("CPU temperature checked.");},
+                LastCpuTemperature:()=>reading,CpuTemperatureStatus:()=>reading.HasValue?"CPU temperature checked.":null));
+
+        host.Open("CPU");
+        var button=Find("Check CPU temp");
+        Assert.IsNotNull(button);
+        ((System.Windows.Automation.Provider.IInvokeProvider)UIElementAutomationPeer.CreatePeerForElement(button)!.GetPattern(PatternInterface.Invoke)!).Invoke();
+        var updated=$"{49d:0.0} °C · Check again";
+        PumpUntil(()=>Find(updated) is not null);
+        Assert.IsNotNull(Find(updated));
+        host.Close();
+        host.Open("CPU");
+        Assert.IsNotNull(Find(updated));
+
+        UIElement? Find(string label)
+        {
+            var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+            var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            var buttons=(System.Collections.IEnumerable)visual.GetType().GetField("_buttons",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(visual)!;
+            return buttons.Cast<UIElement>().FirstOrDefault(b=>UIElementAutomationPeer.CreatePeerForElement(b)?.GetName()==label);
+        }
+    });
+
+    [TestMethod]
     public void EachModulePageAppliesAndHighlightsItsStripStyle()=>Sta(()=>
     {
         var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
         var settings=new BarSettings{Pause=true};
         using var host=new DashboardHost(()=>settings,s=>settings=s,()=>new DeviceOverview("Mock","Windows",[],[]),
             ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{}));
-        foreach(var module in Enum.GetValues<BarModule>())
+        foreach(var module in BarSettings.ConfigurableModules)
         {
             var page=module is BarModule.Cpu or BarModule.Gpu or BarModule.Ram?module.ToString().ToUpperInvariant():module.ToString();
             host.Open(page);
@@ -37,7 +67,7 @@ public sealed class ApplicationPageTests
             Assert.AreEqual("Text strip style (selected)",Peer().GetName(),page);
         }
         var restored=BarSettingsFile.Import(BarSettingsFile.Export(settings));
-        Assert.IsTrue(Enum.GetValues<BarModule>().All(module=>restored.Preference(module).Style==BarItemStyle.TwoLine));
+        Assert.IsTrue(BarSettings.ConfigurableModules.All(module=>restored.Preference(module).Style==BarItemStyle.TwoLine));
     });
     [TestMethod]
     public void TempCleanupRequiresScanAndExplicitPermanentConfirmation()=>Sta(()=>
@@ -196,6 +226,24 @@ public sealed class ApplicationPageTests
     }
 
     [TestMethod]
+    public void SettingsStripOrderButtonMovesBatteryAndSavesTheOrder()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var settings=new BarSettings{Items=[BarModule.Cpu,BarModule.Battery]};
+        using var host=new DashboardHost(()=>settings,s=>settings=s,()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{}));
+        host.Open("Settings");
+        var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+        var visual=window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+        var buttons=(System.Collections.IEnumerable)visual.GetType().GetField("_buttons",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(visual)!;
+        var button=buttons.Cast<UIElement>().Single(b=>UIElementAutomationPeer.CreatePeerForElement(b)?.GetName()=="Battery ←");
+        ((System.Windows.Automation.Provider.IInvokeProvider)UIElementAutomationPeer.CreatePeerForElement(button)!.GetPattern(PatternInterface.Invoke)!).Invoke();
+        PumpUntil(()=>settings.StripOrderCustomized);
+        CollectionAssert.AreEqual(new[]{BarModule.Battery,BarModule.Cpu},settings.NormalItems);
+        CollectionAssert.AreEqual(settings.NormalItems,BarSettingsFile.Import(BarSettingsFile.Export(settings)).NormalItems);
+    });
+
+    [TestMethod]
     public void ThemeSettingRepaintsAndPersistsWithoutChangingTheStripLayout()=>Sta(()=>
     {
         var settings=new BarSettings{Edge=BarEdge.Bottom,Items=[BarModule.Ram,BarModule.Cpu,BarModule.Gpu],
@@ -335,7 +383,7 @@ public sealed class ApplicationPageTests
     [TestMethod]
     public void EveryModuleHeaderCanTurnItsLastBarItemOffAndBackOn()=>Sta(()=>
     {
-        foreach(var module in Enum.GetValues<BarModule>())
+        foreach(var module in BarSettings.ConfigurableModules)
         {
             var page=module switch{BarModule.Cpu=>"CPU",BarModule.Ram=>"RAM",BarModule.Gpu=>"GPU",_=>module.ToString()};var settings=new BarSettings{Items=[module]};DashboardHost? host=null;
             var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
@@ -613,8 +661,202 @@ public sealed class ApplicationPageTests
         finish.Tick+=(_,_)=>{finish.Stop();try{Assert.AreEqual(1,factories);Assert.IsTrue(reads>=2);Assert.AreEqual(reads,source.Reads);Assert.IsTrue(((Task)type.GetProperty("Cleanup")!.GetValue(page)!).Wait(1000));Assert.IsTrue(source.Disposed);}catch(Exception ex){failure=ex;}Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);};
         release.Start();close.Start();Dispatcher.Run();if(failure is not null)throw failure;
     });
+    [TestMethod]
+    public void GamingAndThresholdSettingsPersistAndToggleThroughGamingPage()=>Sta(()=>
+    {
+        var settings=new BarSettings();var gamingCallbacks=new List<bool>();
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        DashboardHost? host=null;
+        host=new DashboardHost(()=>settings,s=>{settings=s;host!.RefreshSettings();},()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
+                SetGamingMode:v=>{gamingCallbacks.Add(v);settings=settings with{GamingMode=v};host!.RefreshSettings();}));
+        using(host)
+        {
+            host.Open(DashboardHost.GamingPage);
+            var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+            var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            var inputSource=PresentationSource.FromVisual(visual);Assert.IsNotNull(inputSource);
+            InvokeByPrefix("Gaming Mode: ");
+            PumpUntil(()=>settings.GamingMode);
+            CollectionAssert.AreEqual(new[]{true},gamingCallbacks);
+
+            InvokeByPrefix("Auto Gaming Mode: ");
+            PumpUntil(()=>settings.GamingModeAuto);
+
+            InvokeByPrefix("Strip refresh: ");
+            PumpUntil(()=>FindButton("2 seconds") is not null);
+            InvokeExact("2 seconds");
+            PumpUntil(()=>settings.GamingRefreshSeconds==2);
+
+            InvokeByPrefix("FPS target: ");
+            PumpUntil(()=>FindButton("144 fps") is not null);
+            InvokeExact("144 fps");
+            PumpUntil(()=>settings.FpsTarget==144);
+
+            InvokeByPrefix("Warning threshold: ");
+            PumpUntil(()=>FindButton("90%") is not null);
+            InvokeExact("90%");
+            PumpUntil(()=>settings.ThresholdPercent==90);
+            visual.RaiseEvent(new System.Windows.Input.KeyEventArgs(System.Windows.Input.Keyboard.PrimaryDevice,inputSource,0,System.Windows.Input.Key.PageDown){RoutedEvent=UIElement.KeyDownEvent});
+            InvokeByPrefix("FPS and frame time: ");
+            PumpUntil(()=>!settings.GamingItems.Contains(BarModule.FrameRate));
+            Assert.IsTrue(settings.Items.Contains(BarModule.Network));
+            var restored=BarSettingsFile.Import(BarSettingsFile.Export(settings));
+            Assert.IsFalse(restored.GamingItems.Contains(BarModule.FrameRate));
+            Assert.AreEqual(2,restored.GamingRefreshSeconds);
+            Assert.AreEqual(144,restored.FpsTarget);
+            Assert.IsFalse(restored.GamingMode);
+
+            UIElement? FindButton(string exactOrPrefix,bool prefix=false)
+            {
+                var buttons=(System.Collections.IEnumerable)visual.GetType().GetField("_buttons",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(visual)!;
+                foreach(UIElement b in buttons)
+                {
+                    var name=UIElementAutomationPeer.CreatePeerForElement(b)?.GetName();
+                    if(name is not null&&(prefix?name.StartsWith(exactOrPrefix,StringComparison.Ordinal):name==exactOrPrefix))return b;
+                }
+                return null;
+            }
+            void InvokeByPrefix(string prefix)
+            {
+                var b=FindButton(prefix,true);Assert.IsNotNull(b,"Missing button "+prefix);
+                ((System.Windows.Automation.Provider.IInvokeProvider)UIElementAutomationPeer.CreatePeerForElement(b)!.GetPattern(PatternInterface.Invoke)!).Invoke();
+            }
+            void InvokeExact(string exact)
+            {
+                var b=FindButton(exact);Assert.IsNotNull(b,"Missing option "+exact);
+                ((System.Windows.Automation.Provider.IInvokeProvider)UIElementAutomationPeer.CreatePeerForElement(b)!.GetPattern(PatternInterface.Invoke)!).Invoke();
+            }
+        }
+    });
+    [TestMethod]
+    public void DashboardOverviewReportsGamingStatusWithoutAToggleOrPolling()=>Sta(()=>
+    {
+        var settings=new BarSettings();int factories=0;var gamingCalls=new List<bool>();
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var overview=new DeviceOverview("Mock Laptop","Windows 11",[new("Processor","Mock CPU"),new("Memory","16 GiB"),new("Graphics","Mock GPU"),new("Storage","512 GiB")],[]);
+        DashboardHost? host=null;
+        host=new DashboardHost(()=>settings,s=>{settings=s;host!.RefreshSettings();},()=>overview,
+            ()=>{factories++;return new Source();},()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
+                SetGamingMode:v=>{gamingCalls.Add(v);settings=settings with{GamingMode=v};host!.RefreshSettings();}));
+        using(host)
+        {
+            host.Open("Dashboard");
+            var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+            var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            var width=(double)visual.GetType().GetProperty("Width")!.GetValue(visual)!;
+            var nativeHit=window.GetType().GetMethod("HeaderHitTest",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var bounds=new BarRect(0,0,1280,900);
+            nint At(double x,double y){var px=(short)(int)Math.Round(x);var py=(short)(int)Math.Round(y);return (nint)(int)((ushort)px|((uint)(ushort)py<<16));}
+            Assert.AreEqual((nint)2,(nint)nativeHit.Invoke(window,[bounds,At(width-80,30),1.0])!);
+            var peer=UIElementAutomationPeer.CreatePeerForElement(visual)!;
+            Assert.AreEqual("",peer.GetHelpText());
+            Assert.IsNull(Find("Gaming Mode: Off"));
+            settings=settings with{GamingMode=true};
+            host.RefreshSettings();
+            Assert.AreEqual("Gaming Mode on",peer.GetHelpText());
+            Assert.IsNull(Find("Gaming Mode: On"));
+            Assert.IsNull(Find("Gaming Mode in strip: On"));
+
+            Invoke("Open Gaming");
+            PumpUntil(()=>host.PageHistory.LastOrDefault()==DashboardHost.GamingPage);
+            Invoke("Gaming Mode: On");
+            PumpUntil(()=>!settings.GamingMode);
+            CollectionAssert.AreEqual(new[]{false},gamingCalls);
+            Assert.AreEqual(0,factories);
+            Assert.AreEqual(0,host.CurrentReads);
+
+            UIElement? Find(string exact)
+            {
+                var buttons=(System.Collections.IEnumerable)visual.GetType().GetField("_buttons",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(visual)!;
+                foreach(UIElement b in buttons)
+                    if(UIElementAutomationPeer.CreatePeerForElement(b)?.GetName()==exact)return b;
+                return null;
+            }
+            void Invoke(string exact)
+            {
+                var b=Find(exact);Assert.IsNotNull(b,"Missing Dashboard button "+exact);
+                ((System.Windows.Automation.Provider.IInvokeProvider)UIElementAutomationPeer.CreatePeerForElement(b)!.GetPattern(PatternInterface.Invoke)!).Invoke();
+            }
+        }
+    });
+    [TestMethod]
+    public void LongSensorPopupScrollsToLastRowAndKeepsThumbInBounds()=>Sta(()=>
+    {
+        var type=typeof(DashboardHost).Assembly.GetType("Islet.Shell.Bar.PopupVisual")!;
+        var visual=(UIElement)Activator.CreateInstance(type,[BarModule.Sensors,240d,1d,(Action)(()=>{}),(Action)(()=>{}),false])!;
+        var items=Enumerable.Range(1,64).Select(i=>new SensorItem("Long adapter name","GPU",
+            $"Temperature channel {i} with a long manufacturer label",SensorKind.Temperature,50+i*.1,"°C")).ToArray();
+        var sample=new PopupSample(null,null,null,null,null,null,TimeSpan.Zero,null,[],[],[],"Sensors",
+            Sensors:new(null,56.4,null,items,false,"Available hardware sensor readings."));
+        var history=new SampleRing(5);
+        type.GetMethod("Update")!.Invoke(visual,[sample,history,history,1d]);
+        var first=Pixels(visual);
+        type.GetMethod("Scroll",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(visual,[100_000d]);
+        Assert.IsFalse(first.SequenceEqual(Pixels(visual)));
+        var flags=BindingFlags.Instance|BindingFlags.NonPublic;
+        var thumb=(Rect)type.GetProperty("ScrollbarThumb",flags)!.GetValue(visual)!;
+        var track=(Rect)type.GetProperty("ScrollbarTrack",flags)!.GetValue(visual)!;
+        Assert.AreEqual(track.Bottom,thumb.Bottom,.01);
+        Assert.IsTrue(thumb.Height>=24);
+    });
+
+    [TestMethod]
+    public void SensorsPageAndPopupRenderLiveTemperaturesFansAndFahrenheitUnit()=>Sta(()=>
+    {
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var settings=new BarSettings{Fahrenheit=false};
+        DashboardHost? host=null;
+        var source=new SensorSource();
+        host=new DashboardHost(()=>settings,s=>{settings=s;host!.RefreshSettings();},()=>new DeviceOverview("Mock","Windows 11",[],[]),
+            ()=>source,()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{}));
+        using(host)
+        {
+            host.Open("Sensors");
+            PumpUntil(()=>host.CurrentFrames>=1);
+            var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
+            var visual=(UIElement)window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+            var celsiusPixels=Pixels(visual);
+            Assert.IsTrue(celsiusPixels.Any(b=>b!=0));
+
+            settings=settings with{Fahrenheit=true};
+            host.RefreshSettings();
+            var fahrenheitPixels=Pixels(visual);
+            Assert.IsFalse(celsiusPixels.SequenceEqual(fahrenheitPixels),"Toggling Fahrenheit must repaint live Sensors page.");
+        }
+        Assert.IsTrue(source.Disposed);
+
+        var popupSource=new SensorSource();
+        using(var popup=new PopupCoordinator(()=>popupSource,(_,_,_)=>{},()=>{},settings:()=>new BarSettings{Fahrenheit=true}))
+        {
+            popup.Toggle(BarModule.Sensors,new(400,0,454,24),display,1,false);
+            PumpUntil(()=>popup.Frames>=1);
+            var popupWindow=typeof(PopupCoordinator).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(popup)!;
+            var popupVisual=(UIElement)popupWindow.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(popupWindow)!;
+            Assert.IsTrue(Pixels(popupVisual).Any(b=>b!=0));
+            Assert.AreEqual(6,popup.LastSample?.Sensors?.Items.Length);
+            popup.Close();
+            Assert.IsTrue(popup.Drain(TimeSpan.FromSeconds(2)));
+        }
+        Assert.IsTrue(popupSource.Disposed);
+    });
     private static byte[] Pixels(Visual visual){var b=new RenderTargetBitmap(690,550,96,96,PixelFormats.Pbgra32);b.Render(visual);var pixels=new byte[690*550*4];b.CopyPixels(pixels,690*4,0);return pixels;}
     private static void Sta(Action body){Exception? failure=null;var thread=new Thread(()=>{try{body();}catch(Exception ex){failure=ex;}});thread.SetApartmentState(ApartmentState.STA);thread.Start();Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(20)));if(failure is not null)throw new AssertFailedException("Application page validation failed: "+failure,failure);}
+    private sealed class SensorSource:IPopupSource
+    {
+        public bool Disposed;
+        public CapabilityProbeResult Probe(BarModule module)=>CapabilityProbeResult.Supported;
+        public PopupSample Read(BarModule module)=>new(20,5,15,80,2.5,4,TimeSpan.FromHours(1),null,[],[],[],"Live sensors",
+            Sensors:new(61,72,1450,[
+                new("Ryzen","CPU","CPU Package",SensorKind.Temperature,61,"°C"),
+                new("RTX","GPU","GPU Core",SensorKind.Temperature,72,"°C"),
+                new("Board","Motherboard","Chassis Fan",SensorKind.Fan,1450,"RPM"),
+                new("Ryzen","CPU","Package Power",SensorKind.Power,45.2,"W"),
+                new("Ryzen","CPU","Core Clock",SensorKind.Clock,4200,"MHz"),
+                new("Board","Motherboard","VCore",SensorKind.Voltage,1.21,"V")
+            ],true,"Live hardware sensors via LibreHardwareMonitor."));
+        public void Dispose()=>Disposed=true;
+    }
     private sealed class Source(ManualResetEventSlim? started=null,ManualResetEventSlim? release=null):IPopupSource
     {public int Reads;public bool Disposed;public CapabilityProbeResult Probe(BarModule module)=>CapabilityProbeResult.Supported;public PopupSample Read(BarModule module){Reads++;started?.Set();if(release is not null&&!release.Wait(5000))throw new TimeoutException("Mock release timeout");return new(10,3,7,90,null,null,TimeSpan.Zero,null,[],[],[],"Mock");}public void Dispose()=>Disposed=true;}
 }

@@ -1115,3 +1115,112 @@ The Release build and all 154 x86 tests passed. Tests selected and restored a st
 ## Gaming Mode FPS feasibility
 
 Verified the official PresentMon 2.6.0 standalone x64 executable against its published SHA-256 and ran its help command. A bounded five-second capture probe returned access denied and exit code 6 both inside the sandbox and with the normal user token outside it. No frames were collected. No live capture budget could be measured. No application build, integration, or system setting changes were made.
+
+## Auto Gaming Mode, FPS color coding, and utilization thresholds — 11 November 2026
+
+**What was built:** Added `BarThresholds` (`ThresholdLevel` / `FrameRateLevel`), persisted `GamingModeAuto`, `FpsTarget` (30–360, default 60), and `ThresholdPercent` (50–100, default 85) in `BarSettings`, Windows `IsFullScreenForeground` detection (`QUNS_RUNNING_D3D_FULLSCREEN` or captionless foreground window covering its monitor), `MonitorBarHost.SetGamingMode` + live `BarApplication` `Frames`/`Gpu` sync + `Suppressed`/`Stopping` hooks for `PresentMonCapture`, theme-aware warning/critical coloring across CPU/GPU/RAM text/icons/Ring/Bar/Sparkline and green/amber/red FPS coloring, tray menu toggle (`Auto Gaming Mode`), and Dashboard `GAMING & THRESHOLDS` Settings controls. Fixed three pre-existing `Enum.GetValues<BarModule>()` test loops in `BarPolicyTests` and `ApplicationPageTests` to iterate `BarSettings.ConfigurableModules`.
+
+**How verified:** Release build succeeded with 0 warnings and 0 errors. All 163 active tests (92 Core, 45 Shell, 26 Windows) passed in both x86 and x64 test configurations (`scripts/verify-test-results.ps1` passed on both). Bounded `--r1-probe --gaming` and `--dashboard-page Settings` runs exited with code 0, pointer size 4 (`X86`), drained frame/GPU/dashboard workers, and clean tray removal; during those probe runs the desktop reported `SHQueryUserNotificationState == 2` (`QUNS_BUSY`), so `ShouldHide` suppressed live sampling (`Samples == 0`, `EverHidden == true`).
+
+**Known gaps:** Five-minute RAM/CPU measurement was not re-run for this change, and unlocked desktop / live ETW PresentMon game-frame capture remains unverified on a standard non-elevated account. No new dependencies, system setting changes, forced GC, or Git staging/commits were made.
+
+## Dashboard Gaming Mode toggle & LibreHardwareMonitorLib sensors — 11 November 2026
+
+**What was built:**
+1. Exposed Gaming Mode controls directly on the main Dashboard UI (`DashboardHost` top-right header pill outside the caption drag hit-test region plus a three-row Overview Gaming Mode block for Gaming Mode, Auto Gaming Mode, and Settings navigation).
+2. Integrated `LibreHardwareMonitorLib` `0.9.6` (`MPL-2.0`) in `Islet.Windows` (`LibreHardwareSensorReader`, `LibreHardwareSensorSource`, `WindowsPopupSource`) with portable `SensorDetails`/`SensorItem`/`SensorKind` contracts in `Islet.Core` and live `Sensors` rendering in `PopupVisual`, `ApplicationModuleVisual` (with live Fahrenheit/Celsius updates and ongoing polling when sensors are reported), and the `MonitorBarHost` `Sensors` strip item (showing live temperature in °C/°F and 80 °C / 90 °C alert colors when enabled on the strip). Hardware polling starts lazily only when `Sensors` is viewed or enabled on the bar strip and closes/disposes `Computer` on close, suppression, pause, or exit; unreadable 0-watt CPU RAPL stubs under standard user rights are filtered out rather than reported as zero.
+
+**How verified:**
+- License & dependency audit checked resolved NuGet manifests (`MPL-2.0` / `Apache-2.0` / `MIT`, PawnIO-based, no WinRing0) and updated `Directory.Packages.props`, lock files, `DECISIONS.md`, `docs/DEPENDENCIES.md`, and `docs/API_REGISTER.md`.
+- Release build `dotnet build TidletMonitor.sln -c Release --no-restore -p:OutputPath=bin/lhm-sensors/` succeeded with 0 warnings and 0 errors (`bin/Release/net8.0-windows/` remained locked by the user's running PID 29636 instance, which was left undisturbed).
+- All 168 tests (`92` Core, `48` Shell, `28` Windows) passed with zero failures and zero skips in both x86 (`TestResults/lhm-sensors-x86`) and x64 (`TestResults/lhm-sensors-x64`) configurations; `scripts/verify-test-results.ps1` passed on both directories.
+- A bounded standard-user live hardware probe against `LibreHardwareSensorReader` read 5 live NVIDIA GeForce GTX 1650 telemetry sensors (`GPU Core 51 °C`, `GPU Hot Spot 60.1 °C`, `GPU Core 300 MHz`, `GPU Memory 405 MHz`, `GPU Core Voltage 0.60 V`) and explicitly reported that CPU package temperature and motherboard fan RPM require PawnIO plus administrator privileges (`CpuPackageCelsius: null`, `MaxFanRpm: null`).
+
+**Known gaps:** Five-minute RAM/CPU measurement (`scripts/measure.ps1`) with active `Sensors` polling and elevated PawnIO CPU/motherboard/fan hardware verification were not executed in this standard-user non-admin session; normal `src/IsletMonitor/bin/Release/net8.0-windows/` output should be rebuilt after closing the running `IsletMonitor` instance (PID 29636) to run the updated build from that path. No Git staging/commits or machine-setting changes were made.
+
+## Gaming strip and sensor integration audit
+
+**What was built**
+Kept the existing Gaming Mode controls and added the optional Sensors item to its layout when the item is enabled in normal strip settings. Moved strip discovery, sampling and teardown off the dispatcher. The Sensors strip, popup and Dashboard share one demand-driven LibreHardwareMonitor session. Tidlet's main process enables the GPU and storage groups. CPU, motherboard and external-controller groups are reserved for a future optional helper. A per-core reading never supplies the CPU package label, and Windows account elevation is displayed separately from hardware capability. The GPU Dashboard shows Windows per-adapter temperature when reported.
+
+**How verified**
+`dotnet build TidletMonitor.sln -c Release --no-restore -m:1 -p:UseSharedCompilation=false -p:OutputPath=bin/sensor-audit/` completed with zero warnings and errors. The final x86 VSTest run executed and passed all 168 tests, verified from TRX in `TestResults/sensor-audit-final`. The standard-user desktop probe sampled the Gaming strip ten times, made nine asynchronous sensor requests, rendered a 58 °C sensor value, reported FPS unavailable after Windows denied ETW, and drained both workers. The separate hidden diagnostic made zero sensor requests. Evidence is under `artifacts/measurements/sensor-audit-desktop-20261111-211312` and `artifacts/measurements/sensor-audit-20261111-211042`.
+
+**Known gaps**
+Live frame timing remains unverified on this account. CPU package and motherboard temperatures needing PawnIO remain deferred. No driver, elevation, system setting change, or Git write was required.
+
+**Measured RAM and CPU**
+The visible Gaming strip with Sensors enabled ran for 301 seconds. Tidlet peaked at 88.70 MB working set against the 90 MB limit and averaged 0.104% machine CPU against the 1% limit. The probe remained visible, made 107 sensor requests, and finished with a 58.84 °C sensor reading. PresentMon was denied at startup, so these figures cover Tidlet in the FPS-unavailable state and do not certify live capture or count a successful PresentMon worker. See `artifacts/measurements/sensor-audit-five-minute-20261111-211348`.
+
+**Next step**
+Use the preview under `src/IsletMonitor/bin/sensor-audit`. Validate live capture with aggregate accounting when the Windows account has frame-tracing access.
+
+## Gaming Dashboard and temperature displays
+
+**What was built**
+
+Added Gaming to the Dashboard sidebar with mode, auto activation, FPS target, shared utilization warning, an independent refresh interval, and independent visibility controls for the Gaming strip items. The overview shortcut opens the Gaming page. CPU, GPU and Battery details show temperature or a clear availability state in both Dashboard and popup views. Battery temperature uses the optional Windows battery query with no added driver.
+
+**How verified**
+
+`dotnet build TidletMonitor.sln -c Release --no-restore -m:1 -p:UseSharedCompilation=false -p:OutputPath=bin/gaming-dashboard/` passed with zero warnings and errors. VSTest ran all 169 x86 tests and the TRX verifier confirmed all three suites. The Gaming controls were exercised through WPF automation, and the strip layout and refresh were checked through JSON round-trip. The seven live desktop view probes rendered at 100% and 150% in `artifacts/measurements/gaming-dashboard-ui-20261111-213641`. The GPU popup reported 50.1 °C for the GTX 1650. Windows provided no battery or Iris Xe temperature during the probe, and CPU package temperature reported that the optional helper is required.
+
+**Measured RAM and CPU**
+
+With the Gaming Dashboard page open for 301 seconds, Tidlet reached 82.03 MB observed RAM, 82.18 MB lifetime peak, and 0.066% average machine CPU. The page stayed visible, started no Dashboard metric reads, and exited cleanly. Evidence is under `artifacts/measurements/gaming-dashboard-five-minute-20261111-213749`.
+
+**Known gaps**
+
+Live FPS capture was outside this test. CPU package and firmware-unreported battery temperatures remain unavailable on this PC.
+
+**Next step**
+
+Launch the Release preview from `src/IsletMonitor/bin/gaming-dashboard` and select Gaming in the Dashboard sidebar.
+
+## Gaming status indicators
+
+Removed the Gaming controls from the Dashboard overview. The overview now shows a read-only gamepad icon in its top-right corner while Gaming Mode is active. The strip reserves room for a Gaming On badge, including in compact mode. The dedicated Gaming page still owns the controls.
+
+The Release build passed with no warnings or errors and all eight focused x86 Gaming tests passed. Visible desktop probes verified Gaming off, Gaming on, and Gaming on in the bottom strip. Render evidence is under `artifacts/measurements/gaming-indicator-ui-20261111-214752`. Five-minute RAM and CPU were not remeasured for this UI change. Launch the preview from `src/IsletMonitor/bin/gaming-indicator`.
+
+## Temperature placement
+
+Moved CPU package and battery temperature into their popup summary cards. The GPU popup and Dashboard list temperature for each adapter together above the usage graphs. Existing Dashboard CPU and Battery summary fields remain visible. No provider changed.
+
+The Release build completed without warnings and four focused x86 tests passed. Live CPU, GPU and Battery popup and Dashboard renders were checked. The GTX 1650 reported 50.1 °C. The Iris Xe and battery returned no temperature, and CPU package temperature still requires the optional helper. Five-minute RAM and CPU were not remeasured for this presentation change. Preview output is in `src/IsletMonitor/bin/temperature-ui`.
+
+## Optional PawnIO CPU package check
+
+Added a manual **Check CPU temp** action to the CPU Dashboard. The main process remains asInvoker. The action starts a separate, time-limited CPU-only LibreHardwareMonitor read via Windows elevation. The helper returns only a validated temperature code or failure status. The CPU Dashboard and popup label the result as the last check for the session. PawnIO remains a separate manual installation.
+
+The Release build completed with zero warnings and errors. Both focused x86 temperature tests passed. Launching the worker under a standard user returned exit code 10 before hardware access. No driver installation, elevated sampling, system settings changes, or Git writes were performed. Live temperature and aggregate helper RAM/CPU remain unverified until PawnIO is available. The preview is under `src/IsletMonitor/bin/cpu-temperature`.
+
+## CPU temperature visibility follow-up
+
+Verified that PawnIO 2.2.0 is installed. The user approved one read-only elevated test of Tidlet's existing worker. It returned exit code 10490, which decodes to an actual CPU package reading of 49.0 °C. The Dashboard now displays the last successful value directly in the check button and keeps the check status for the session when the Dashboard is reopened. The CPU popup still uses the shared session reading.
+
+The focused WPF regression test simulates a successful check, verifies the displayed value, and reopens the CPU page to verify that the value remains visible. The separate worker protocol test covers decoding. The elevated hardware test exercised the worker directly. The corrected Dashboard has not been exercised with a second UAC prompt. No system settings changed, and aggregate resource use was not remeasured. Preview output is in `src/IsletMonitor/bin/cpu-temperature-fixed`.
+
+## Automatic CPU temperature refresh
+
+CPU popup and Dashboard views request a shared, bounded CPU package check at most every 15 seconds when Tidlet is already elevated. The helper inherits the existing token. Standard launches retain the manual action and the Widgets page does not request automatic CPU reads.
+
+Release built with zero warnings and errors. Three focused x86 tests passed. A visible standard-user CPU popup probe recorded usage, with automatic temperature disabled and no helper activity. The elevated automatic path and its five-minute aggregate RAM/CPU remain unverified. Preview output is in `src/IsletMonitor/bin/cpu-temp-refresh`.
+
+## Popup layout and strip order polish
+
+Sensors uses fixed two-line label rows with separate value columns, a measured footer, and a proportional draggable scrollbar with Home and End support. Shared popup rows use single-line ellipsis to avoid text spilling into adjacent rows. RAM uses blue for normal physical usage, red for committed memory, amber for warnings, and red for critical usage. CPU and GPU rings use the same warning policy.
+
+Battery ends the default strip, including Gaming Mode. The normal strip order can be changed with left/right controls in Settings, with a scaled sample preview that preserves the chosen meter styles. Explicit order persists across hide/show and JSON round-trips.
+
+Release built with no warnings or errors and all 175 x86 tests passed. The smoke sweep completed 48 light/dark surface runs across strip placements, popups, and Dashboard pages. The final Settings preview was separately rendered at 100% and 150% in both themes after correcting its scaling. Five-minute RAM/CPU and physical mixed-DPI behavior were not remeasured. Evidence is in `artifacts/ui-strip-popup-polish-20261111-224435` and `artifacts/ui-strip-preview-final-20261111-224720`. Preview build is under `src/IsletMonitor/bin/strip-popup-final`.
+
+## Consistent meter warning colors
+
+Applied shared normal, warning, and critical colors to utilization, storage, battery and temperature meters across the strip, popups, Dashboard, and widgets wherever a relevant reading exists. Network traffic continues to use directional colors, and missing values have no warning. The Release build passed with zero warnings or errors, all 176 x86 tests passed, and ten dark/light desktop render probes completed. Evidence is in `artifacts/measurements/meter-colors-20261111-225751`. RAM and CPU were not remeasured for this visual change. Preview output is under `src/IsletMonitor/bin/meter-colors`.
+
+## Widget temperatures, app logo, and README
+
+CPU, GPU and Battery widgets display available temperatures in the configured unit, including on desktop pins. Combined shows CPU and GPU temperatures when available. CPU widget sampling uses the last session check and does not start an elevated worker. GPU widgets use the highest reported adapter temperature. The supplied waveform and red dot were redrawn as the README logo and a seven-size Windows icon.
+
+Release built without warnings or errors. Windows extracted the icon from the compiled app. The focused widget test passed, and seven live Dashboard, widget, popup and strip renders were refreshed in the README. The GPU widget showed 54.0 °C on the test PC. CPU and battery widget values were unavailable in the standard-user capture. Five-minute RAM and CPU were not remeasured. Preview output is under `src/IsletMonitor/bin/widget-temperatures`.

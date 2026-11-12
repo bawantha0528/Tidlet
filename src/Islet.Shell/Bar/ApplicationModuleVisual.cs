@@ -13,6 +13,8 @@ internal sealed partial class ApplicationModuleVisual:UIElement
     private double _scale,_scroll,_bottom,_now;private PopupSample? _sample;private SampleRing? _history,_averages;
     public PopupDetails Details{get;private set;}
     private bool _useBits;
+    private bool _fahrenheit;
+    private int _thresholdPercent=85;
     private bool _previous;
     private bool IsMeasuring=>_sample?.WarmingUp==true;
     public void ShowPrevious(PopupSample sample){if(_previous&&ReferenceEquals(_sample,sample))return;_sample=sample;_previous=true;Redraw(_scale);}
@@ -25,6 +27,9 @@ internal sealed partial class ApplicationModuleVisual:UIElement
         Redraw(_scale);
     }
     public void SetUnits(bool useBits){if(_useBits==useBits)return;_useBits=useBits;_labels.Clear();Redraw(_scale);}
+    public void SetTemperatureUnit(bool fahrenheit){if(_fahrenheit==fahrenheit)return;_fahrenheit=fahrenheit;_labels.Clear();Redraw(_scale);}
+    public void SetWarningThreshold(int percent){if(_thresholdPercent==percent)return;_thresholdPercent=percent;Redraw(_scale);}
+    private Brush UsageBrush(BarModule module,double? percent)=>_palette.Metrics.Status(BarThresholds.UsageLevel(module,percent,_thresholdPercent),Blue);
     private readonly RectangleGeometry _clip;
     private readonly Dictionary<(double,double,double,Brush,bool,TextAlignment,bool,double?), (string,FormattedText)> _labels=[];
     private static readonly Typeface Face=new("Segoe UI Variable, Segoe UI"),Bold=new(new FontFamily("Segoe UI Variable, Segoe UI"),FontStyles.Normal,FontWeights.SemiBold,FontStretches.Normal);
@@ -71,7 +76,7 @@ internal sealed partial class ApplicationModuleVisual:UIElement
         Details=PopupDetails.None;
         using var d=_drawing.RenderOpen();d.PushClip(_clip);d.PushTransform(new TranslateTransform(0,-_scroll));
         if(_sample is null)Loading(d);
-        else if(_module==BarModule.Cpu)Cpu(d);else if(_module==BarModule.Ram)Ram(d);else if(_module is BarModule.Gpu or BarModule.Disk or BarModule.Network or BarModule.Battery)Module(d);else
+        else if(_module==BarModule.Cpu)Cpu(d);else if(_module==BarModule.Ram)Ram(d);else if(_module is BarModule.Gpu or BarModule.Disk or BarModule.Network or BarModule.Battery or BarModule.Sensors)Module(d);else
         {CardAt(d,0,140);Label(d,_module==BarModule.Sensors?"Optional sensor helper required":"Wide module page awaiting resource validation",20,24,16,Text,true);Label(d,_sample?.Explanation??"Reading capability…",20,65,12,Dim);_bottom=145;}
         if(_previous)Label(d,MetricLoading.Previous,Math.Max(15,_width-215),2,10,Dim);
         else if(IsMeasuring)Label(d,MetricLoading.For(_module).Title,Math.Max(15,_width-215),2,10,Dim);
@@ -95,11 +100,14 @@ internal sealed partial class ApplicationModuleVisual:UIElement
     {
         var s=_sample;
         if(s?.Cpu is not (>=0 and <=100)){Empty(d,s?.Explanation??"Windows CPU readings are unavailable.");return;}
-        CardAt(d,0,142);Ring(d,new(69,71),48,s.Cpu,Blue);
+        CardAt(d,0,142);Ring(d,new(69,71),48,s.Cpu,UsageBrush(BarModule.Cpu,s.Cpu));
         Label(d,Percent(s.Cpu),69,71,24,Text,true,centerOnPoint:true);
         Label(d,"Processor utilization",144,20,16,Text,true);Label(d,s?.FrequencyGhz is{}f?$"{f:0.00} GHz":"Windows CPU readings",144,48,12,Dim);
         var barWidth=_width-170;Bar(d,144,79,barWidth,s?.System,s?.User);
         Label(d,"System: "+Percent(s?.System),144,103,12,Red);Label(d,"User: "+Percent(s?.User),144+barWidth*.35,103,12,Blue);Label(d,"Idle: "+Percent(s?.Idle),144+barWidth*.68,103,12,Dim);
+        var temperature=s?.LastCpuPackageCelsius is double temp?SensorTemp(temp)+(s.CpuTemperatureAutomatic?"":" · last check")
+            :s?.CpuTemperatureMeasuring==true?"Measuring…":s?.CpuTemperatureAutomatic==true?"Unavailable":"Use Check CPU temp";
+        Label(d,"CPU package temperature: "+temperature,144,121,11,s?.LastCpuPackageCelsius is double celsius?SensorTempBrush(celsius):Dim);
         History(d,174,"Usage history");double y=408;
         var coreCount=s?.Cores.Length??Math.Min(32,Environment.ProcessorCount);
         if(coreCount>0)
@@ -128,22 +136,29 @@ internal sealed partial class ApplicationModuleVisual:UIElement
     }
     private void Ram(DrawingContext d)
     {
-        var m=_sample?.Memory;var valid=m?.Valid==true;CardAt(d,0,144);Ring(d,new(69,72),48,valid?m!.UsedPercent:null,Blue);
+        var m=_sample?.Memory;var valid=m?.Valid==true;var usage=UsageBrush(BarModule.Ram,valid?m!.UsedPercent:null);CardAt(d,0,144);Ring(d,new(69,72),48,valid?m!.UsedPercent:null,usage);
         Label(d,valid?$"{m!.UsedPercent:0}%":"Unavailable",69,72,valid?24:11,valid?Text:Dim,true,centerOnPoint:true);
         Label(d,"Used: "+(valid?Bytes(m!.Total-m.Available):"Unavailable"),144,20,16,Text,true);
         Label(d,"Total: "+(valid?Bytes(m!.Total):"Unavailable"),_width-180,23,12,Dim);
         var w=_width-170;if(Intersects(64,13)){d.DrawRoundedRectangle(Track,null,new Rect(144,64,w,13),4,4);
-        if(valid)d.DrawRoundedRectangle(Blue,null,new Rect(144,64,w*m!.UsedPercent/100,13),4,4);}
+        if(valid)d.DrawRoundedRectangle(usage,null,new Rect(144,64,w*m!.UsedPercent/100,13),4,4);}
         Label(d,"In use: "+(valid?Bytes(m!.Total-m.Available):"Unavailable"),144,96,12,Blue);Label(d,"Available: "+(valid?Bytes(m!.Available):"Unavailable"),_width-210,96,12,Dim);
         History(d,174,"Usage history");double y=410;var half=(_width-16)/2;
         Label(d,"Memory pressure",6,y,16,Text,true);Label(d,"Page file",half+22,y,16,Text,true);y+=34;
         if(Intersects(y,165)){d.DrawRoundedRectangle(_palette.Card,_palette.CardBorder,new Rect(0,y,half,165),11,11);d.DrawRoundedRectangle(_palette.Card,_palette.CardBorder,new Rect(half+16,y,half,165),11,11);}
         var pressure=valid?m!.Pressure:double.NaN;var center=new Point(half/2,y+105);
-        Arc(d,center,62,180,60,Green,8);Arc(d,center,62,240,60,Orange,8);Arc(d,center,62,300,60,Red,8);
+        var warning=Math.Min(_thresholdPercent,BarThresholds.CriticalPercent)*1.8;
+        var critical=BarThresholds.CriticalPercent*1.8;
+        Arc(d,center,62,180,warning,Green,8);
+        if(warning<critical)Arc(d,center,62,180+warning,critical-warning,Orange,8);
+        Arc(d,center,62,180+critical,180-critical,Red,8);
         if(Intersects(center.Y-62,62)&&double.IsFinite(pressure)){var angle=(180+Math.Clamp(pressure,0,100)*1.8)*Math.PI/180;d.DrawLine(Line,center,new Point(center.X+Math.Cos(angle)*50,center.Y+Math.Sin(angle)*50));}
-        Label(d,m?.PressureName??"Unavailable",center.X,y+133,13,Text,true,centerOnPoint:true);
+        var level=BarThresholds.UsageLevel(BarModule.Ram,pressure,_thresholdPercent);
+        var pressureName=!valid?"Unavailable":level==ThresholdLevel.Critical?"Critical":level==ThresholdLevel.Warning?"High":"Normal";
+        Label(d,pressureName,center.X,y+133,13,_palette.Metrics.Status(level,Text),true,centerOnPoint:true);
         var pageValid=m?.PageFileUsed is{}used&&m.PageFileTotal is>0&&used<=m.PageFileTotal;
-        Ring(d,new(half+16+half/2,y+74),43,pageValid?100.0*m!.PageFileUsed!.Value/m.PageFileTotal!.Value:null,Blue);
+        double? pagePercent=pageValid?100.0*m!.PageFileUsed!.Value/m.PageFileTotal!.Value:null;
+        Ring(d,new(half+16+half/2,y+74),43,pagePercent,UsageBrush(BarModule.Ram,pagePercent));
         Label(d,pageValid?Bytes(m!.PageFileUsed!.Value):"Not reported",half+16+half/2,y+74,12,Text,true,centerOnPoint:true);
         y+=190;
         if(m?.Cache is{}cache){Label(d,"System cache (may overlap other memory)",16,y,12,Dim);Label(d,Bytes(cache),_width-120,y,12,Text,true,right:true);y+=35;}

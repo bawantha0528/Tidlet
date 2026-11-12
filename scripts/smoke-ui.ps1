@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $exe = (Resolve-Path -LiteralPath $Executable).Path
 $root = (New-Item -ItemType Directory -Force $OutputDirectory).FullName
 $modules = 'Cpu','Ram','Gpu','Network','Disk','Battery','Sensors'
-$pages = @('Dashboard','Settings','About','Battery optimization') + @($modules | ForEach-Object { "Page$_" })
+$pages = @('Dashboard','Gaming','Settings','About','Battery optimization','Temp cleanup') + @($modules | ForEach-Object { "Page$_" })
 if (!$Startup) { $pages += 'Widgets' }
 foreach ($theme in 'Dark','Light') {
     foreach ($surface in @('Top','Bottom','Hover') + $modules + $pages) {

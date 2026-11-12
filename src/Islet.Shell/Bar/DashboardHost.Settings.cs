@@ -12,6 +12,8 @@ public sealed partial class DashboardHost
     {
         private static readonly int[] RefreshIntervals = [1, 2, 3, 5];
         private static readonly int[] OpacityLevels = [20, 30, 40, 50, 60, 70, 80, 90, 100];
+        private static readonly int[] FpsTargets = [30, 60, 120, 144, 165, 240, 360];
+        private static readonly int[] ThresholdLevels = [70, 75, 80, 85, 90, 95];
         private static readonly string[] PositionLabels = ["Top", "Bottom", "Top · reveal on hover"];
         private sealed record SettingOption(string Label, Action Apply);
         private sealed record SettingsMenu(string Name, string Current, Rect Anchor, SettingOption[] Options);
@@ -62,6 +64,7 @@ public sealed partial class DashboardHost
                 value => Change(s => s with { Theme = value }, $"Theme set to {value}. Saved."), ref y);
             Choice(drawing, "Accent color", settings.Accent + "  ·  Edit", ref y, () => Edit("Accent color", settings.Accent));
             Heading(drawing, "MONITOR STRIP", ref y);
+            DrawStripOrder(drawing, settings, ref y);
             var position = settings.TopReveal ? PositionLabels[2] : settings.Edge == BarEdge.Bottom ? PositionLabels[1] : PositionLabels[0];
             Dropdown(drawing, "Position", position, PositionLabels, value => value, value =>
                 Change(s => s with
@@ -96,6 +99,8 @@ public sealed partial class DashboardHost
             Toggle(drawing, "Pause monitoring", settings.Pause, ref y,
                 () => Change(s => s with { Pause = !s.Pause }, settings.Pause ? "Monitoring resumed. Saved." : "Monitoring paused. Saved."));
 
+            Choice(drawing, "Gaming", "Open gaming settings  ›", ref y, () => Select(GamingPage));
+
             Heading(drawing, "MODULES", ref y);
             foreach (var item in BarSettings.ConfigurableModules)
                 Choice(drawing, item.ToString(), settings.Items.Contains(item) ? "In strip  ›" : "Hidden  ›", ref y, () => OpenModuleSettings(item));
@@ -119,7 +124,7 @@ public sealed partial class DashboardHost
             var shown = settings.Items.Contains(module);
             Toggle(drawing, "Show in monitor strip", shown, ref y,
                 () => Change(s => s.WithItemVisibility(module, !shown), $"{module} {(shown ? "hidden from" : "shown in")} the strip. Saved."));
-            var cost = module == BarModule.Sensors ? "High · hardware helper required"
+            var cost = module == BarModule.Sensors ? "High · hardware-dependent"
                 : module is BarModule.Gpu or BarModule.Cpu or BarModule.Ram ? "Medium" : "Low";
             Label(drawing, "Sampling cost · " + cost, 247, y, 11, _dim, width: Width - 285);
             y += 26;
@@ -129,7 +134,7 @@ public sealed partial class DashboardHost
                 value => Preference(module, p => p with { Style = value }, "Bar style saved."), ref y);
             Toggle(drawing, "Open popup on click", preference.PopupEnabled, ref y,
                 () => Preference(module, p => p with { PopupEnabled = !p.PopupEnabled }, preference.PopupEnabled ? "Click-to-open popup disabled. Saved." : "Click-to-open popup enabled. Saved."));
-            if (Array.IndexOf(settings.Items, module) > 0)
+            if (Array.IndexOf(settings.NormalItems, module) > 0)
                 Choice(drawing, "Move earlier in strip", "Move ↑", ref y, () => Change(s => s.MoveItemEarlier(module), $"{module} moved earlier. Saved."));
         }
 
@@ -169,8 +174,7 @@ public sealed partial class DashboardHost
             var row = SettingsRow(drawing, name, ref y);
             if (row.IsEmpty) return;
             var toggle = new Rect(row.Right - 49, row.Top + 8, 37, 19);
-            drawing.DrawRoundedRectangle(enabled ? _blue : _palette.Metrics.Track, null, toggle, 9.5, 9.5);
-            drawing.DrawEllipse(Brushes.White, null, new Point(toggle.Left + (enabled ? 27 : 10), toggle.Top + 9.5), 6.5, 6.5);
+            DrawTogglePill(drawing, toggle, enabled);
             var value = enabled ? "On" : "Off";
             Label(drawing, value, toggle.Left - 49, row.Top + 9, 11, _dim, width: 39, right: true);
             Hit(name + ": " + value, row, apply);

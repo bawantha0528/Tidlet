@@ -68,8 +68,21 @@ public sealed class SystemBatteryProvider(ISystemBatterySource source) : IBatter
     public void Reset() { }
 }
 
-public sealed class NativeSystemBatterySource : ISystemBatterySource
+public sealed class NativeSystemBatterySource(bool includeTemperature = false) : ISystemBatterySource
 {
+    private const int BatteryTemperature = 2;
+    private const uint QueryInformation = 0x294044;
+    private double? _temperatureCelsius;
+    private long _temperatureReadAt = -1;
+    public double? TemperatureCelsius => _temperatureReadAt >= 0 && Environment.TickCount64 - _temperatureReadAt < 30_000
+        ? _temperatureCelsius : null;
+
+    internal static double? DecodeTemperature(uint tenthsKelvin)
+    {
+        var celsius = tenthsKelvin / 10.0 - 273.15;
+        return celsius is >= -40 and <= 100 ? celsius : null;
+    }
+
     private uint _cachedDesigned, _cachedFull, _cachedCycles;
     private long _lastCapacityTicks = -1;
 
@@ -156,6 +169,11 @@ public sealed class NativeSystemBatterySource : ISystemBatterySource
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DeviceIoControl(SafeFileHandle hDevice, uint dwIoControlCode, ref BATTERY_QUERY_INFORMATION lpInBuffer, uint nInBufferSize, out BATTERY_INFORMATION lpOutBuffer, uint nOutBufferSize, out uint lpBytesReturned, IntPtr lpOverlapped);
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DeviceIoControl(SafeFileHandle hDevice, uint dwIoControlCode,
+        ref BATTERY_QUERY_INFORMATION input, uint inputSize, out uint result, uint resultSize, out uint returned, IntPtr overlapped);
+
     public bool TryRead(out byte acLineStatus, out byte batteryFlag, out byte batteryLifePercent, out int batteryLifeTime, out int error)
     {
         if (GetSystemPowerStatus(out var status))
@@ -228,8 +246,18 @@ public sealed class NativeSystemBatterySource : ISystemBatterySource
                 }
 
                 var query = new BATTERY_QUERY_INFORMATION { BatteryTag = tag, InformationLevel = 0 };
+                if (includeTemperature && (_temperatureReadAt < 0 || now - _temperatureReadAt >= 30_000))
+                {
+                    query.InformationLevel = BatteryTemperature;
+                    _temperatureCelsius = DeviceIoControl(handle, QueryInformation, ref query,
+                        (uint)Marshal.SizeOf<BATTERY_QUERY_INFORMATION>(), out uint temperature, sizeof(uint), out returned, IntPtr.Zero)
+                        && returned == sizeof(uint) ? DecodeTemperature(temperature) : null;
+                    _temperatureReadAt = now;
+                    query.InformationLevel = 0;
+                }
+
                 var info = new BATTERY_INFORMATION();
-                if (!DeviceIoControl(handle, 0x294044, ref query, (uint)Marshal.SizeOf<BATTERY_QUERY_INFORMATION>(), out info, (uint)Marshal.SizeOf<BATTERY_INFORMATION>(), out returned, IntPtr.Zero))
+                if (!DeviceIoControl(handle, QueryInformation, ref query, (uint)Marshal.SizeOf<BATTERY_QUERY_INFORMATION>(), out info, (uint)Marshal.SizeOf<BATTERY_INFORMATION>(), out returned, IntPtr.Zero))
                 {
                     designedCapacity = fullChargedCapacity = cycleCount = 0;
                     return false;
