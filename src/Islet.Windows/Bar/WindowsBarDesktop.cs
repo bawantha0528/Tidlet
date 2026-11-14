@@ -83,6 +83,18 @@ public sealed class WindowsBarDesktop(string recoveryDirectory) : IBarDesktop
                 _tray.Icon=0;
             }
         }
+        public void Notify(string message)
+        {
+            if (!TrayPresent || SHQueryUserNotificationState(out var state) != 0 || state != 5) return;
+            const uint modify = 1, info = 0x10, realtime = 0x40, warning = 2, respectQuietTime = 0x80;
+            var notification = _tray;
+            notification.Flags = info | realtime;
+            notification.Info = message;
+            notification.InfoTitle = "Tidlet Monitor";
+            notification.InfoFlags = warning | respectQuietTime;
+            Shell_NotifyIconW(modify, ref notification);
+        }
+
         public bool ShouldHide
         {
             get
@@ -198,7 +210,7 @@ public sealed class WindowsBarDesktop(string recoveryDirectory) : IBarDesktop
                 Add(20,"Gaming Mode",_settings.GamingMode);
                 Add(21,"Auto Gaming Mode",_settings.GamingModeAuto);
                 if(_settings.Edge==BarEdge.Bottom){Add(10,"Overlay mode",_settings.Mode==BarMode.Overlay);Add(11,"Reserve work area",_settings.Mode==BarMode.Reserve);}
-                Add(12,"Top edge",_settings.Edge==BarEdge.Top&&!_settings.TopReveal);Add(19,"Top · reveal on hover",_settings.TopReveal);Add(13,"Bottom · above taskbar",_settings.Edge==BarEdge.Bottom);
+                Add(12,"Top edge",_settings.Edge==BarEdge.Top&&!_settings.TopReveal);Add(19,"Top · reveal on hover",_settings.TopReveal);Add(13,"Bottom · along taskbar",_settings.Edge==BarEdge.Bottom);
                 Add(14,"Align left",_settings.Alignment==BarAlignment.Left);Add(15,"Align center",_settings.Alignment==BarAlignment.Center);Add(16,"Align right",_settings.Alignment==BarAlignment.Right);
                 Add(17,"Primary monitor",_settings.Monitors==MonitorSelection.Primary);Add(18,"All monitors",_settings.Monitors==MonitorSelection.All);
                 AppendMenuW(menu,0x800,0,null);Add(99,"Exit Tidlet");

@@ -2,6 +2,12 @@
 
 Updated: 12 November 2026 (Asia/Colombo).
 
+## 14 November 2026 — slowdown diagnosis and sustained alerts
+
+- Dashboard diagnosis explains sustained CPU or physical memory usage and links to the relevant module. Settings can enable Windows alerts for CPU, RAM, and unplugged battery, with a configurable threshold and duration.
+- Release x86 build succeeded and all 182 tests passed. Five-minute Dashboard navigation passed at 95.36 MB observed peak, 97.62 MB lifetime peak, and 0.186% average machine CPU.
+- Native notification delivery was not exercised. The benchmark used default alert settings and did not measure a fresh bar-only session.
+
 ## 12 November 2026 — hover overlay correction
 
 - Per user clarification, only the fixed top strip reserves work area. Top hover reveal overlays the desktop regardless of the saved bottom-strip mode.
@@ -1259,3 +1265,7 @@ Applied shared normal, warning, and critical colors to utilization, storage, bat
 CPU, GPU and Battery widgets display available temperatures in the configured unit, including on desktop pins. Combined shows CPU and GPU temperatures when available. CPU widget sampling uses the last session check and does not start an elevated worker. GPU widgets use the highest reported adapter temperature. The supplied waveform and red dot were redrawn as the README logo and a seven-size Windows icon.
 
 Release built without warnings or errors. Windows extracted the icon from the compiled app. The focused widget test passed, and seven live Dashboard, widget, popup and strip renders were refreshed in the README. The GPU widget showed 54.0 °C on the test PC. CPU and battery widget values were unavailable in the standard-user capture. Five-minute RAM and CPU were not remeasured. Preview output is under `src/IsletMonitor/bin/widget-temperatures`.
+
+## Dashboard diagnosis with a hidden strip
+
+Release x86 build and three focused tests passed. Isolated Windows probes recorded 10.14% CPU and 80.58% RAM on the Dashboard with zero strip reads, and no readings while monitoring was paused. No new five-minute measurement was run for this correction.

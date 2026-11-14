@@ -40,7 +40,7 @@ public sealed class SystemBatteryProvider(ISystemBatterySource source) : IBatter
         if (_capability?.Availability != CapabilityAvailability.Supported)
             return BatteryReading.Missing(BatteryReadingState.Unavailable, _capability?.Explanation ?? "Battery has not been probed.");
 
-        if (source.TryRead(out _, out var flag, out var percent, out var lifeTime, out _))
+        if (source.TryRead(out var ac, out var flag, out var percent, out var lifeTime, out _))
         {
             double? health = null;
             int? cycles = null;
@@ -59,7 +59,7 @@ public sealed class SystemBatteryProvider(ISystemBatterySource source) : IBatter
                     cycles = (int)cycleCount;
             }
 
-            return BatteryReading.Evaluate(flag, percent, lifeTime, null, health, cycles, designedMWh, fullMWh);
+            return BatteryReading.Evaluate(flag, percent, lifeTime, null, health, cycles, designedMWh, fullMWh) with { OnAc = ac switch { 0 => false, 1 => true, _ => null } };
         }
 
         return BatteryReading.Missing(BatteryReadingState.Unavailable, "Battery power status read failed.");

@@ -4,6 +4,17 @@ namespace Islet.Core.Tests;
 public sealed class BarPolicyTests
 {
     [TestMethod]
+    public void StripColorsRoundTripAndRejectInvalidValues()
+    {
+        var settings = new BarSettings { StripColors = new() { [StripColor.Background] = "#112233", [StripColor.Icon] = "#ABCDEF" } };
+        var restored = BarSettingsFile.Import(BarSettingsFile.Export(settings));
+        Assert.AreEqual("#112233", restored.StripColors[StripColor.Background]);
+        Assert.AreEqual("#ABCDEF", restored.StripColors[StripColor.Icon]);
+        Assert.AreEqual(0, BarSettingsFile.Import("{\"Version\":1}").StripColors.Count);
+        Assert.ThrowsExactly<InvalidDataException>(() => (settings with { StripColors = new() { [StripColor.Icon] = "#FFF" } }).Validate());
+    }
+
+    [TestMethod]
     public void ToggleCompactsTheBarAndRestoresOrderAcrossImportAndAllOff()
     {
         var original=new[]{BarModule.Gpu,BarModule.Cpu,BarModule.Ram,BarModule.Network,BarModule.Battery};
@@ -130,7 +141,7 @@ public sealed class BarPolicyTests
         foreach(var alignment in Enum.GetValues<BarAlignment>())
         {
             var strip=BarLayout.BottomOverlay(display,settings with{Alignment=alignment},1.5);
-            Assert.AreEqual(51,strip.Height);Assert.AreEqual(display.Work.Bottom-6,strip.Bottom);
+            Assert.AreEqual(51,strip.Height);Assert.AreEqual(display.Work.Bottom,strip.Bottom);
             Assert.IsTrue(strip.Left>=display.Work.Left&&strip.Right<=display.Work.Right&&strip.Width<display.Work.Width);
             var items=BarLayout.Items(settings,strip.Width/1.5,true);
             CollectionAssert.AreEqual(settings.Items,items.Select(x=>x.Module).ToArray());

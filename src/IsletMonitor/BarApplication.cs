@@ -65,7 +65,20 @@ internal static class BarApplication
         var desktop=new WindowsBarDesktop(Path.Combine(Path.GetDirectoryName(settingsFile)!,"bar-recovery"));var recovery=desktop.Recover();
         var reads=0;BarSnapshot? last=null;var sampleClock=System.Diagnostics.Stopwatch.StartNew();
         double cpuAt=double.NegativeInfinity,networkAt=double.NegativeInfinity,gpuAt=double.NegativeInfinity;
+        var diagnostics = new SustainedDiagnostics();
+        Action? refreshDiagnosis = null;
         MonitorBarHost? host=null;
+        void UpdateDiagnosis(CpuReading c, RamReading r, BatteryReading? b, BarSettings active, double now)
+        {
+            var previous = (diagnostics.HasSample, diagnostics.Active, diagnostics.CpuPercent, diagnostics.MemoryPercent);
+            var problem = diagnostics.Observe(now,
+                c.State == CpuReadingState.Available ? c.Percent : null,
+                r.State == RamReadingState.Available ? r.UsedPercent : null,
+                b is { State: BatteryReadingState.Available, OnAc: false } ? b.Percent : null,
+                active);
+            if (previous != (diagnostics.HasSample, diagnostics.Active, diagnostics.CpuPercent, diagnostics.MemoryPercent)) refreshDiagnosis?.Invoke();
+            if (!probe && problem != SustainedProblem.None) host?.Notify(SustainedDiagnostics.Describe(problem));
+        }
         BarSnapshot Read()
         {
             var active=host?.CurrentSettings??settings;
@@ -75,6 +88,7 @@ internal static class BarApplication
             Islet.Core.Popups.SensorDetails? sensorRead=null;
             if(active.VisibleItems.Contains(BarModule.Sensors)&&!active.Pause)sensorRead=barSensors.Sample();else barSensors.Stop();
             var now=sampleClock.Elapsed.TotalSeconds;
+            UpdateDiagnosis(c,r,b,active,now);
             var priorCpu=c.State==CpuReadingState.WarmingUp&&now-cpuAt<=120&&last?.Cpu is not null;
             var priorNetwork=net.State==NetworkReadingState.WarmingUp&&now-networkAt<=120&&last?.Download is not null;
             var priorGpu=graphics.WarmingUp&&now-gpuAt<=120&&last?.Gpu is not null;
@@ -94,7 +108,7 @@ internal static class BarApplication
                 SensorReason:sensorRead?.Explanation??"Reading hardware sensors…",SensorLoading:sensorRead is null);
         }
         phase?.Invoke("bar.before",false);
-        host=new MonitorBarHost(desktop,settings,Read,()=>{cpu.Reset();network.MarkRateGap();gpu.Stop();frames.Stop();barSensors.Stop();},s=>{BarSettingsFile.Save(settingsFile,s);if(settings.Pause!=s.Pause)network.Reset();if(settings.GamingMode!=s.GamingMode)frames.Reset();settings=s;},seconds,capture);
+        host=new MonitorBarHost(desktop,settings,Read,()=>{diagnostics.Reset();refreshDiagnosis?.Invoke();cpu.Reset();network.MarkRateGap();gpu.Stop();frames.Stop();barSensors.Stop();},s=>{BarSettingsFile.Save(settingsFile,s);if(settings.Pause!=s.Pause)network.Reset();if(settings.GamingMode!=s.GamingMode)frames.Reset();if((settings.SustainedAlerts,settings.SustainedSeconds,settings.SustainedUsagePercent,settings.SustainedBatteryPercent)!=(s.SustainedAlerts,s.SustainedSeconds,s.SustainedUsagePercent,s.SustainedBatteryPercent))diagnostics.Reset();settings=s;},seconds,capture);
         using var ownedHost=host;
         host.Suppressed+=gpu.Stop;host.Suppressed+=frames.Stop;host.Suppressed+=barSensors.Stop;host.Stopping+=gpu.Stop;host.Stopping+=frames.Stop;host.Stopping+=barSensors.Stop;
         phase?.Invoke("bar.visual.prepared",true);
@@ -130,8 +144,35 @@ internal static class BarApplication
             new(Islet.Windows.Popups.PopupActions.DashboardPosition,Islet.Windows.Popups.PopupActions.TaskManager,host.Dispose,ClipboardText.Read,Import,Export,Compatibility,()=>{},Islet.Windows.Popups.PopupActions.Bounds,new WindowsPowerModeControl(probe),desktopWidgets.Pin,
                 CurrentUsage,SelectUsage,desktopWidgets.PinUsage,SystemDiagnostics.CheckWifi,
                 token=>Task.FromResult(SystemDiagnostics.ReadStorageHealth(token)),SystemDiagnostics.OpenStorageCleanup,capacityHistory.Describe,
-                tempCleanup.Scan,tempCleanup.Clean,host.SetGamingMode,probe?null:cpuTemperature.ReadOnceAsync,()=>cpuTemperature.LastCelsius,()=>cpuTemperature.LastStatus,()=>ApplicationMetrics(false)),
+                tempCleanup.Scan,tempCleanup.Clean,host.SetGamingMode,probe?null:cpuTemperature.ReadOnceAsync,()=>cpuTemperature.LastCelsius,()=>cpuTemperature.LastStatus,()=>ApplicationMetrics(false),diagnostics),
             probe&&dashboardPage is not null,phase,recent);
+        refreshDiagnosis = dashboard.RefreshDiagnosis;
+        var diagnosisTimer = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background)
+            { Interval = TimeSpan.FromSeconds(3) };
+        bool CanCheckDashboard() => dashboard.IsShowingDiagnosis && !host.CurrentSettings.Pause
+            && !host.EnvironmentHidden;
+        void SampleDashboardDiagnosis()
+        {
+            var active = host.CurrentSettings;
+            UpdateDiagnosis(cpu.Sample(), ram.Sample(), active.SustainedAlerts ? battery.Sample() : null, active,
+                sampleClock.Elapsed.TotalSeconds);
+        }
+        void RefreshDiagnosisSampling()
+        {
+            if (!CanCheckDashboard()) { diagnosisTimer.Stop(); return; }
+            if (diagnosisTimer.IsEnabled) return;
+            // A strip reset clears the CPU counter baseline. Read RAM immediately and let CPU warm up.
+            if (!host.IsSampling) SampleDashboardDiagnosis();
+            diagnosisTimer.Start();
+        }
+        diagnosisTimer.Tick += (_, _) =>
+        {
+            if (CanCheckDashboard() && !host.IsSampling) SampleDashboardDiagnosis();
+        };
+        dashboard.DiagnosisVisibilityChanged += RefreshDiagnosisSampling;
+        host.EnvironmentVisibilityChanged += _ => RefreshDiagnosisSampling();
+        host.SettingsChanged += RefreshDiagnosisSampling;
+        host.Stopping += diagnosisTimer.Stop;
         var wasGaming=settings.GamingMode;
         host.SettingsChanged+=()=>{var current=host.CurrentSettings;if(!wasGaming&&current.GamingMode)frames.PinForeground();else if(wasGaming&&!current.GamingMode)frames.Reset();wasGaming=current.GamingMode;settings=current;popups.Close();dashboard.RefreshSettings();desktopWidgets.Refresh();};
         popups.DashboardRequested+=module=>
@@ -173,7 +214,7 @@ internal static class BarApplication
         {
             Mode="Tidlet x86 WPF bar and CPU/RAM popups",ProcessArchitecture=System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(),PointerSize=IntPtr.Size,
             host.FirstFrame,host.Samples,host.EverHidden,host.VisibilityChecks,host.HiddenMetricReads,host.TimersStopped,host.WindowCount,host.AllTrayRemoved,host.Observations,MeasuredPopupBounds=measuredPopupBounds,
-            MetricReads=reads,NetworkReads=network.Reads,LastSnapshot=last,Settings=settings,SettingsNotice=settingsNotice,Recovery=recovery,
+            DiagnosisCpu=diagnostics.CpuPercent,DiagnosisRam=diagnostics.MemoryPercent,MetricReads=reads,NetworkReads=network.Reads,LastSnapshot=last,Settings=settings,SettingsNotice=settingsNotice,Recovery=recovery,
             FrameCaptureDrained=framesDrained,SensorWorkersDrained=sensorsDrained,SensorRequests=barSensors.Requests,GpuBarRequests=gpu.Requests,GpuBarWorkersDrained=gpuDrained,
             CpuCapability=cpuProbe,RamCapability=ramProbe,BatteryCapability=batteryProbe,NetworkCapability=networkProbe,
             ProcessRenderPreference=RenderOptions.ProcessRenderMode.ToString(),ActualRenderPipelineVerified=false,

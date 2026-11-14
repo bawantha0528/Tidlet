@@ -14,7 +14,7 @@ public sealed partial class DashboardHost
         private static readonly int[] FpsTargets = [30, 60, 120, 144, 165, 240, 360];
         private static readonly int[] ThresholdLevels = [70, 75, 80, 85, 90, 95];
         private static readonly string[] PositionLabels = ["Top", "Bottom", "Top · reveal on hover"];
-        private sealed record SettingOption(string Label, Action Apply);
+        private sealed record SettingOption(string Label, Action Apply, string? Swatch = null);
         private sealed record SettingsMenu(string Name, string Current, Rect Anchor, SettingOption[] Options);
         private SettingsMenu? _settingsMenu;
         private string? _accentValue;
@@ -45,6 +45,99 @@ public sealed partial class DashboardHost
             else drawing.DrawRoundedRectangle(_customAccent, null, bounds, 7, 7);
         }
 
+        private static string StripColorLabel(StripColor role) => role switch
+        {
+            StripColor.Track => "Meter track",
+            StripColor.Battery => "Battery fill",
+            StripColor.Upload => "Upload dot",
+            StripColor.Download => "Download dot",
+            _ => role.ToString()
+        };
+
+        private void SaveStripColor(StripColor role)
+        {
+            var value = _entry.Trim();
+            if (value.Length > 0 && !BarSettings.IsStripColor(value))
+            {
+                _status = "Enter a hex color such as #0A84FF, or leave it blank to restore the default.";
+                _editing = "Strip " + StripColorLabel(role);
+                Draw(_scale);
+                return;
+            }
+
+            ApplyStripColor(role, value.Length == 0 ? null : value);
+        }
+
+        private void ApplyStripColor(StripColor role, string? color)
+        {
+            Change(settings =>
+            {
+                var colors = new Dictionary<StripColor, string>(settings.StripColors);
+                if (color is null) colors.Remove(role);
+                else colors[role] = color.ToUpperInvariant();
+                return settings with { StripColors = colors };
+            }, color is null ? "Default strip color restored." : "Strip color saved.");
+        }
+
+        private static readonly (string Name, string Hex)[] StripSwatches =
+        [
+            ("Matte black", "#141414"), ("Slate", "#343A46"), ("Soft white", "#F4F5F7"),
+            ("Blue", "#0A84FF"), ("Cyan", "#36C5F0"), ("Green", "#30D158"),
+            ("Amber", "#FF9F0A"), ("Red", "#FF453A"), ("Violet", "#A78BFA")
+        ];
+
+        private static string DefaultStripSwatch(StripColor role) => role switch
+        {
+            StripColor.Background => "#141414",
+            StripColor.Border => "#343434",
+            StripColor.Track => "#393C40",
+            StripColor.Label => "#B1B1B1",
+            StripColor.Battery => "#30D158",
+            StripColor.Upload => "#F14A47",
+            StripColor.Warning => "#FF9F0A",
+            StripColor.Critical => "#FF453A",
+            StripColor.Download => "#2C99EA",
+            StripColor.Meter => "#0A84FF",
+            _ => "#FFFFFF"
+        };
+
+        private static Brush SwatchBrush(string hex) =>
+            PopupPalette.Solid(int.Parse(hex.AsSpan(1), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
+
+        private void StripColorPicker(DrawingContext drawing, BarSettings settings, StripColor role, ref double y)
+        {
+            var name = "Strip " + StripColorLabel(role);
+            var color = settings.StripColors.GetValueOrDefault(role);
+            if (_editing == name)
+            {
+                Choice(drawing, name, "", ref y, () => Edit(name, color ?? ""));
+                return;
+            }
+
+            var row = SettingsRow(drawing, name, ref y);
+            if (row.IsEmpty) return;
+            var width = Math.Min(190, row.Width * .47);
+            var button = new Rect(row.Right-width-7, row.Top+4, width, row.Height-8);
+            drawing.DrawRoundedRectangle(_palette.Metrics.Surface, _palette.CardBorder, button, 6, 6);
+            drawing.DrawRoundedRectangle(SwatchBrush(color ?? DefaultStripSwatch(role)), _palette.CardBorder,
+                new Rect(button.Left+6,button.Top+5,18,17), 4, 4);
+            Label(drawing, color ?? "Default", button.Left+31, button.Top+5, 11, _text, width:width-51);
+            Label(drawing, "⌄", button.Right-18, button.Top+4, 11, _dim);
+            Hit(name + ": " + (color ?? "Default") + " · Choose color", row, () =>
+            {
+                var anchor = new Rect(row.Right-Math.Max(width,145)-7, button.Top-_scroll, Math.Max(width,145), button.Height);
+                var options = StripSwatches.Select(swatch =>
+                    new SettingOption(swatch.Name, () => ApplyStripColor(role, swatch.Hex), swatch.Hex)).ToList();
+                options.Insert(0, new("Default", () => ApplyStripColor(role, null), DefaultStripSwatch(role)));
+                options.Add(new("Custom hex…", () => Edit(name, color ?? "")));
+                var current = color is null ? "Default" : StripSwatches
+                    .FirstOrDefault(swatch => string.Equals(swatch.Hex, color, StringComparison.OrdinalIgnoreCase)).Name ?? "Custom hex…";
+                _settingsMenu = new(name, current, anchor, options.ToArray());
+                Draw(_scale);
+                FocusMenuOption(Math.Max(0, options.FindIndex(option => option.Label == current)));
+            });
+        }
+
         private void Settings(DrawingContext drawing)
         {
             var settings = _settings();
@@ -64,23 +157,20 @@ public sealed partial class DashboardHost
             Choice(drawing, "Accent color", settings.Accent + "  ·  Edit", ref y, () => Edit("Accent color", settings.Accent));
             Heading(drawing, "MONITOR STRIP", ref y);
             DrawStripOrder(drawing, settings, ref y);
-            var position = settings.TopReveal ? PositionLabels[2] : settings.Edge == BarEdge.Bottom ? PositionLabels[1] : PositionLabels[0];
-            Dropdown(drawing, "Position", position, PositionLabels, value => value, value =>
-                Change(s => s with
-                {
-                    Edge = value == PositionLabels[1] ? BarEdge.Bottom : BarEdge.Top,
-                    RevealAtTop = value == PositionLabels[2]
-                }, $"Position set to {value}. Saved."), ref y);
             if (settings.Edge == BarEdge.Bottom)
                 Dropdown(drawing, "Mode", settings.Mode, Enum.GetValues<BarMode>(), value => value.ToString(),
                     value => Change(s => s with { Mode = value }, $"Mode set to {value}. Saved."), ref y);
-            Dropdown(drawing, "Alignment", settings.Alignment, Enum.GetValues<BarAlignment>(), value => value.ToString(),
-                value => Change(s => s with { Alignment = value }, $"Alignment set to {value}. Saved."), ref y);
             Dropdown(drawing, "Monitors", settings.Monitors, new[] { MonitorSelection.Primary, MonitorSelection.All },
                 value => value switch { MonitorSelection.Primary => "Primary monitor", MonitorSelection.All => "All monitors", _ => "Selected monitor" },
                 value => Change(s => s with { Monitors = value }, "Monitor selection saved."), ref y);
             Dropdown(drawing, "Bar refresh", settings.IntervalSeconds, RefreshIntervals, Seconds,
                 value => Change(s => s with { IntervalSeconds = value }, $"Bar refresh set to {Seconds(value)}. Saved."), ref y);
+
+            Heading(drawing, "STRIP COLORS", ref y);
+            foreach (var role in Enum.GetValues<StripColor>()) StripColorPicker(drawing, settings, role, ref y);
+            if (settings.StripColors.Count > 0)
+                Choice(drawing, "Reset strip colors", "Restore defaults", ref y,
+                    () => Change(s => s with { StripColors = [] }, "Default strip colors restored."));
 
             Heading(drawing, "READINGS", ref y);
             Dropdown(drawing, "Transfer units", settings.UseBits, new[] { false, true }, value => value ? "Bits / second" : "Bytes / second",
@@ -90,11 +180,24 @@ public sealed partial class DashboardHost
             Toggle(drawing, "Pause monitoring", settings.Pause, ref y,
                 () => Change(s => s with { Pause = !s.Pause }, settings.Pause ? "Monitoring resumed. Saved." : "Monitoring paused. Saved."));
 
-            Choice(drawing, "Gaming", "Open gaming settings  ›", ref y, () => Select(GamingPage));
+            Choice(drawing, "Gaming", "Open gaming settings", ref y, () => Select(GamingPage));
+
+            Heading(drawing, "SUSTAINED ALERTS", ref y);
+            Toggle(drawing, "Windows notifications", settings.SustainedAlerts, ref y,
+                () => Change(s => s with { SustainedAlerts = !s.SustainedAlerts }));
+            Dropdown(drawing, "CPU and RAM usage", settings.SustainedUsagePercent,
+                new[] { 70, 75, 80, 85, 90, 95, 99 }, value => $"{value}%",
+                value => Change(s => s with { SustainedUsagePercent = value }), ref y);
+            Dropdown(drawing, "Low battery while unplugged", settings.SustainedBatteryPercent,
+                new[] { 5, 10, 15, 20, 25, 30, 35, 40 }, value => $"{value}%",
+                value => Change(s => s with { SustainedBatteryPercent = value }), ref y);
+            Dropdown(drawing, "Time above or below limit", settings.SustainedSeconds,
+                new[] { 30, 60, 120, 300 }, value => value < 60 ? $"{value} seconds" : $"{value / 60} min",
+                value => Change(s => s with { SustainedSeconds = value }), ref y);
 
             Heading(drawing, "MODULES", ref y);
             foreach (var item in BarSettings.ConfigurableModules)
-                Choice(drawing, item.ToString(), settings.Items.Contains(item) ? "In strip  ›" : "Hidden  ›", ref y, () => OpenModuleSettings(item));
+                Choice(drawing, item.ToString(), settings.Items.Contains(item) ? "In strip" : "Hidden", ref y, () => OpenModuleSettings(item));
             Heading(drawing, "IMPORT & EXPORT", ref y);
             Choice(drawing, "Export settings", "Save local JSON", ref y, () => Run(_actions.ExportSettings));
             Choice(drawing, "Import settings", "Enter local file path", ref y, () => Edit("Import settings", ""));
@@ -171,20 +274,20 @@ public sealed partial class DashboardHost
             Hit(name + ": " + value, row, apply);
         }
 
-        private Rect SettingsRow(DrawingContext drawing, string name, ref double y)
+        private Rect SettingsRow(DrawingContext drawing, string name, ref double y, double labelInset = 12)
         {
             var row = new Rect(235, y - 3, Width - 275, 35);
             y += 41;
             if (row.Bottom <= 66 + _scroll || row.Top >= Height - 54 + _scroll) return Rect.Empty;
             drawing.DrawRoundedRectangle(_surface, _palette.CardBorder, row, 6, 6);
-            Label(drawing, name, row.Left + 12, row.Top + 9, 12, _text, width: row.Width * .5 - 12);
+            Label(drawing, name, row.Left + labelInset, row.Top + 9, 12, _text, width: row.Width * .5 - labelInset);
             return row;
         }
 
         private void DrawSettingsMenu(DrawingContext drawing)
         {
             if (_settingsMenu is not { } menu) return;
-            const double optionHeight = 29;
+            var optionHeight = menu.Options.Any(option => option.Swatch is not null) ? 25.0 : 29.0;
             var height = optionHeight * menu.Options.Length + 10;
             var top = menu.Anchor.Bottom + 4;
             if (top + height > Height - 55) top = Math.Max(67, menu.Anchor.Top - height - 4);
@@ -202,13 +305,20 @@ public sealed partial class DashboardHost
                 var selected = option.Label == menu.Current;
                 if (selected) DrawSettingsSelection(drawing, item);
                 var brush = selected ? SelectionText : _text;
-                Label(drawing, option.Label, item.Left + 9, item.Top + 6, 12, brush, selected, item.Width - 32);
+                var textInset = 9;
+                if (option.Swatch is { } hex)
+                {
+                    drawing.DrawRoundedRectangle(SwatchBrush(hex), _palette.CardBorder,
+                        new Rect(item.Left+9,item.Top+(item.Height-17)/2,17,17), 4, 4);
+                    textInset = 33;
+                }
+                Label(drawing, option.Label, item.Left + textInset, item.Top + 6, 12, brush, selected, item.Width - textInset - 23);
                 if (selected) Label(drawing, "✓", item.Right - 20, item.Top + 6, 12, brush);
                 Hit(MenuOptionName(option.Label, selected), item, () =>
                 {
                     _settingsMenu = null;
                     option.Apply();
-                    FocusSettingsRow(menu.Name);
+                    if (_editing is null) FocusSettingsRow(menu.Name);
                 }, pinned: true);
             }
         }

@@ -33,13 +33,16 @@ public sealed class MonitorBarHost : IDisposable
     public event Action? DashboardRequested;public event Action? SettingsRequested;public event Action? SettingsChanged;
     public Func<string?>? PopupDisplay{get;set;}
     public BarSettings CurrentSettings=>_settings;
-    internal static Drawing PreviewItem(BarModule module,BarItemStyle style,bool light,double scale)
-        =>PreviewItem(module,style,light,scale,new BarSnapshot(62,74,83,"","","","",38400,12600,Gpu:54));
+    public bool IsSampling => _samples.IsEnabled;
+    public bool EnvironmentHidden => _environmentHidden;
+    public void Notify(string message) => _windows.FirstOrDefault(window => window.Surface.TrayPresent)?.Surface.Notify(message);
+    internal static Drawing PreviewItem(BarModule module,BarItemStyle style,bool light,double scale,StripPalette? palette=null)
+        =>PreviewItem(module,style,light,scale,new BarSnapshot(62,74,83,"","","","",38400,12600,Gpu:54),85,60,false,palette);
     internal static Drawing PreviewItem(BarModule module,BarItemStyle style,bool light,double scale,BarSnapshot sample,int thresholdPercent=85,int fpsTarget=60)
         =>PreviewItem(module,style,light,scale,sample,thresholdPercent,fpsTarget,false);
-    internal static Drawing PreviewItem(BarModule module,BarItemStyle style,bool light,double scale,BarSnapshot sample,int thresholdPercent,int fpsTarget,bool fahrenheit)
+    internal static Drawing PreviewItem(BarModule module,BarItemStyle style,bool light,double scale,BarSnapshot sample,int thresholdPercent,int fpsTarget,bool fahrenheit,StripPalette? palette=null)
     {
-        var item=new ItemVisual(module,()=>{},false,style,true,light);
+        var item=new ItemVisual(module,()=>{},false,style,true,light,palette);
         if(BarStyles.Resolve(module,style)==BarItemStyle.Sparkline)
             foreach(var value in new[]{26.0,44,34,68,51,60,40,72,54})
                 item.Update(sample with{Cpu=value,Ram=value,Gpu=value},scale,24,null,true,false,thresholdPercent,fpsTarget,fahrenheit);
@@ -270,11 +273,12 @@ public sealed class MonitorBarHost : IDisposable
         private static readonly Typeface GamingStatusFace=new(new FontFamily("Segoe UI Variable, Segoe UI"),FontStyles.Normal,FontWeights.SemiBold,FontStretches.Normal);
         private static readonly Brush GamingStatusDark=PopupPalette.Solid(0x83C7FF);
         private readonly bool _floating;
+        private readonly StripPalette _palette;
         public string? Notice{get;set;}public BarItemLayout[] Items{get;private set;}=[];
         public event Action<BarModule?>? MenuRequested;public event Action<BarModule>? Clicked;
         public BarVisual(BarSettings settings)
         {
-            _settings=settings;Focusable=true;AddVisualChild(_background);
+            _settings=settings;_palette=new(settings.StripColors);Focusable=true;AddVisualChild(_background);
             _floating=settings.Edge==BarEdge.Bottom||settings.TopReveal;
             MouseLeftButtonUp+=(_,e)=>{Focus();if(BarLayout.Hit(Items,e.GetPosition(this).X)is{}m)Clicked?.Invoke(m);};
             MouseRightButtonUp+=(_,e)=>{MenuRequested?.Invoke(BarLayout.Hit(Items,e.GetPosition(this).X));e.Handled=true;};
@@ -298,18 +302,20 @@ public sealed class MonitorBarHost : IDisposable
         private void DrawBackground()
         {
             using var d=_background.RenderOpen();
-            if(_floating)d.DrawRoundedRectangle(StripBackground,StripBorder,new Rect(.5,.5,Math.Max(0,_width-1),Math.Max(0,_height-1)),4,4);
+            var background=_palette.Get(StripColor.Background)??StripBackground;
+            var border=_palette.Pen(StripColor.Border)??StripBorder;
+            if(_floating)d.DrawRoundedRectangle(background,border,new Rect(.5,.5,Math.Max(0,_width-1),Math.Max(0,_height-1)),4,4);
             else
             {
-                d.DrawRectangle(StripBackground,null,new Rect(0,0,_width,_height));
-                d.DrawLine(StripBorder,new Point(0,_height-.5),new Point(_width,_height-.5));
+                d.DrawRectangle(background,null,new Rect(0,0,_width,_height));
+                d.DrawLine(border,new Point(0,_height-.5),new Point(_width,_height-.5));
             }
             if(_gamingIndicatorX is double x)
             {
                 var center=_height/2;
-                var accent=GamingStatusDark;
+                var accent=_palette.Get(StripColor.Icon)??GamingStatusDark;
                 d.PushTransform(new MatrixTransform(_gamingIndicatorFit,0,0,1,x*(1-_gamingIndicatorFit),0));
-                d.DrawRoundedRectangle(null,StripBorder,new Rect(x,center-9,BarLayout.GamingIndicatorWidth,18),5,5);
+                d.DrawRoundedRectangle(null,border,new Rect(x,center-9,BarLayout.GamingIndicatorWidth,18),5,5);
                 DashboardIcons.Draw(d,"Gaming",new Point(x+12,center),accent);
                 var text=MonitorText.Format("Gaming On",GamingStatusFace,9,accent,_scale);
                 d.DrawText(text,new Point(x+24,center-text.Height/2));
@@ -334,7 +340,7 @@ public sealed class MonitorBarHost : IDisposable
             if(layoutChanged)
             {
                 foreach(var c in _children)RemoveVisualChild(c);_children.Clear();Items=items;
-                foreach(var item in Items){var c=new ItemVisual(item.Module,()=>Clicked?.Invoke(item.Module),_settings.UseBits,_settings.Preference(item.Module).Style,item.Width>=84*item.Fit,false);_children.Add(c);AddVisualChild(c);}
+                foreach(var item in Items){var c=new ItemVisual(item.Module,()=>Clicked?.Invoke(item.Module),_settings.UseBits,_settings.Preference(item.Module).Style,item.Width>=84*item.Fit,false,_palette);_children.Add(c);AddVisualChild(c);}
             }
             for(var index=0;index<_children.Count;index++)
             {
@@ -376,6 +382,7 @@ public sealed class MonitorBarHost : IDisposable
         private readonly bool _useBits;
         private readonly BarItemStyle _style;
         private readonly bool _light;
+        private readonly StripPalette? _palette;
         private readonly double[]? _meterHistory;
         private int _historyCount,_historyNext;
         private static readonly Brush TrafficUp=BatteryBrush(241,74,71),TrafficDown=BatteryBrush(44,153,234);
@@ -391,9 +398,9 @@ public sealed class MonitorBarHost : IDisposable
         private static readonly Pen WarnTrace=FrozenPen(BatteryLow,1.2),CritTrace=FrozenPen(CriticalRed,1.2);
         private static readonly Pen LightWarnTrace=FrozenPen(LightWarn,1.2),LightCritTrace=FrozenPen(LightCrit,1.2);
         private static Pen FrozenPen(Brush brush,double width){var pen=new Pen(brush,width);pen.Freeze();return pen;}
-        public ItemVisual(BarModule module,Action invoke,bool useBits,BarItemStyle style,bool wide,bool light)
+        public ItemVisual(BarModule module,Action invoke,bool useBits,BarItemStyle style,bool wide,bool light,StripPalette? palette=null)
         {
-            _module=module;_invoke=invoke;_useBits=useBits;_style=BarStyles.Resolve(module,style,wide);_light=light;
+            _module=module;_invoke=invoke;_useBits=useBits;_style=BarStyles.Resolve(module,style,wide);_light=light;_palette=palette;
             if(_style==BarItemStyle.Sparkline)_meterHistory=new double[20];
             Focusable=true;AddVisualChild(_visual);
         }
@@ -440,7 +447,7 @@ public sealed class MonitorBarHost : IDisposable
                         Text(d,"↓ "+Rate(s.Download),0,center-1,10,true,scale);
                         return;
                     }
-                    Dot(d,center-5.5,TrafficUp);Dot(d,center+5.5,TrafficDown);
+                    Dot(d,center-5.5,_palette?.Get(StripColor.Upload)??TrafficUp);Dot(d,center+5.5,_palette?.Get(StripColor.Download)??TrafficDown);
                     Text(d,Rate(s.Upload),13,center-11,10,true,scale);
                     Text(d,Rate(s.Download),13,center,10,true,scale);return;
             }
@@ -452,14 +459,14 @@ public sealed class MonitorBarHost : IDisposable
                 BarModule.Battery=>BarThresholds.BatteryChargeLevel(s.Battery),
                 _=>BarThresholds.UsageLevel(_module,threshPct,thresholdPercent)
             };
-            var batteryColor=ThresholdBrush(thresholdLevel)??(_light?LightGreen:BatteryGreen);
+            var batteryColor=ThresholdBrush(thresholdLevel)??_palette?.Get(StripColor.Battery)??(_light?LightGreen:BatteryGreen);
             Brush? valueColorOverride=_module==BarModule.FrameRate?FpsColor(s.Frames.Milliseconds,fpsTarget):ThresholdBrush(thresholdLevel);
             if(valueColorOverride is null&&(_module==BarModule.Battery&&s.Battery.HasValue||_module==BarModule.Sensors&&s.SensorTemp.HasValue))
                 valueColorOverride=_light?LightGreen:BatteryGreen;
             if(_style==BarItemStyle.Battery)
             {
-                d.DrawRoundedRectangle(null,_light?LightBatteryOutline:BatteryOutline,new Rect(0,center-5,18,10),2,2);
-                d.DrawRectangle(_light?LightLabel:LabelBrush,null,new Rect(19,center-2,2,4));
+                d.DrawRoundedRectangle(null,_palette?.Pen(StripColor.Icon)??(_light?LightBatteryOutline:BatteryOutline),new Rect(0,center-5,18,10),2,2);
+                d.DrawRectangle(_palette?.Get(StripColor.Icon)??(_light?LightLabel:LabelBrush),null,new Rect(19,center-2,2,4));
                 if(s.Battery is{} percent&&ValidPercent(percent)&&percent>0)
                     d.DrawRoundedRectangle(batteryColor,null,new Rect(2,center-3,14*percent/100,6),1,1);
                 Text(d,value,26,center-7,11,true,scale,valueColorOverride);
@@ -469,7 +476,7 @@ public sealed class MonitorBarHost : IDisposable
                 if(_style is BarItemStyle.IconOnly or BarItemStyle.IconWithText)
                 {
                     var icon=_module is BarModule.Cpu or BarModule.Gpu or BarModule.Ram?label:_module.ToString();
-                    DashboardIcons.Draw(d,icon,new Point(9,center),valueColorOverride??(_light?LightText:Brushes.White));
+                    DashboardIcons.Draw(d,icon,new Point(9,center),_palette?.Get(StripColor.Icon)??valueColorOverride??(_light?LightText:Brushes.White));
                     if(_style==BarItemStyle.IconOnly)return;
                 }
                 var x=_style==BarItemStyle.IconWithText?22:0;
@@ -480,16 +487,16 @@ public sealed class MonitorBarHost : IDisposable
             }
             var metric=_module switch{BarModule.Cpu=>s.Cpu,BarModule.Gpu=>s.Gpu,BarModule.Ram=>s.Ram,BarModule.Battery=>s.Battery,_=>null};
             if(metric is not{}percentValue||!ValidPercent(percentValue))return;
-            if(_style==BarItemStyle.Ring)DrawRing(d,center,percentValue,_module==BarModule.Battery&&thresholdLevel==ThresholdLevel.Normal?(_light?LightBatteryArc:BatteryArc):ThresholdArc(thresholdLevel));
+            if(_style==BarItemStyle.Ring)DrawRing(d,center,percentValue,_module==BarModule.Battery&&thresholdLevel==ThresholdLevel.Normal?(_palette?.Pen(StripColor.Battery)??(_light?LightBatteryArc:BatteryArc)):ThresholdArc(thresholdLevel));
             if(_style==BarItemStyle.Sparkline)DrawHistory(d,center,percentValue,appendHistory,ThresholdTrace(thresholdLevel));
             if(_style==BarItemStyle.Bar)
             {
-                d.DrawRoundedRectangle(_light?LightTrack:MeterTrack,null,new Rect(39,center-5.5,40,11),2,2);
+                d.DrawRoundedRectangle(_palette?.Get(StripColor.Track)??(_light?LightTrack:MeterTrack),null,new Rect(39,center-5.5,40,11),2,2);
                 if(percentValue>0)
                 {
                     var fill=_module switch{
                         BarModule.Battery=>batteryColor,
-                        _=>ThresholdBrush(thresholdLevel)??TrafficDown};
+                        _=>ThresholdBrush(thresholdLevel)??_palette?.Get(StripColor.Meter)??TrafficDown};
                     d.DrawRoundedRectangle(fill,null,new Rect(39,center-5.5,40*percentValue/100,11),2,2);
                 }
             }
@@ -498,7 +505,7 @@ public sealed class MonitorBarHost : IDisposable
         {
             var pen=arcPen??CpuArc;
             const double x=48,radius=8.5;
-            d.DrawEllipse(null,_light?LightCpuTrack:CpuTrack,new Point(x,center),radius,radius);
+            d.DrawEllipse(null,_palette?.Pen(StripColor.Track)??(_light?LightCpuTrack:CpuTrack),new Point(x,center),radius,radius);
             if(percent==0)return;
             if(percent==100){d.DrawEllipse(null,pen,new Point(x,center),radius,radius);return;}
             var radians=percent*Math.Tau/100;
@@ -516,7 +523,7 @@ public sealed class MonitorBarHost : IDisposable
             var samples=_meterHistory!;
             if(appendHistory){samples[_historyNext]=sample;_historyNext=(_historyNext+1)%samples.Length;_historyCount=Math.Min(samples.Length,_historyCount+1);}
             if(_historyCount<2)return;
-            var pen=tracePen??GpuTrace;
+            var pen=tracePen??_palette?.Pen(StripColor.Meter)??GpuTrace;
             var geometry=new StreamGeometry();Point last=default;
             using(var c=geometry.Open())
             {
@@ -532,26 +539,26 @@ public sealed class MonitorBarHost : IDisposable
         private static void Dot(DrawingContext d,double y,Brush brush)=>d.DrawEllipse(brush,null,new Point(3,y),2.5,2.5);
         private void Text(DrawingContext d,string text,double x,double y,double size,bool bold,double scale,Brush? brush=null)
         {
-            var b=brush??(_light?(bold?LightText:LightLabel):(bold?Brushes.White:LabelBrush));
+            var b=_palette?.Get(bold?StripColor.Reading:StripColor.Label)??brush??(_light?(bold?LightText:LightLabel):(bold?Brushes.White:LabelBrush));
             var t=MonitorText.Format(text,bold?Bold:Face,size,b,scale);
             d.DrawText(t,MonitorText.PixelAligned(x,y,scale));
         }
         private Pen ThresholdArc(ThresholdLevel level)=>level switch{
-            ThresholdLevel.Critical=>_light?LightCritArc:CritArc,
-            ThresholdLevel.Warning=>_light?LightWarnArc:WarnArc,
-            _=>CpuArc};
+            ThresholdLevel.Critical=>_palette?.Pen(StripColor.Critical)??(_light?LightCritArc:CritArc),
+            ThresholdLevel.Warning=>_palette?.Pen(StripColor.Warning)??(_light?LightWarnArc:WarnArc),
+            _=>_palette?.Pen(StripColor.Meter)??CpuArc};
         private Pen? ThresholdTrace(ThresholdLevel level)=>level switch{
-            ThresholdLevel.Critical=>_light?LightCritTrace:CritTrace,
-            ThresholdLevel.Warning=>_light?LightWarnTrace:WarnTrace,
+            ThresholdLevel.Critical=>_palette?.Pen(StripColor.Critical)??(_light?LightCritTrace:CritTrace),
+            ThresholdLevel.Warning=>_palette?.Pen(StripColor.Warning)??(_light?LightWarnTrace:WarnTrace),
             _=>null};
         private Brush? ThresholdBrush(ThresholdLevel level)=>level switch{
-            ThresholdLevel.Critical=>_light?LightCrit:CriticalRed,
-            ThresholdLevel.Warning=>_light?LightWarn:BatteryLow,
+            ThresholdLevel.Critical=>_palette?.Get(StripColor.Critical)??(_light?LightCrit:CriticalRed),
+            ThresholdLevel.Warning=>_palette?.Get(StripColor.Warning)??(_light?LightWarn:BatteryLow),
             _=>null};
         private Brush? FpsColor(double? ms,int target)=>BarThresholds.FrameLevel(ms,target) switch{
             FrameRateLevel.Good=>_light?LightGreen:BatteryGreen,
-            FrameRateLevel.Fair=>_light?LightWarn:BatteryLow,
-            FrameRateLevel.Low=>_light?LightCrit:CriticalRed,
+            FrameRateLevel.Fair=>_palette?.Get(StripColor.Warning)??(_light?LightWarn:BatteryLow),
+            FrameRateLevel.Low=>_palette?.Get(StripColor.Critical)??(_light?LightCrit:CriticalRed),
             _=>null};
         private sealed class ItemPeer(ItemVisual owner):UIElementAutomationPeer(owner),IInvokeProvider
         {

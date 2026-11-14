@@ -15,6 +15,75 @@ namespace Islet.Shell.Tests;
 public sealed class ApplicationPageTests
 {
     [TestMethod]
+    public void SpeedUpShowsCpuReviewForSustainedUsage()=>Sta(()=>
+    {
+        var settings = new BarSettings { SustainedSeconds = 30 };
+        var diagnosis = new SustainedDiagnostics();
+        for (int second=0; second<=30; second+=5) diagnosis.Observe(second, 95, 50, null, settings);
+        var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var cleanupCalls = 0;
+        using var host=new DashboardHost(()=>settings,_=>{},()=>new DeviceOverview("Mock","Windows",[],[]),
+            ()=>new Source(),()=>display,new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{},
+                TempScan:(_,_)=>{cleanupCalls++;return new(0,0,[],false);},Diagnostics:diagnosis));
+        host.Open();
+        var flags=BindingFlags.Instance|BindingFlags.NonPublic;
+        var window=typeof(DashboardHost).GetField("_window",flags)!.GetValue(host)!;
+        var visual=window.GetType().GetField("_visual",flags)!.GetValue(window)!;
+        var buttons=(System.Collections.IEnumerable)visual.GetType().GetField("_buttons",flags)!.GetValue(visual)!;
+        AutomationPeer? Find(string name)=>buttons.Cast<UIElement>()
+            .Select(UIElementAutomationPeer.CreatePeerForElement).FirstOrDefault(peer=>peer?.GetName()==name);
+        void Invoke(string name)
+        {
+            var peer=Find(name);
+            Assert.IsNotNull(peer,name);
+            ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(PatternInterface.Invoke)!).Invoke();
+        }
+        Invoke("Speed up");
+        PumpUntil(()=>Find("Review CPU") is not null);
+        Assert.AreEqual("Dashboard",host.PageHistory.Last());
+        Invoke("Review CPU");
+        PumpUntil(()=>host.PageHistory.Last()=="CPU");
+        Assert.AreEqual(0,cleanupCalls);
+    });
+
+    [TestMethod]
+    public void StripColorPickerAppliesAndRestoresSwatches()=>Sta(()=>
+    {
+        var display = new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
+        var settings = new BarSettings { Pause = true };
+        using var host = new DashboardHost(()=>settings,value=>settings=value,
+            ()=>new DeviceOverview("Mock","Windows",[],[]),()=>new Source(),()=>display,
+            new((_,_,_)=>{},()=>{},()=>{},()=>"",_=>"",()=>"",()=>"",()=>{}));
+        host.Open("Settings");
+        var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        var window = typeof(DashboardHost).GetField("_window",flags)!.GetValue(host)!;
+        var visual = (UIElement)window.GetType().GetField("_visual",flags)!.GetValue(window)!;
+        visual.GetType().GetField("_scroll",flags)!.SetValue(visual,460.0);
+        visual.GetType().GetMethod("Draw")!.Invoke(visual,[1.0]);
+
+        AutomationPeer? Find(string name)
+        {
+            var buttons = (System.Collections.IEnumerable)visual.GetType().GetField("_buttons",flags)!.GetValue(visual)!;
+            return buttons.Cast<UIElement>().Select(UIElementAutomationPeer.CreatePeerForElement)
+                .FirstOrDefault(peer=>peer?.GetName()==name);
+        }
+        void Invoke(string name)
+        {
+            var peer = Find(name);
+            Assert.IsNotNull(peer,name);
+            ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(PatternInterface.Invoke)!).Invoke();
+        }
+        Invoke("Strip Background: Default · Choose color");
+        PumpUntil(()=>Find("Blue") is not null);
+        Invoke("Blue");
+        PumpUntil(()=>settings.StripColors.GetValueOrDefault(StripColor.Background)=="#0A84FF");
+        Invoke("Strip Background: #0A84FF · Choose color");
+        PumpUntil(()=>Find("Default") is not null);
+        Invoke("Default");
+        PumpUntil(()=>settings.StripColors.Count==0);
+    });
+
+    [TestMethod]
     public void CpuTemperatureActionShowsTheReadingImmediatelyAndAfterReopen()=>Sta(()=>
     {
         var display=new BarDisplay("mock",true,new(0,0,1280,900),new(0,0,1280,860));
@@ -246,11 +315,24 @@ public sealed class ApplicationPageTests
         var window=typeof(DashboardHost).GetField("_window",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(host)!;
         var visual=window.GetType().GetField("_visual",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
         var buttons=(System.Collections.IEnumerable)visual.GetType().GetField("_buttons",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(visual)!;
-        var button=buttons.Cast<UIElement>().Single(b=>UIElementAutomationPeer.CreatePeerForElement(b)?.GetName()=="Battery ←");
+        var button=buttons.Cast<UIElement>().Single(b=>UIElementAutomationPeer.CreatePeerForElement(b)?.GetName()=="Move Battery left");
         ((System.Windows.Automation.Provider.IInvokeProvider)UIElementAutomationPeer.CreatePeerForElement(button)!.GetPattern(PatternInterface.Invoke)!).Invoke();
         PumpUntil(()=>settings.StripOrderCustomized);
         CollectionAssert.AreEqual(new[]{BarModule.Battery,BarModule.Cpu},settings.NormalItems);
         CollectionAssert.AreEqual(settings.NormalItems,BarSettingsFile.Import(BarSettingsFile.Export(settings)).NormalItems);
+        void InvokeSetting(string label)
+        {
+            var element=buttons.Cast<UIElement>().Single(b=>UIElementAutomationPeer.CreatePeerForElement(b)?.GetName()==label);
+            ((System.Windows.Automation.Provider.IInvokeProvider)UIElementAutomationPeer.CreatePeerForElement(element)!.GetPattern(PatternInterface.Invoke)!).Invoke();
+        }
+        InvokeSetting("Screen edge: Bottom");
+        PumpUntil(()=>settings.Edge==BarEdge.Bottom && !settings.TopReveal);
+        InvokeSetting("Alignment: Left");
+        PumpUntil(()=>settings.Alignment==BarAlignment.Left);
+        InvokeSetting("Screen edge: Hover");
+        PumpUntil(()=>settings.TopReveal);
+        InvokeSetting("Customize CPU from strip preview");
+        PumpUntil(()=>buttons.Cast<UIElement>().Any(b=>UIElementAutomationPeer.CreatePeerForElement(b)?.GetName()?.StartsWith("All settings:",StringComparison.Ordinal)==true));
     });
 
     [TestMethod]

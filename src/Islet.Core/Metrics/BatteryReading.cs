@@ -16,7 +16,7 @@ public sealed record BatteryReading(
     string Explanation,
     int? CycleCount = null,
     uint? DesignedCapacityMWh = null,
-    uint? FullChargedCapacityMWh = null)
+    uint? FullChargedCapacityMWh = null, bool? OnAc = null)
 {
     public static BatteryReading Missing(BatteryReadingState state, string reason) =>
         new(state, null, BatteryChargingStatus.Unknown, null, null, null, reason);

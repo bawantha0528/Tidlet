@@ -19,7 +19,7 @@ public sealed record DashboardActions(Action<nint,BarRect,bool> Position,Action 
     Func<CancellationToken,Task<string>>? WifiDiagnostics=null,Func<CancellationToken,Task<string>>? StorageHealth=null,
     Func<string>? StorageCleanup=null,Func<string>? BatteryCapacity=null,
     Func<CancellationToken,Action<TempCleanupProgress>,TempCleanupScan>? TempScan=null,Func<TempCleanupScan,CancellationToken,Action<TempCleanupProgress>,TempCleanupResult>? TempClean=null,
-    Action<bool>? SetGamingMode=null,Func<Task<string>>? ReadCpuTemperature=null,Func<double?>? LastCpuTemperature=null,Func<string?>? CpuTemperatureStatus=null,Func<IPopupSource>? WidgetMetrics=null);
+    Action<bool>? SetGamingMode=null,Func<Task<string>>? ReadCpuTemperature=null,Func<double?>? LastCpuTemperature=null,Func<string?>? CpuTemperatureStatus=null,Func<IPopupSource>? WidgetMetrics=null, SustainedDiagnostics? Diagnostics=null);
 public sealed record DashboardEvent(string Action,string Page,double Seconds,int Reads,int Frames);
 public sealed record DashboardCapture(string Path,int Percent,int Width,int Height,double StartedSeconds,double CompletedSeconds);
 
@@ -44,16 +44,19 @@ public sealed partial class DashboardHost:IDisposable
     public void Open(string page="Dashboard")
     {
         if(_window is not null){_window.Select(page);return;}
-        _cleanup.RemoveAll(t=>t.IsCompleted);Opens++;_window=new(_settings,_save,_device,_metrics,_display(),_actions,page,Close,_diagnostic,name=>{if(PageHistory.Count<512)PageHistory.Add(name);Record("Select",name);},Task.WhenAll(_cleanup),_phase,_recent);PerPixelOpacity=_window.PerPixelOpacity;Record("Open",page);
+        _cleanup.RemoveAll(t=>t.IsCompleted);Opens++;_window=new(_settings,_save,_device,_metrics,_display(),_actions,page,Close,_diagnostic,name=>{if(PageHistory.Count<512)PageHistory.Add(name);Record("Select",name);DiagnosisVisibilityChanged?.Invoke();},Task.WhenAll(_cleanup),_phase,_recent);PerPixelOpacity=_window.PerPixelOpacity;Record("Open",page);DiagnosisVisibilityChanged?.Invoke();
     }
     public void Close()
     {
-        if(_window is null)return;Record("Close",PageHistory.LastOrDefault()??"Dashboard");var window=_window;_window=null;window.Dispose();Reads+=window.Reads;Frames+=window.Frames;
+        if(_window is null)return;Record("Close",PageHistory.LastOrDefault()??"Dashboard");var window=_window;_window=null;DiagnosisVisibilityChanged?.Invoke();window.Dispose();Reads+=window.Reads;Frames+=window.Frames;
         CoreDetailRequests+=window.CoreDetailRequests;ProcessDetailRequests+=window.ProcessDetailRequests;
         _cleanup.RemoveAll(x=>x.IsCompleted);_cleanup.AddRange(window.Cleanup);
         _phase?.Invoke("dashboard.closed",false);
     }
     public bool Drain(TimeSpan timeout)=>Task.WaitAll(_cleanup.ToArray(),timeout);
+    public bool IsShowingDiagnosis => _window?.IsShowingDiagnosis == true;
+    public event Action? DiagnosisVisibilityChanged;
+    public void RefreshDiagnosis()=>_window?.RefreshDiagnosis();
     public void RefreshSettings()=>_window?.RefreshSettings();
     public void Capture(string path,int? percent=null)
     {if(percent.HasValue&&percent is not(100 or 150))throw new ArgumentOutOfRangeException(nameof(percent));if(_window is null)return;_phase?.Invoke("capture.before",true);_window.Capture(path,percent,()=>_clock.Elapsed.TotalSeconds,entry=>{if(Captures.Count<16)Captures.Add(entry);});_phase?.Invoke("capture.after",false);}
@@ -95,6 +98,8 @@ public sealed partial class DashboardHost:IDisposable
                 &&_visual.InputHitTest(point) is not SurfaceAction?2:1;
         }
         public void Select(string page)=>_visual.Select(page);
+        public bool IsShowingDiagnosis => !_closed && _visual.IsShowingDiagnosis;
+        public void RefreshDiagnosis()=>_visual.RefreshDiagnosis();
         public void RefreshSettings()
         {
             _visual.RefreshSettings();
@@ -340,13 +345,73 @@ public sealed partial class DashboardHost:IDisposable
             Label(drawing,"Check the limit in the manufacturer's utility. Your laptop applies it.",230,258,12,_dim,false,width);
             _bottom=305;
         }
+        public bool IsShowingDiagnosis => _page == "Dashboard";
+        public void RefreshDiagnosis()
+        {
+            if (_page == "Dashboard") Draw(_scale);
+        }
+
+        private bool _showSpeedUp;
+        private double DrawDiagnosis(DrawingContext drawing, SustainedDiagnostics diagnosis, double width, double y)
+        {
+            var paused = _settings().Pause;
+            var module = paused ? null : diagnosis.Active switch
+            {
+                SustainedProblem.Cpu => "CPU",
+                SustainedProblem.Memory => "RAM",
+                _ => null
+            };
+            var dot = module is not null ? _palette.Metrics.Orange
+                : !paused && diagnosis.HasReadings ? _blue : _dim;
+            drawing.DrawRoundedRectangle(_surface, _palette.CardBorder, new Rect(230,y,width,48), 8, 8);
+            drawing.DrawEllipse(dot, null, new Point(247,y+16), 3, 3);
+            var textWidth = width - 128;
+            Label(drawing, "Slowdown check", 258, y+7, 11, _text, true, textWidth);
+            Label(drawing, DiagnosisText(diagnosis), 258, y+24, 11, _dim, width:textWidth);
+            DrawPageButton(drawing, _showSpeedUp ? "Close tips" : "Speed up",
+                new Rect(230+width-86,y+11,74,26),false,()=>{_showSpeedUp=!_showSpeedUp;Draw(_scale);},pinned:false);
+            if (!_showSpeedUp) return y+58;
+
+            var tip = module switch
+            {
+                "CPU" => "CPU usage has stayed high. Review the busiest processes and close apps you recognize and no longer need.",
+                "RAM" => "Memory usage has stayed high. Review the largest apps and close tabs or apps you no longer need.",
+                _ when paused => "Monitoring is paused. Resume it to check CPU and memory.",
+                _ when !diagnosis.HasReadings => "Waiting for CPU and memory readings before suggesting an action.",
+                _ => "No sustained high usage in the available readings. If you need more disk space, review temporary files."
+            };
+            drawing.DrawRoundedRectangle(_surface,_palette.CardBorder,new Rect(230,y+56,width,94),8,8);
+            Label(drawing,tip,245,y+66,12,_text,width:width-30);
+            if (module is not null)
+                DrawPageButton(drawing,"Review "+module,new Rect(245,y+111,126,27),false,()=>Select(module),pinned:false);
+            else if (CanOpenCleanup && !paused && diagnosis.HasReadings)
+                DrawPageButton(drawing,"Review temp files",new Rect(245,y+111,126,27),false,OpenCleanup,pinned:false);
+            return y+160;
+        }
+
+        private string DiagnosisText(SustainedDiagnostics diagnosis)
+        {
+            if (_settings().Pause) return "Monitoring paused";
+            if (diagnosis.Active == SustainedProblem.Cpu) return "CPU usage has stayed high";
+            if (diagnosis.Active == SustainedProblem.Memory) return "Memory usage has stayed high";
+            if (!diagnosis.HasReadings) return diagnosis.HasSample ? "Readings unavailable · retrying" : "Checking CPU and memory…";
+
+            var status = diagnosis.CpuPercent.HasValue && diagnosis.MemoryPercent.HasValue
+                ? "No sustained high usage" : "Partial readings";
+            if (diagnosis.CpuPercent is double cpu) status += $" · CPU {cpu:0}%";
+            if (diagnosis.MemoryPercent is double memory) status += $" · RAM {memory:0}%";
+            return status;
+        }
+
         private void Overview(DrawingContext d)
         {
             var contentWidth=Width-255;
             _palette.DrawDevice(d,230+contentWidth/2);
             Label(d,_device?.Model??"Reading device details…",230,204,22,_text,true,contentWidth,true);
             Label(d,_device?.OperatingSystem??"Windows",230,242,13,_dim,false,contentWidth,true);
-            const double top=280,rowHeight=50;
+            var top=280.0;
+            if(_actions.Diagnostics is {} diagnostics) top=DrawDiagnosis(d,diagnostics,contentWidth,top);
+            const double rowHeight=50;
             double y=top;
             var facts=_device?.Facts??[];
             if(facts.Length>0)d.DrawRoundedRectangle(_surface,_palette.CardBorder,new Rect(230,top,contentWidth,rowHeight*facts.Length),11,11);
@@ -408,12 +473,22 @@ public sealed partial class DashboardHost:IDisposable
         }
         private void Choice(DrawingContext d,string name,string value,ref double y,Action action)
         {
-            var rect=new Rect(235,y-3,Width-275,35);
-            if(rect.Bottom<=66+_scroll||rect.Top>=Height-54+_scroll){y+=41;return;}
-            d.DrawRoundedRectangle(_surface,_palette.CardBorder,rect,6,6);
-            Label(d,name,247,y+6,12,_text);Label(d,value,Width-320,y+6,12,_dim,false,265);Hit(name+": "+value,rect,action);
-            if(_editing==name){d.DrawRoundedRectangle(_surface,new Pen(_blue,1),rect,6,6);Label(d,_entry.Insert(Math.Clamp(_caret,0,_entry.Length),"│"),247,y+6,12,_blue,true,Width-300);}
-            y+=41;
+            var row = SettingsRow(d, name, ref y);
+            if (row.IsEmpty) return;
+            if (_editing == name)
+            {
+                d.DrawRoundedRectangle(_surface, new Pen(_blue,1), row, 6, 6);
+                Label(d, _entry.Insert(Math.Clamp(_caret,0,_entry.Length),"│"),
+                    row.Left+12,row.Top+9,12,_text,true,row.Width-24);
+                return;
+            }
+
+            var width = Math.Min(230, row.Width * .48);
+            var button = new Rect(row.Right-width-7,row.Top+4,width,row.Height-8);
+            d.DrawRoundedRectangle(_palette.Metrics.Surface,_palette.CardBorder,button,5,5);
+            Label(d,value,button.Left+9,button.Top+5,11,_text,true,width-29);
+            Label(d,"›",button.Right-16,button.Top+2,15,_dim);
+            Hit(name+": "+value,row,action);
         }
         private void About(DrawingContext d)
         {
@@ -432,7 +507,7 @@ public sealed partial class DashboardHost:IDisposable
             Draw(_scale);
         }
         private void Run(Func<string> action){try{_status=action();}catch(Exception ex)when(ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidDataException or System.Text.Json.JsonException){_status=ex.Message;}Draw(_scale);}
-        private void Edit(string field,string value){_editing=field;_entry=value;_caret=value.Length;_selectAll=true;_status="Type a value, Enter to apply, Esc to cancel · Ctrl+V to paste";Focus();Draw(_scale);}
+        private void Edit(string field,string value){_editing=field;_entry=value;_caret=value.Length;_selectAll=true;_status=field.StartsWith("Strip ",StringComparison.Ordinal)?"Enter #RRGGBB or leave blank for default · Enter to save":"Type a value, Enter to apply, Esc to cancel · Ctrl+V to paste";Focus();Draw(_scale);}
         private void Insert(string text){if(_selectAll){_entry="";_caret=0;_selectAll=false;}if(_entry.Length+text.Length>1024)return;_entry=_entry.Insert(_caret,text);_caret+=text.Length;Draw(_scale);}
         private void HandleKey(object sender,KeyEventArgs e)
         {
@@ -440,7 +515,7 @@ public sealed partial class DashboardHost:IDisposable
             if(_editing is not null)
             {
                 if(e.Key==Key.Escape){_editing=null;_status="Edit cancelled";Draw(_scale);}
-                else if(e.Key==Key.Enter){var field=_editing;_editing=null;if(field=="Accent color")Change(s=>s with{Accent=_entry.Trim()},"Accent color saved.");else if(field=="Import settings")Run(()=>_actions.ImportSettings(_entry.Trim().Trim('"')));}
+                else if(e.Key==Key.Enter){var field=_editing;_editing=null;if(field=="Accent color")Change(s=>s with{Accent=_entry.Trim()},"Accent color saved.");else if(field!.StartsWith("Strip ",StringComparison.Ordinal))SaveStripColor(Enum.GetValues<StripColor>().First(role=>"Strip "+StripColorLabel(role)==field));else if(field=="Import settings")Run(()=>_actions.ImportSettings(_entry.Trim().Trim('"')));}
                 else if(e.Key==Key.Back){if(_selectAll){_entry="";_caret=0;_selectAll=false;}else if(_caret>0){_entry=_entry.Remove(--_caret,1);}Draw(_scale);}
                 else if(e.Key==Key.Left){_selectAll=false;_caret=Math.Max(0,_caret-1);}else if(e.Key==Key.Right){_selectAll=false;_caret=Math.Min(_entry.Length,_caret+1);}
                 else if(e.Key==Key.Home)_caret=0;else if(e.Key==Key.End)_caret=_entry.Length;
@@ -464,7 +539,7 @@ public sealed partial class DashboardHost:IDisposable
             var bottom=top+bounds.Height;
             if(!fixedPosition){top=Math.Max(66,top);bottom=Math.Min(Height-54,bottom);}
             if(bottom<=top)return;
-            var button=new SurfaceAction(name,action);_buttons.Add(button);AddVisualChild(button);
+            var button=new SurfaceAction(name,action, !name.StartsWith("Dismiss ",StringComparison.Ordinal));_buttons.Add(button);AddVisualChild(button);
             var visibleBounds=new Rect(bounds.Left,top,bounds.Width,bottom-top);
             button.Measure(visibleBounds.Size);button.Arrange(visibleBounds);
         }
@@ -502,7 +577,7 @@ public sealed partial class DashboardHost:IDisposable
                 : _status;
             if (_page != "Dashboard") return "";
             if (_settings().GamingMode) return "Gaming Mode on";
-            return _device is null ? "Reading device details" : "";
+            return _actions.Diagnostics is {} diagnosis ? "Slowdown check. " + DiagnosisText(diagnosis) : _device is null ? "Reading device details" : "";
         }
 
         private sealed class DashboardPeer(DashboardVisual owner):UIElementAutomationPeer(owner)
@@ -514,12 +589,59 @@ public sealed partial class DashboardHost:IDisposable
         private readonly string _name;private readonly Action _action;
         internal string Label=>_name;
         protected override HitTestResult HitTestCore(PointHitTestParameters parameters)=>new PointHitTestResult(this,parameters.HitPoint);
-        public SurfaceAction(string name,Action action){_name=name;_action=action;Focusable=true;IsKeyboardFocusedChanged+=(_,_)=>InvalidateVisual();MouseLeftButtonUp+=(_,e)=>{_action();e.Handled=true;};KeyDown+=(_,e)=>{if(e.Key is Key.Enter or Key.Space){_action();e.Handled=true;}};}
+        private static readonly Brush HoverFill = PopupPalette.Solid(0x52A9FC, 25);
+        private static readonly Brush PressedFill = PopupPalette.Solid(0x52A9FC, 51);
+        private readonly bool _pointerFeedback;
+
+        public SurfaceAction(string name, Action action, bool pointerFeedback)
+        {
+            _name = name;
+            _action = action;
+            _pointerFeedback = pointerFeedback;
+            Focusable = true;
+            IsKeyboardFocusedChanged += (_,_) => InvalidateVisual();
+            MouseLeftButtonDown += (_,_) => InvalidateVisual();
+            MouseLeftButtonUp += (_,e) =>
+            {
+                InvalidateVisual();
+                _action();
+                e.Handled = true;
+            };
+            KeyDown += (_,e) =>
+            {
+                if (e.Key is Key.Enter or Key.Space)
+                {
+                    _action();
+                    e.Handled = true;
+                }
+            };
+        }
+
+        protected override void OnQueryCursor(QueryCursorEventArgs e)
+        {
+            base.OnQueryCursor(e);
+            if (!_pointerFeedback) return;
+            e.Cursor = Cursors.Hand;
+            e.Handled = true;
+        }
+
+        protected override void OnIsMouseDirectlyOverChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnIsMouseDirectlyOverChanged(e);
+            if (_pointerFeedback) InvalidateVisual();
+        }
+
         protected override void OnRender(DrawingContext drawing)
         {
-            if(IsKeyboardFocused&&RenderSize.Width>2&&RenderSize.Height>2)
-                drawing.DrawRoundedRectangle(null,FocusBorder,new Rect(1,1,RenderSize.Width-2,RenderSize.Height-2),5,5);
+            if (RenderSize.Width <= 2 || RenderSize.Height <= 2) return;
+            var fill = _pointerFeedback && IsMouseOver
+                ? Mouse.LeftButton == MouseButtonState.Pressed ? PressedFill : HoverFill
+                : null;
+            if (fill is not null || IsKeyboardFocused)
+                drawing.DrawRoundedRectangle(fill, IsKeyboardFocused ? FocusBorder : null,
+                    new Rect(1,1,RenderSize.Width-2,RenderSize.Height-2),5,5);
         }
+
         protected override AutomationPeer OnCreateAutomationPeer()=>new ActionPeer(this);
         private sealed class ActionPeer(SurfaceAction owner):UIElementAutomationPeer(owner),IInvokeProvider
         {protected override string GetNameCore()=>owner._name;protected override string GetClassNameCore()=>"TidletAction";protected override AutomationControlType GetAutomationControlTypeCore()=>AutomationControlType.Button;public override object? GetPattern(PatternInterface p)=>p==PatternInterface.Invoke?this:base.GetPattern(p);public void Invoke()=>owner.Dispatcher.BeginInvoke(owner._action);}

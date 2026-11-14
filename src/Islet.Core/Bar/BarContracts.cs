@@ -61,6 +61,8 @@ public sealed record BarSettings
     public BarAlignment Alignment {get;init;}=BarAlignment.Right;
     public MonitorSelection Monitors {get;init;}=MonitorSelection.Primary;
     public string? SelectedMonitor {get;init;}
+    public Dictionary<StripColor,string> StripColors {get;init;} = [];
+    public static bool IsStripColor(string? value) => value is { Length: 7 } && value[0] == '#' && value.Skip(1).All(Uri.IsHexDigit);
     public double Opacity {get;init;}=.8;
     public int IntervalSeconds {get;init;}=3;
     public BarModule[] Items {get;init;}=[BarModule.Cpu,BarModule.Ram,BarModule.Network,BarModule.Battery];
@@ -75,6 +77,10 @@ public sealed record BarSettings
     /// <summary>Target FPS for gaming-mode color coding (green ≥ target, amber ≥ half, red below half). Range 30–360.</summary>
     public int FpsTarget{get;init;}=60;
     /// <summary>Percent threshold above which CPU/GPU/RAM items turn amber; ≥ 95% turns red. Range 50–100.</summary>
+    public bool SustainedAlerts {get;init;}
+    public int SustainedSeconds {get;init;}=120;
+    public int SustainedUsagePercent {get;init;}=90;
+    public int SustainedBatteryPercent {get;init;}=15;
     public int ThresholdPercent{get;init;}=85;
     public static IReadOnlyList<BarModule> GamingModules=>GamingItemsWithSensors;
     public BarModule[]? GamingStripItems {get;init;}
@@ -135,6 +141,7 @@ public sealed record BarSettings
     public BarSettings Validate()
     {
         if(Version!=1 || !Enum.IsDefined(Mode)||!Enum.IsDefined(Edge)||!Enum.IsDefined(Alignment)||!Enum.IsDefined(Monitors)
+            || StripColors is null || StripColors.Count > 12 || StripColors.Any(color => !Enum.IsDefined(color.Key) || !IsStripColor(color.Value))
             || !double.IsFinite(Opacity)||Opacity is <.2 or >1 || IntervalSeconds is not (1 or 2 or 3 or 5)
             || Items is null||Items.Length>7||Items.Any(x=>!ConfigurableModules.Contains(x))||Items.Distinct().Count()!=Items.Length
             || ItemOrder is null||ItemOrder.Length>7||ItemOrder.Any(x=>!ConfigurableModules.Contains(x))||ItemOrder.Distinct().Count()!=ItemOrder.Length)
@@ -145,6 +152,7 @@ public sealed record BarSettings
         ||GamingRefreshSeconds is not (null or 1 or 2 or 3 or 5)
         ||(GamingStripItems is { } gaming && (gaming.Length==0||gaming.Length>GamingModules.Count
             ||gaming.Any(item=>!GamingModules.Contains(item))||gaming.Distinct().Count()!=gaming.Length))
+        ||SustainedSeconds is not (30 or 60 or 120 or 300)||SustainedUsagePercent is <70 or >99||SustainedBatteryPercent is <5 or >40
         ||FpsTarget is <30 or >360||ThresholdPercent is <50 or >100)
             throw new InvalidDataException("Theme or module settings contain an unsupported value.");
         return this;
@@ -207,7 +215,7 @@ public static class BarLayout
         var left=Math.Max(b.Left,w.Left);var right=Math.Min(b.Right,w.Right);var top=Math.Max(b.Top,w.Top);var bottom=Math.Min(b.Bottom,w.Bottom);
         if(right<=left||bottom<=top){left=b.Left;right=b.Right;top=b.Top;bottom=b.Bottom;}
         var inset=Math.Min((int)Math.Ceiling(8*scale),Math.Max(0,(right-left-1)/2));
-        var gap=Math.Min((int)Math.Ceiling(4*scale),Math.Max(0,bottom-top-1));
+        var gap=edge==BarEdge.Bottom?0:Math.Min((int)Math.Ceiling(4*scale),Math.Max(0,bottom-top-1));
         var height=Math.Min((int)Math.Ceiling((edge==BarEdge.Top?HeightDip(settings):HeightDip(edge))*scale),bottom-top-gap);
         var requested=24+(settings.GamingMode?GamingIndicatorWidth+10:0)+settings.VisibleItems.Sum(module=>Size(settings,module,true))+Math.Max(0,settings.VisibleItems.Count-1)*10;
         var width=Math.Min(right-left-inset*2,(int)Math.Ceiling(requested*scale));
@@ -252,6 +260,7 @@ public interface IBarSurface:IDisposable
     bool ShouldHide{get;}
     bool TrayPresent{get;}
     bool SlowPolling=>false;
+    void Notify(string message) {}
     /// <summary>True when the foreground window covers this bar's monitor and belongs to a non-shell process. Used for auto gaming-mode detection; never blocks the bar.</summary>
     bool IsFullScreenForeground=>false;
     void SetHidden(bool hidden);

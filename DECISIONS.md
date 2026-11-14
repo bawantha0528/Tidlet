@@ -415,3 +415,9 @@ An already-elevated Tidlet session requests one bounded CPU helper sample at mos
 ## Meter warning colors
 
 CPU, GPU, RAM, commit and disk activity use the shared configured warning percentage and the 95% critical threshold. Volume space uses 90% and 95% used. Battery charge uses low-side thresholds of 25% and 15%, and reported battery health uses 80% and 60%. Available CPU/GPU temperature and existing hardware thermal indicators use the existing 80/90 °C colors as display hints. Blue and green are the normal meter colors. Network transfer colors distinguish upload from download, and a missing reading does not trigger a warning.
+
+## Sustained slowdown diagnosis and alerts — 14 November 2026
+
+CPU utilization, physical memory usage and unplugged battery charge reuse the existing bar sample. Missing, stale or interrupted samples break the continuous interval. CPU takes priority when CPU and memory are both high. Disk and thermal causes are outside the current diagnosis because the bar does not continuously sample those signals. Notifications are opt-in and use the registered Windows tray icon, with quiet-time and real-time flags. The portable detector makes no system changes.
+
+API reference: [NOTIFYICONDATAW](https://learn.microsoft.com/windows/win32/api/shellapi/ns-shellapi-notifyicondataw) and [Windows notification states](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ne-shellapi-query_user_notification_state).

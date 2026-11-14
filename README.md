@@ -1,103 +1,121 @@
-<p align="center">
-  <img src="docs/screenshots/tidlet-logo.svg" width="96" height="96" alt="Tidlet logo with a blue waveform and red dot">
-</p>
+<p align="center"><img src="docs/screenshots/tidlet-logo.svg" width="88" height="88" alt="Tidlet logo"></p>
 
 <h1 align="center">Tidlet Monitor</h1>
 
-<p align="center">A Windows system monitor with a compact strip, click-open details, and desktop widgets.</p>
+<p align="center">See how your Windows PC is doing from a compact strip, click-open popups, and desktop widgets.</p>
 
-<p align="center"><strong>Windows 10 / 11 · WPF · .NET 8 · MIT</strong></p>
+<p align="center">
+  <a href="https://github.com/bawantha0528/Tidlet/releases/download/v0.1.0-preview/TidletSetup.exe"><strong>Download for Windows</strong></a>
+  · <a href="https://github.com/bawantha0528/Tidlet/releases">Release notes</a>
+  · <a href="#first-run">First run</a>
+  · <a href="#compatibility">Compatibility</a>
+</p>
 
-<p align="center"><a href="#quick-start">Quick start</a> · <a href="#monitor-strip">Strip</a> · <a href="#dashboard-and-popups">Dashboard</a> · <a href="#widgets">Widgets</a> · <a href="#gaming-mode">Gaming</a></p>
+![Tidlet Dashboard with the device overview and compact Slowdown check](docs/screenshots/dashboard-current.png)
 
-![Tidlet Dashboard showing the PC model and hardware inventory](docs/screenshots/dashboard.png)
+## Download and install
 
-## Quick start
+1. Download [TidletSetup.exe](https://github.com/bawantha0528/Tidlet/releases/download/v0.1.0-preview/TidletSetup.exe).
+2. Open it and follow the setup wizard. An all-users installation requests administrator approval. Tidlet normally runs with standard Windows permissions.
+3. Launch **Tidlet Monitor** from Start. If an older copy is running, right-click its tray icon and choose **Exit Tidlet** first.
 
-Tidlet is currently available as a source build or local preview. The project produces an x86, framework-dependent Windows app. Install the **x86 .NET 8 Desktop Runtime**, including on x64 Windows. [Microsoft .NET 8 downloads](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+The download is **v0.1.0-preview**. The screenshots and instructions below show the current source build and include changes made after that installer was published. [Official preview release](https://github.com/bawantha0528/Tidlet/releases/tag/v0.1.0-preview)
 
-Build from the repository root with the SDK pinned in [global.json](global.json):
+## First run
 
-```powershell
-dotnet restore TidletMonitor.sln --locked-mode
-dotnet build TidletMonitor.sln -c Release --no-restore
-.\src\IsletMonitor\bin\Release\net8.0-windows\IsletMonitor.exe
-```
+- **Find Tidlet.** Look beside the Windows clock. Check **Show hidden icons** if needed. Right-click the Tidlet icon and choose **Open Dashboard**.
+- **Explore a reading.** Click an item on the strip for a popup. Press **Esc** or click outside to close it.
+- **Set up your layout.** Open **Settings → Monitor Strip** to choose where the strip appears. Open **Widgets** to pin readings to your desktop.
 
-If Tidlet is already running, choose **Exit Tidlet** from the tray before opening a new build. Look beside the Windows clock, including under **Show hidden icons**, and choose **Open Dashboard**. Keep the executable and companion files together.
+## Customize the monitor strip
 
-## Monitor strip
+![Bottom strip showing live system readings](docs/screenshots/bottom-strip-current.png)
 
-![Dark top strip with CPU, GPU, RAM, network and battery readings](docs/screenshots/top-strip.png)
+| Placement | What to expect |
+| --- | --- |
+| **Top** | Tidlet reserves space above maximized windows when Windows can allocate it. |
+| **Hover** | Move the cursor to the top edge to reveal the strip over open windows. |
+| **Bottom** | The strip sits directly above the bottom taskbar. Choose Overlay or Reserve in Settings. |
 
-![Light bottom strip with the same monitor items](docs/screenshots/bottom-strip.png)
+Choose left, center, or right alignment and select your monitors. Click a sample reading in the preview to open its style settings. Use **← / →** to reorder items. Depending on the metric, you can choose text, icons, a ring, a bar, or a sparkline.
 
-- Choose **Top**, **Bottom**, or **Top · reveal on hover**. The fixed top strip reserves space. The hover strip drops over open windows. The bottom strip offers **Overlay** or **Reserve**. Choose alignment and monitors in Settings. All strips use an opaque matte-black finish.
-- Click a strip item to open its popup. Right-click the strip or tray icon for quick controls.
-- Enable items on their module pages and pick a style from the previews. Depending on the module, styles include text, rings, bars, sparklines, or icons.
-- Open **Settings → Monitor strip** to preview your layout with sample readings and move items left or right. Battery is last by default. Your chosen order survives hiding and re-enabling items.
-- Meters use blue or green for normal readings, orange for warnings, and red for critical readings. Network transfer colors distinguish upload and download.
+Under **Settings → Strip Colors**, click a swatch to pick a preset or enter a custom hex color. Restore individual colors or reset the full palette.
+
+![Strip settings with a clickable preview, placement and alignment buttons, and item order controls](docs/screenshots/strip-settings-current.png)
 
 ## Dashboard and popups
 
-| Module | What you can see |
+| Page | What you can see |
 | --- | --- |
-| **CPU** | Usage, history, per-processor load, clocks, processes, and package temperature when available. |
-| **GPU** | Per-adapter usage, dedicated capacity, and reported temperatures. |
-| **RAM** | Physical usage, memory pressure, commit, page file, and top processes. |
-| **Disk** | Read/write activity, volume capacity, and on-demand physical drive health. |
-| **Network** | Up/down rates, local adapter details, and on-demand Wi-Fi checks. |
-| **Battery** | Charge, capacity, health, reported temperature, trends, and supported power-mode controls. |
-| **Sensors** | Available read-only GPU and storage sensors, including temperature, clocks and voltage. |
+| **CPU** | Usage history, per-core load, clocks, and busy processes. Package temperature appears when supported. |
+| **GPU** | Usage by adapter, dedicated memory capacity, and available temperatures. |
+| **RAM** | Physical memory use, memory pressure, commit, page file, and top processes. |
+| **Disk** | Read/write activity, capacity, and an on-demand drive health check. |
+| **Network** | Upload and download speeds, adapter details, and on-demand Wi-Fi diagnostics. |
+| **Battery** | Charge, health and capacity trends, available temperature, and supported Windows power modes. |
+| **Sensors** | Read-only readings that your hardware and drivers expose. |
 
 <table>
-<tr>
-<td><img src="docs/screenshots/cpu-light.png" alt="Light CPU Dashboard with usage and history"></td>
-<td width="27%"><img src="docs/screenshots/ram-popup.png" alt="RAM popup with a pressure warning"></td>
-</tr>
+<tr><th>CPU Dashboard in light mode</th><th>RAM popup</th></tr>
+<tr><td><img src="docs/screenshots/cpu-light-current.png" alt="CPU usage and history in the light Dashboard"></td><td><img src="docs/screenshots/ram-popup-current.png" width="235" alt="RAM popup with a gauge, history, and memory details"></td></tr>
 </table>
 
-- **CPU temperature.** Install PawnIO separately, then use **CPU → Check CPU temp** and approve the Windows prompt. An already-elevated Tidlet session can refresh temperature while the CPU page or popup is open. [Official PawnIO releases](https://github.com/namazso/PawnIO.Setup/releases)
-- **Wi-Fi checks.** Open **Network → Run checks** to test router, Internet, and DNS separately. The checks run on request.
-- **Storage cleanup.** Use **Disk → Review cleanup** or the Widgets card to scan eligible temporary files and review the estimated savings before confirming deletion.
-- **Battery care.** Use the Battery page to review charge and full-charge capacity history, choose a supported power mode, or open the instructions for a manufacturer-provided 80% charge limit.
+## When your PC feels slow
 
-Missing readings depend on device, firmware, and permissions. Tidlet marks readings that are still warming up or unavailable.
+- **Slowdown check.** The Dashboard shows live CPU and RAM readings and flags sustained high usage. Click **Speed up** for a suggestion and a shortcut to CPU or RAM details. If you need disk space, you can open the temporary-file review.
+- **Sustained alerts.** In **Settings → Sustained Alerts**, enable Windows notifications and adjust the limits. The defaults are **90% CPU or RAM** and **15% battery while unplugged** for **two minutes**, with a five-minute cooldown. Alerts start off.
+- **Wi-Fi diagnostics.** Open **Network → Run checks** to test the router, internet endpoint, and DNS separately.
+- **Temporary files.** Open **Disk → Review cleanup → Scan temp files**. Review the estimated savings and confirm removal separately. Tidlet reports how many files were removed or skipped.
+- **Battery care.** Review charge and capacity trends, select a supported Windows power mode, or find instructions for setting an 80% charge limit through your laptop manufacturer.
 
-## Widgets
+![Temporary-file cleanup page with a Scan temp files button](docs/screenshots/temp-cleanup-current.png)
 
-![Tidlet Widgets showing data usage, CPU, GPU, and RAM cards](docs/screenshots/widgets.png)
+## Desktop widgets
 
-Open **Widgets** in the sidebar for CPU, GPU, RAM, Disk, Network, Battery, Combined, and Data usage. Select **+** to pin a card to the desktop. Drag it by its title and use **×** to remove it. Tidlet remembers the desktop positions.
+![Widgets page with data usage and hardware monitoring cards](docs/screenshots/widgets-current.png)
 
-CPU, GPU, and Battery cards show temperatures where reported and follow **Settings → Temperature**. The CPU and Combined widgets show the age of the most recent CPU package temperature from the current session. The GPU widget shows the highest reported adapter temperature. Combined shows CPU and GPU temperatures when available.
+Select **+** to pin a card, drag its title to move it, and select **×** to remove it. Tidlet remembers widget positions. Choose from CPU, GPU, RAM, Disk, Network, Battery, Combined, and Data usage.
 
-The **Data usage** card supports **Day**, **Week**, and **Month**. It records traffic from eligible physical adapters while Tidlet is running. Traffic while the strip is hidden is counted when Tidlet next reads the adapter counters or exits normally. Hidden intervals that cross midnight are assigned to the day of that next read. Totals include local traffic, and weeks start Monday.
+**Data usage** shows day, week, and month totals recorded from eligible physical adapters while Tidlet is running. Totals include local traffic. Traffic from a hidden-strip interval can appear at the next counter read or normal exit.
 
 ## Gaming Mode
 
-![Gaming strip with its status badge and FPS, GPU, CPU, RAM, and battery items](docs/screenshots/gaming-strip.png)
+![Gaming Mode settings for activation, refresh rate, FPS target, and strip items](docs/screenshots/gaming-current.png)
 
-Use **Dashboard → Gaming** or the tray menu to switch layouts on the existing strip. The Gaming page controls auto activation, the FPS target, warning threshold, refresh interval, and which items appear.
+Use **Dashboard → Gaming** or the tray menu to switch the existing strip to your gaming layout. Choose which readings appear, the update interval, and the FPS target.
 
-FPS requires the official **PresentMon 2.6.0 x64 standalone executable** next to Tidlet. Tidlet verifies its release hash before launching it. Frame tracing requires Windows permission, so click **FPS** for details if it shows **Unavailable**. FPS follows the window selected when Gaming Mode starts. Switching away pauses capture until you return. Turn Gaming Mode off and on to select another window. Fullscreen hiding pauses the strip and FPS capture. [PresentMon release assets](https://github.com/GameTechDev/PresentMon/releases/expanded_assets/v2.6.0)
+FPS needs the verified **PresentMon 2.6.0 x64** standalone executable beside Tidlet and Windows permission to capture frames. Focus the game when Gaming Mode starts. Switching away pauses capture, and fullscreen suppression can pause it as well. [PresentMon release assets](https://github.com/GameTechDev/PresentMon/releases/expanded_assets/v2.6.0)
 
-## Privacy and compatibility
+## Compatibility
 
-Tidlet keeps preferences and local readings under `%APPDATA%\IsletMonitor` or in memory, depending on the feature. There are no accounts, analytics, cloud sync, or automatic update checks. Routine monitoring runs under a standard Windows account. **Settings → Export settings** saves preferences, and **Compatibility report** creates a local JSON file you can review before sharing.
+| System | Status |
+| --- | --- |
+| **Windows 11 on x64** | The x86 build has been tested on Windows 11 build 26200 on an Intel PC. |
+| **Windows 10** | Intended for releases supported by .NET 8. Clean install and launch testing is pending. |
+| **32-bit Windows 10** | Tidlet builds for x86. A native 32-bit test is pending. The FPS helper requires 64-bit Windows. |
+| **Windows on Arm** | Windows supports x86 emulation. A Tidlet run on Arm and a native Arm64 build are pending. |
 
-## Development and validation
+Basic monitoring needs no optional hardware driver. Temperature, battery health, and GPU metrics depend on the device and its drivers. CPU package temperature may require PawnIO and explicit approval for the helper. [Microsoft .NET compatibility](https://learn.microsoft.com/dotnet/core/install/windows#supported-versions) · [Windows on Arm](https://learn.microsoft.com/windows/arm/apps-on-arm-x86-emulation) · [PawnIO releases](https://github.com/namazso/PawnIO.Setup/releases)
 
-- `src/Islet.Core` contains portable settings, capabilities, and metric calculations.
-- `src/Islet.Shell` contains WPF strip, popup, Dashboard, and widget presentation.
-- `src/Islet.Windows` contains Windows interop and hardware providers.
-- `src/IsletMonitor` contains app startup and composition.
-- `tests` and `scripts` contain automated checks, render probes, and measurement tools.
+## Privacy and support
 
-The images above are application render exports. See [PROGRESS.md](PROGRESS.md) for measured builds and open verification gaps, [PERFORMANCE.md](docs/PERFORMANCE.md) for the resource methodology, and [AGENTS.md](AGENTS.md) for the engineering agreement.
+- Settings and local readings stay on your PC. Tidlet uses no accounts, telemetry, cloud sync, or automatic update checks. Wi-Fi diagnostics contact network endpoints when requested.
+- Settings live under **%APPDATA%\IsletMonitor**. Use **Settings → Export settings** to back them up or **Import settings** to restore them.
+- If a reading is missing, open its Dashboard page for the availability message. To report an issue, export a compatibility report from Settings, review it, and attach it to a [GitHub issue](https://github.com/bawantha0528/Tidlet/issues).
+
+## Build from source
+
+Install the SDK pinned in [global.json](global.json) and the [x86 .NET 8 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0). Run from the project folder:
+
+~~~powershell
+dotnet restore TidletMonitor.sln --locked-mode
+dotnet build TidletMonitor.sln -c Release --no-restore
+dotnet test TidletMonitor.sln -c Release --no-build
+.\src\IsletMonitor\bin\Release\net8.0-windows\IsletMonitor.exe
+~~~
+
+The screenshots are rendered by the current app. See [Progress](PROGRESS.md) for validation results, [Performance](docs/PERFORMANCE.md) for measurement methods, and [Dependencies](docs/DEPENDENCIES.md) for optional components and licenses.
 
 ## License and credits
 
-Tidlet is licensed under the [MIT License](LICENSE). UI inspired by Stats (exelban/stats, MIT). [Stats repository](https://github.com/exelban/stats)
-
-Optional hardware and FPS integrations use LibreHardwareMonitor, PawnIO, and PresentMon. See [dependency and license notes](docs/DEPENDENCIES.md).
+Tidlet Monitor is licensed under the [MIT License](LICENSE). UI inspired by [Stats (exelban/stats, MIT)](https://github.com/exelban/stats).

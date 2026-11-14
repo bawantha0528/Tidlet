@@ -18,6 +18,9 @@ public sealed class PresentMonCapture(string executable) : IDisposable
 
     public FrameReading Read(uint? diagnosticTarget = null)
     {
+        if (!Environment.Is64BitOperatingSystem)
+            return new(null, "FPS capture requires 64-bit Windows and the x64 PresentMon helper.", true);
+
         var pid = diagnosticTarget ?? ForegroundTarget();
 
         lock (_gate)
